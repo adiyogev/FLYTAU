@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 class User(ABC):
     def __init__(self, email):
@@ -31,9 +31,6 @@ class Guest(User):
         self.name = ""
 
 
-#class Employee(ABC):
-#    def __init__(self, id, first_name, last_name, phone_num, start_date, city, street, st_num):
-#        super().__init__(id, first_name, last_name, phone_num, start_date, city, street, st_num)
 
 class Pilot:
     def __init__(self, id, first_name, last_name, phone_num, start_date, city, street, st_num, long_flight_qualified):
@@ -84,25 +81,42 @@ class Manager:
 
 
 class Flight:
-    def __init__(self, flight_id, origin, destination, duration, departure_datetime):
+    def __init__(self, flight_id, origin, destination, duration, departure, plane_id, capacity=0, occupied=0, is_cancelled=False):
         self.flight_id = flight_id
-        self.status = 'active'
         self.origin = origin
         self.destination = destination
         self.duration = duration
-        self.departure = departure_datetime
-        self.plane_capacity = plane_capacity
-        self.seats_booked = seats_booked
+        self.departure = departure
+        self.plane_id = plane_id
+        self.capacity = capacity
+        self.occupied = occupied
         self.is_cancelled = is_cancelled
+
+    @property
+    def status(self):
+        now = datetime.now()
+        if self.is_cancelled:
+            return "cancelled"
+        if now > self.departure:
+            return "completed"
+        if self.seats_booked >= self.plane_capacity:
+            return "full"
+        return "active"
+
+    @property
+    def arrival_time(self):
+        try:
+            hours, minutes = map(int, self.duration.split(':'))
+            return self.departure + timedelta(hours=hours, minutes=minutes)
+        except (ValueError, AttributeError):
+            return None
+
+    @property
+    def available_seats(self):
+        return self.capacity - self.occupied
 
     def is_long_flight(self):
         return self.duration.total_seconds() > 6 * 3600
-
-    @property
-    def flight_status(self): # צריך לעדכן בזמן אמת?
-        if self.status != 'cancelled' and datetime.now() > self.departure:
-            return 'completed'
-        # נוסיף אחרי זה עדכון של הDB בסטטוס טיסה?
 
 
 class Plane:

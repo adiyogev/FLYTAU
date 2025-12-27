@@ -123,6 +123,109 @@ def logout():
     session.clear()
     return redirect('/')
 
+@app.route('/search_flights', methods=['POST', 'GET'])
+def search_flights():
+    if request.method == 'POST':
+        origin = request.form.get('origin')
+        destination = request.form.get('destination')
+        departure_date = request.form.get('departure_date')
+        num_passengers = int(request.form.get('num_passengers', 1))
+
+        session['search_origin'] = origin
+        session['search_destination'] = destination
+        session['num_passengers'] = num_passengers
+
+        query = """
+            SELECT 
+                f.flight_id, f.origin_airport, f.destination_airport, 
+                f.duration, f.departure,
+                (SELECT COUNT(*) FROM Class as c WHERE c.plane_id = f.plane_id) as capacity,
+                COALESCE(occupied_counts.booked_count, 0) as occupied
+            FROM Flight as f
+            LEFT JOIN (
+                SELECT o.flight_id, COUNT(sio.seat_row) as booked_count
+                FROM Orders as o
+                JOIN Seats_in_Order sio ON o.code = sio.code
+                WHERE o.status != 'cancelled'
+                GROUP BY o.flight_id
+            ) occupied_counts ON f.flight_id = occupied_counts.flight_id
+            WHERE f.origin_airport = %s 
+              AND f.destination_airport = %s 
+              AND DATE(f.departure) = %s
+              AND f.status = 'active'
+              HAVING (capacity - occupied) >= %s
+        """
+
+        cursor.execute(query, (origin, destination, departure_date, num_passengers))
+        flights_from_db = cursor.fetchall()
+
+        available_flights = []
+        for f in flights_from_db:
+            flight_obj = Flight(
+                flight_id=f[0], origin=f[1], destination=f[2],
+                duration=f[3], departure=f[4],
+                capacity=f[5], occupied=f[6]
+            )
+            available_flights.append(flight_obj)
+
+        return render_template('flight_results.html', flights=available_flights)
+
+    return redirect('/homepage')
+
+
+@app.route('/manager')
+def manager_home():
+
+
+@app.route('/manager/flights')
+def manager_flights():
+    if session.get("role") != 'manager':
+        return redirect('/login_manager')
+    cursor.execute("""
+        SELECT f.flight_id, f.origin_airport, f.destination_airport, 
+               f.departure, r.duration, p.size, f.status,
+               (SELECT COUNT(*) FROM Class WHERE plane_id = f.plane_id) as capacity,
+               (SELECT COUNT(*) FROM Seats_in_Order WHERE code IN 
+                    (SELECT code FROM Orders WHERE flight_id = f.flight_id)) as occupied,
+                f.plane_id
+        FROM Flight as f JOIN Route as r ON f.origin_airport = r.origin_airport AND f.destination_airport = r.destination_airport
+            JOIN Plane as p ON f.plane_id = p.plane_id
+        ORDER BY f.departure DESC
+    """)
+    flights_data = cursor.fetchall()
+    flights_list = []
+    for row in flights_data:
+        f = Flight(flight_id=row[0], origin=row[1], destination=row[2],
+            departure=row[3], duration=str(row[4]),
+            capacity=row[7], occupied=row[8],
+            is_cancelled=(row[6] == 'cancelled'),
+            plane_id=row[9])
+        flights_list.append(f)
+    return render_template('manager_flights.html', flights=flights_list)
+
+
+@app.route('/manager/manage_flight/<flight_id>')
+def manage_flight(flight_id):
+    if session.get("role") != 'manager':
+        return redirect('/login_manager')
+    cursor.execute("""
+        SELECT f.*, r.duration, p.size 
+        FROM Flight as f JOIN Route as r ON f.origin_airport = r.origin_airport AND f.destination_airport = r.destination_airport
+            JOIN Plane as p ON f.plane_id = p.plane_id WHERE f.flight_id = %s""", (flight_id,))
+    flight_row = cursor.fetchone()
+    if not flight_row:
+        return "Flight not found", 404
+    # Employees on the flight:
+    cursor.execute("SELECT pilot_id FROM Pilots_on_Flight WHERE flight_id = %s", (flight_id,))
+    current_pilots = [p[0] for p in cursor.fetchall()]
+    cursor.execute("SELECT fa_id FROM FA_on_Flight WHERE flight_id = %s", (flight_id,))
+    current_fa = [fa[0] for fa in cursor.fetchall()]
+    return render_template('manage_specific_flight.html',
+                           flight_id=flight_id,
+                           flight_details=flight_row,
+                           current_pilots=current_pilots,
+                           current_fa=current_fa)
+
 @app.errorhandler(404)
 def error(e):
     return redirect('/')
