@@ -173,12 +173,7 @@ def search_flights():
     return redirect('/homepage')
 
 
-@app.route('/manager')
-def manager_home():
-    from datetime import datetime, timedelta
-
-
-@app.route('/manager/flights', methods=['GET', 'POST'])
+@app.route('/manager', methods=['GET', 'POST'])
 def manager_flights():
     if session.get("role") != 'manager':
         return redirect('/login_manager')
@@ -234,65 +229,115 @@ def manager_flights():
     return render_template('manager_flights.html', flights=flights_list)
 
 
-@app.route('/manager/add_flight', methods=['GET', 'POST'])
-def add_flight():
+@app.route('/manager/add_flight/step1', methods=['GET', 'POST'])
+def add_flight_step1():
+# inserting the "basic details" of the flight
     if session.get("role") != 'manager':
         return redirect('/login_manager')
 
     if request.method == 'POST':
-        # pulling data from form
-        f_id = request.form.get('flight_id')
         origin = request.form.get('origin')
         dest = request.form.get('destination')
-        departure = datetime.strptime(request.form.get('departure'), '%Y-%m-%dT%H:%M')
-        plane_id = request.form.get('plane_id')
-        pilot_ids = request.form.getlist('pilots')
-        fa_ids = request.form.getlist('flight_attendants')
-        price_eco = request.form.get('price_economy')
-        price_bus = request.form.get('price_business')
+        dep_str = request.form.get('departure')
+        departure_dt = datetime.strptime(dep_str, '%Y-%m-%dT%H:%M')
 
-        # flight duration
-        cursor.execute("SELECT duration FROM Route WHERE origin_airport = %s AND destination_airport = %s",
-                       (origin, dest))
-        route_row = cursor.fetchone()
-        if route_row:
-            duration_val = route_row[0]
-        else:
-            duration_val = request.form.get('duration')
+        # search for this route in DB
+        cursor.execute("SELECT duration, is_long FROM Route WHERE origin_airport = %s AND destination_airport = %s", (origin, dest))
+        route = cursor.fetchone()
+
+        if not route:
+            # if it is a new route - fill duration and insert to DB
+            duration_str = request.form.get('duration')
             cursor.execute("INSERT INTO Route (origin_airport, destination_airport, duration) VALUES (%s, %s, %s)",
-                           (origin, dest, duration_val))
-        # long / short flight
-        is_long = duration_val.total_seconds() > 6 * 3600
-        # plane availability
-        cursor.execute(
-            "SELECT flight_id FROM Flight WHERE plane_id = %s AND ABS(TIMESTAMPDIFF(HOUR, departure, %s)) < 24",
-            (plane_id, departure))
-        if cursor.fetchone():
-            return "המטוס אינו זמין (פחות מ-24 שעות מטיסה אחרת).", 400
-        # insert flight in DB
-        try:
-            cursor.execute(
-                "INSERT INTO Flight (flight_id, status, origin_airport, destination_airport, departure, plane_id) VALUES (%s, 'active', %s, %s, %s, %s)",
-                (f_id, origin, dest, departure, plane_id))
-            for p_id in pilot_ids:
-                cursor.execute("INSERT INTO Pilots_on_Flight (flight_id, pilot_id) VALUES (%s, %s)", (f_id, p_id))
-            for fa_id in fa_ids:
-                cursor.execute("INSERT INTO FA_on_Flight (flight_id, fa_id) VALUES (%s, %s)", (f_id, fa_id))
+                           (origin, dest, duration_str))
             mydb.commit()
-            return redirect('/manager/flights')
+            duration = duration_str
+            is_long = int(duration.split(':')[0]) > 6
+        else:
+            duration = str(route[0])
+            is_long = route[1]
+
+        session['temp_flight'] = {
+            'flight_id': request.form.get('flight_id'),
+            'origin': origin,
+            'destination': dest,
+            'departure': dep_str,
+            'duration': duration,
+            'is_long': is_long
+        }
+        return redirect('/manager/add_flight/step2')
+    return render_template('add_flight_s1.html')
+
+
+@app.route('/manager/add_flight/step2', methods=['GET', 'POST'])
+def add_flight_step2():
+# choosing plane and crew
+    f_data = session.get('temp_flight')
+    dep_dt = datetime.strptime(f_data['departure'], '%Y-%m-%dT%H:%M')
+    is_long = f_data['is_long']
+
+    if request.method == 'POST':
+        session['temp_flight'].update({
+            'plane_id': request.form.get('plane_id'),
+            'pilots': request.form.getlist('pilots'),
+            'fas': request.form.getlist('fas')})
+        return redirect('/manager/add_flight/step3')
+
+    # available and suitable planes
+    plane_query = """
+        SELECT plane_id, size 
+        FROM Plane 
+        WHERE plane_id NOT IN (SELECT plane_id 
+                                FROM Flight
+                                WHERE ABS(TIMESTAMPDIFF(HOUR, departure, %s)) < 24)
+    """
+    if is_long:
+        plane_query += " AND size = 'large'"
+    cursor.execute(plane_query, (dep_dt,))
+    available_planes = cursor.fetchall()
+    available_pilots = get_available_staff('Pilot', 'pilot_id')
+    available_fas = get_available_staff('Flight_Attendant', 'fa_id')
+
+    return render_template('add_flight_s2.html', planes=available_planes, pilots=available_pilots, fas=available_fas, is_long=is_long)
+
+
+@app.route('/manager/add_flight/step3', methods=['GET', 'POST'])
+def add_flight_step3():
+# insert prices for economy and business (if there are) seats
+    f_data = session.get('temp_flight')
+    # chosen plane size
+    cursor.execute("SELECT size FROM Plane WHERE plane_id = %s", (f_data['plane_id'],))
+    plane_size = cursor.fetchone()[0]
+
+    if request.method == 'POST':
+        p_eco = int(request.form.get('price_economy'))
+        p_bus = request.form.get('price_business')
+        p_bus = int(p_bus) if p_bus else None
+
+        # pricing validation
+        temp_f = Flight(f_data['flight_id'], f_data['origin'], f_data['destination'], f_data['duration'],
+                        f_data['departure'], f_data['plane_id'], p_bus, p_eco)
+        valid, msg = temp_f.validate_pricing(plane_size, p_bus)
+
+        if not valid:
+            return render_template('add_flight_s3.html', error=msg, plane_size=plane_size)
+
+        # calculate the derived attribute 'arrival' and insert to DB
+        h, m = map(int, f_data['duration'].split(':'))
+        arrival = datetime.strptime(f_data['departure'], '%Y-%m-%dT%H:%M') + timedelta(hours=h, minutes=m)
+        try:
+            cursor.execute("""INSERT INTO Flight (flight_id, origin_airport, destination_airport, departure, arrival, plane_id, economy_seat_price, business_seat_price)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""", (f_data['flight_id'], f_data['origin'], f_data['destination'], f_data['departure'], arrival, f_data['plane_id'], p_eco, p_bus))
+            for pid in f_data['pilots']: cursor.execute("INSERT INTO Pilots_on_Flight VALUES (%s, %s)", (f_data['flight_id'], pid))
+            for fid in f_data['fas']: cursor.execute("INSERT INTO FA_on_Flight VALUES (%s, %s)", (f_data['flight_id'], fid))
+            mydb.commit()
+            session.pop('temp_flight')
+            return redirect('/manager')
         except Exception as e:
             mydb.rollback()
-            return f"שגיאה ביצירת הטיסה: {e}"
+            return f"Error: {e}"
 
-    # GET: lists for form
-    cursor.execute("SELECT plane_id, size FROM Plane")
-    planes = cursor.fetchall()
-    cursor.execute("SELECT pilot_id, first_name, last_name, long_flight_qualified FROM Pilot")
-    pilots = cursor.fetchall()
-    cursor.execute("SELECT fa_id, first_name, last_name, long_flight_qualified FROM Flight_Attendant")
-    fas = cursor.fetchall()
-
-    return render_template('add_flight.html', planes=planes, pilots=pilots, fas=fas)
+    return render_template('add_flight_s3.html', plane_size=plane_size)
 
 
 @app.errorhandler(404)

@@ -31,7 +31,6 @@ class Guest(User):
         self.name = ""
 
 
-
 class Pilot:
     def __init__(self, id, first_name, last_name, phone_num, start_date, city, street, st_num, long_flight_qualified):
         self.id = id
@@ -43,6 +42,11 @@ class Pilot:
         self.street = street
         self.st_num = st_num
         self.long_flight_qualified = long_flight_qualified
+
+        def is_qualified_for(self, duration_hours):
+            if duration_hours > 6:
+                return self.long_flight_qualified == 1 # long flight qualification needed
+            return True  # everyone can
 
 
 class FlightAttendant:
@@ -56,6 +60,11 @@ class FlightAttendant:
         self.street = street
         self.st_num = st_num
         self.long_flight_qualified = long_flight_qualified
+
+        def is_qualified_for(self, duration_hours):
+            if duration_hours > 6:
+                return self.long_flight_qualified == 1 # long flight qualification needed
+            return True  # everyone can
 
 
 class Manager:
@@ -79,15 +88,27 @@ class Manager:
         # ייכנס בתוך כפתור ביטול טיסה של מנהל עבור כל ההזמנות שבטיסה הזאת (שאילתה מתאימה)
         return
 
+    def can_cancel_flight(self, departure_time):
+        from datetime import datetime, timedelta
+        return (departure_time - datetime.now()) >= timedelta(hours=72)
+
+    def calculate_refund(self, original_price, is_manager_cancel=True):
+        if is_manager_cancel:
+            return 0  #full refund
+        # 5% cancellation fees
+        return original_price * 0.05
+
 
 class Flight:
-    def __init__(self, flight_id, origin, destination, duration, departure, plane_id, capacity=0, occupied=0, is_cancelled=False):
+    def __init__(self, flight_id, origin, destination, duration, departure, plane_id, business_seat_price, economy_seat_price, capacity=0, occupied=0, is_cancelled=False):
         self.flight_id = flight_id
         self.origin = origin
         self.destination = destination
         self.duration = duration
         self.departure = departure
         self.plane_id = plane_id
+        self.business_seat_price = business_seat_price
+        self.economy_seat_price = economy_seat_price
         self.capacity = capacity
         self.occupied = occupied
         self.is_cancelled = is_cancelled
@@ -118,6 +139,16 @@ class Flight:
     def is_long_flight(self):
         return self.duration.total_seconds() > 6 * 3600
 
+    def get_crew_requirements(self, plane_size):
+        if plane_size == 'large':
+            return {'pilots': 3, 'attendants': 6}
+        return {'pilots': 2, 'attendants': 3}
+
+    def validate_pricing(self, plane_size, price_business):
+        if plane_size == 'small' and price_business is not None:
+            return False, "מטוס קטן כולל מושבים רגילים בלבד, לא ניתן לתמחר מחלקת עסקים [cite: 24]"
+        return True, ""
+
 
 class Plane:
     def __init__(self, plane_id, size, purchase_date, manufacturer):
@@ -128,11 +159,10 @@ class Plane:
 
 
 class Class:
-    def __init__(self, seat_row, seat_position, class_type, seat_price):
+    def __init__(self, seat_row, seat_position, class_type):
         self.seat_row = seat_row
         self.seat_position = seat_position
         self.class_type = class_type
-        self.seat_price = seat_price
 
 
 class Order:
@@ -149,6 +179,24 @@ class Order:
         for seat in self.seats:
             total_price += seat.seat_price
         return total_price
+
+    def is_eligible_for_cancel(self, flight_departure):
+        return (flight_departure - datetime.now()) >= timedelta(hours=36)
+
+# check for available and suitable staff members (pilots and flight attendants)
+def get_available_staff(table, id_col):
+    query = f"""
+        SELECT * FROM {table} 
+        WHERE {id_col} NOT IN (
+            SELECT {id_col} FROM {table}s_on_Flight sf
+            JOIN Flight f ON sf.flight_id = f.flight_id
+            WHERE ABS(TIMESTAMPDIFF(HOUR, f.departure, %s)) < 24
+        )
+    """
+    if is_long:
+        query += " AND long_flight_qualified = 1"
+    cursor.execute(query, (dep_dt,))
+    return cursor.fetchall()
 
 
 
