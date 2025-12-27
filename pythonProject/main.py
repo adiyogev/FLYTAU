@@ -175,56 +175,125 @@ def search_flights():
 
 @app.route('/manager')
 def manager_home():
+    from datetime import datetime, timedelta
 
 
-@app.route('/manager/flights')
+@app.route('/manager/flights', methods=['GET', 'POST'])
 def manager_flights():
     if session.get("role") != 'manager':
         return redirect('/login_manager')
+
+    # POST - request for flight cancelling
+    if request.method == 'POST':
+        flight_id = request.form.get('flight_id')
+
+        # verifying at least 72 hours in advance
+        cursor.execute("SELECT departure FROM Flight WHERE flight_id = %s", (flight_id,))
+        flight_dep = cursor.fetchone()
+        if flight_dep:
+            departure_time = flight_dep[0]
+            # verifying at least 72 hours in advance
+            if departure_time - datetime.now() >= timedelta(hours=72):
+                try:
+                    # update flight status to 'cancelled'
+                    cursor.execute("UPDATE Flight SET status = 'cancelled' WHERE flight_id = %s", (flight_id,))
+                    # full refund for all customers
+                    cursor.execute("""UPDATE Orders SET total_price = 0, status = 'cancelled by system'
+                        WHERE flight_id = %s AND status = 'active'""", (flight_id,))
+                    mydb.commit()
+                    message = "הטיסה בוטלה בהצלחה וכל הלקוחות זוכו."
+                except Exception as e:
+                    mydb.rollback()
+                    message = f"error while updating data in DB {e}"
+            else:
+                message = "לא ניתן לבטל טיסה פחות מ-72 שעות לפני מועד קיומה."[cite: 47]
+
+    # GET - presenting all flights with important details for the manager to review
     cursor.execute("""
         SELECT f.flight_id, f.origin_airport, f.destination_airport, 
-               f.departure, r.duration, p.size, f.status,
+               f.departure, r.duration, p.size, f.status, f.plane_id,
                (SELECT COUNT(*) FROM Class WHERE plane_id = f.plane_id) as capacity,
                (SELECT COUNT(*) FROM Seats_in_Order WHERE code IN 
-                    (SELECT code FROM Orders WHERE flight_id = f.flight_id)) as occupied,
-                f.plane_id
-        FROM Flight as f JOIN Route as r ON f.origin_airport = r.origin_airport AND f.destination_airport = r.destination_airport
+                    (SELECT code FROM Orders WHERE flight_id = f.flight_id)) as occupied
+        FROM Flight as f JOIN Route as r ON f.origin_airport = r.origin_airport 
+            AND f.destination_airport = r.destination_airport
             JOIN Plane as p ON f.plane_id = p.plane_id
         ORDER BY f.departure DESC
     """)
     flights_data = cursor.fetchall()
     flights_list = []
     for row in flights_data:
-        f = Flight(flight_id=row[0], origin=row[1], destination=row[2],
+        f = Flight(
+            flight_id=row[0], origin=row[1], destination=row[2],
             departure=row[3], duration=str(row[4]),
-            capacity=row[7], occupied=row[8],
+            capacity=row[8], occupied=row[9],
             is_cancelled=(row[6] == 'cancelled'),
-            plane_id=row[9])
+            plane_id=row[7]
+        )
         flights_list.append(f)
     return render_template('manager_flights.html', flights=flights_list)
 
 
-@app.route('/manager/manage_flight/<flight_id>')
-def manage_flight(flight_id):
+@app.route('/manager/add_flight', methods=['GET', 'POST'])
+def add_flight():
     if session.get("role") != 'manager':
         return redirect('/login_manager')
-    cursor.execute("""
-        SELECT f.*, r.duration, p.size 
-        FROM Flight as f JOIN Route as r ON f.origin_airport = r.origin_airport AND f.destination_airport = r.destination_airport
-            JOIN Plane as p ON f.plane_id = p.plane_id WHERE f.flight_id = %s""", (flight_id,))
-    flight_row = cursor.fetchone()
-    if not flight_row:
-        return "Flight not found", 404
-    # Employees on the flight:
-    cursor.execute("SELECT pilot_id FROM Pilots_on_Flight WHERE flight_id = %s", (flight_id,))
-    current_pilots = [p[0] for p in cursor.fetchall()]
-    cursor.execute("SELECT fa_id FROM FA_on_Flight WHERE flight_id = %s", (flight_id,))
-    current_fa = [fa[0] for fa in cursor.fetchall()]
-    return render_template('manage_specific_flight.html',
-                           flight_id=flight_id,
-                           flight_details=flight_row,
-                           current_pilots=current_pilots,
-                           current_fa=current_fa)
+
+    if request.method == 'POST':
+        # pulling data from form
+        f_id = request.form.get('flight_id')
+        origin = request.form.get('origin')
+        dest = request.form.get('destination')
+        departure = datetime.strptime(request.form.get('departure'), '%Y-%m-%dT%H:%M')
+        plane_id = request.form.get('plane_id')
+        pilot_ids = request.form.getlist('pilots')
+        fa_ids = request.form.getlist('flight_attendants')
+        price_eco = request.form.get('price_economy')
+        price_bus = request.form.get('price_business')
+
+        # flight duration
+        cursor.execute("SELECT duration FROM Route WHERE origin_airport = %s AND destination_airport = %s",
+                       (origin, dest))
+        route_row = cursor.fetchone()
+        if route_row:
+            duration_val = route_row[0]
+        else:
+            duration_val = request.form.get('duration')
+            cursor.execute("INSERT INTO Route (origin_airport, destination_airport, duration) VALUES (%s, %s, %s)",
+                           (origin, dest, duration_val))
+        # long / short flight
+        is_long = duration_val.total_seconds() > 6 * 3600
+        # plane availability
+        cursor.execute(
+            "SELECT flight_id FROM Flight WHERE plane_id = %s AND ABS(TIMESTAMPDIFF(HOUR, departure, %s)) < 24",
+            (plane_id, departure))
+        if cursor.fetchone():
+            return "המטוס אינו זמין (פחות מ-24 שעות מטיסה אחרת).", 400
+        # insert flight in DB
+        try:
+            cursor.execute(
+                "INSERT INTO Flight (flight_id, status, origin_airport, destination_airport, departure, plane_id) VALUES (%s, 'active', %s, %s, %s, %s)",
+                (f_id, origin, dest, departure, plane_id))
+            for p_id in pilot_ids:
+                cursor.execute("INSERT INTO Pilots_on_Flight (flight_id, pilot_id) VALUES (%s, %s)", (f_id, p_id))
+            for fa_id in fa_ids:
+                cursor.execute("INSERT INTO FA_on_Flight (flight_id, fa_id) VALUES (%s, %s)", (f_id, fa_id))
+            mydb.commit()
+            return redirect('/manager/flights')
+        except Exception as e:
+            mydb.rollback()
+            return f"שגיאה ביצירת הטיסה: {e}"
+
+    # GET: lists for form
+    cursor.execute("SELECT plane_id, size FROM Plane")
+    planes = cursor.fetchall()
+    cursor.execute("SELECT pilot_id, first_name, last_name, long_flight_qualified FROM Pilot")
+    pilots = cursor.fetchall()
+    cursor.execute("SELECT fa_id, first_name, last_name, long_flight_qualified FROM Flight_Attendant")
+    fas = cursor.fetchall()
+
+    return render_template('add_flight.html', planes=planes, pilots=pilots, fas=fas)
+
 
 @app.errorhandler(404)
 def error(e):
