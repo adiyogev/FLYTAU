@@ -5,10 +5,43 @@ class User(ABC):
     def __init__(self, email):
         self.email = email
 
-    def user_cancel_order(self, order):
-        order.status = 'cancelled by user'
-        # נוסיף אחרי זה עדכון של הDB בסטטוס ההזמנה
-        return
+    def cancel_order(self, cursor, mydb, order_code):
+        # collect all data from DB
+        query = """
+            SELECT o.total_price, f.departure, o.status 
+            FROM Orders o 
+            JOIN Flight f ON o.flight_id = f.flight_id 
+            WHERE o.code = %s
+        """
+        cursor.execute(query, (order_code,))
+        order_data = cursor.fetchone()
+
+        if not order_data:
+            return False, "הזמנה לא נמצאה"
+
+        price, departure_time, status = order_data
+
+        if status != 'active':
+            return False, "לא ניתן לבטל הזמנה שאינה פעילה"
+
+        # check if possible to cancel - if more than 36 hours in advance
+        if (departure_time - datetime.now()) < timedelta(hours=36):
+            return False, "לא ניתן לבטל פחות מ-36 שעות לפני הטיסה"
+
+        # calculate 95% refund and updating DB for only 5% of total order price
+        cancellation_fee = int(price * 0.05)
+        try:
+            cursor.execute("""
+                UPDATE Orders 
+                SET status = 'cancelled by user', total_price = %s 
+                WHERE code = %s
+            """, (cancellation_fee, order_code))
+            mydb.commit()
+            return True, f"ההזמנה בוטלה. דמי ביטול: {cancellation_fee} ש''ח"
+        except Exception as e:
+            mydb.rollback()
+            return False, f"שגיאה בביטול ההזמנה, נסה שוב: {e}"
+
 
 class Customer(User):
     def __init__(self, email, first_name, last_name, passport, birth_date, password, phone_numbers, reg_date):

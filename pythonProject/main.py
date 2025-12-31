@@ -118,10 +118,12 @@ def register():
             return redirect('/homepage')
     return render_template("register.html")
 
+
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect('/')
+
 
 @app.route('/search_flights', methods=['POST', 'GET'])
 def search_flights():
@@ -172,6 +174,76 @@ def search_flights():
 
     return redirect('/homepage')
 
+
+@app.route('/my_orders', methods=['GET', 'POST'])
+def my_orders():
+    # check session if user is logged in
+    role = session.get('role')
+    if not role:
+        # login and remember my path
+        return redirect('/login?next=/my_orders')
+
+    # get email - customer or guest?
+    email = session.get('customer_email') if role == 'registered' else session.get('guest_email')
+
+    # 1. define the filter so it's available for the query
+    status_filter = request.args.get('status', 'active')
+
+    # 2. handle cancellation before fetching data
+    message = None
+    if request.method == 'POST' and request.form.get('action') == 'cancel':
+        order_code = request.form.get('order_code')
+        # user object (Polymorphism)
+        user = Customer(email, "", "", "", "", "", [], "") if role == 'registered' else Guest(email)
+        success, message = user.cancel_order(cursor, mydb, order_code)
+
+    # 3. fetch the updated data for display
+    query = """
+        SELECT o.code, o.order_date, o.total_price, o.status, 
+               f.origin_airport, f.destination_airport, f.departure, f.flight_id
+        FROM Orders o
+        JOIN Flight f ON o.flight_id = f.flight_id
+        WHERE (o.customer_email = %s OR o.guest_email = %s)
+    """
+    params = [email, email]
+
+    if role == 'guest':
+        # only future active orders
+        query += " AND o.status = 'active' AND f.departure > NOW()"
+    else:
+        # all orders + status filter option
+        if status_filter != 'all':
+            query += " AND o.status = %s"
+            params.append(status_filter)
+
+    query += " ORDER BY f.departure DESC"
+
+    cursor.execute(query, tuple(params))
+    orders_data = cursor.fetchall()
+
+    # convert to order list for template
+    orders_list = []
+    for row in orders_data:
+        order_obj = {
+            'code': row[0],
+            'date': row[1],
+            'price': row[2],
+            'status': row[3],
+            'origin': row[4],
+            'dest': row[5],
+            'departure': row[6],
+            'flight_id': row[7]
+        }
+        # check if order can be canceled using the class method
+        temp_order = Order(row[0], [], row[7], email)
+        order_obj['can_cancel'] = temp_order.is_eligible_for_cancel(row[6]) and row[3] == 'active'
+        orders_list.append(order_obj)
+
+    return render_template('my_orders.html',
+                           orders=orders_list,
+                           role=role,
+                           current_filter=status_filter,
+                           message=message)
 
 @app.route('/manager', methods=['GET', 'POST'])
 def manager_flights():
