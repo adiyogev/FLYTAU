@@ -4,16 +4,16 @@ import random
 import string
 import mysql.connector
 from utils import *
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 app = Flask(__name__)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-
 mydb = mysql.connector.connect(host="localhost", user="root", password="root", database="db_team46")
 cursor = mydb.cursor()
+
 
 # ============================================================================
 #                                 MAIN ROUTES
@@ -97,7 +97,7 @@ def select_seats(flight_id):
     """
     num_passengers = session.get('num_passengers', 1)
 
-    #POST: Handle Selection Submission
+    # POST: Handle Selection Submission
     if request.method == 'POST':
         raw_seats = request.form.getlist('selected_seats_raw')
         # Validation
@@ -106,12 +106,16 @@ def select_seats(flight_id):
         # Parse data and store in Session (avoiding DB lookups in Checkout)
         final_seats_list = []
         for item in raw_seats:
-            code, seat_type, price = item.split('|')
-            final_seats_list.append({
-                'code': code,
-                'type': seat_type,
-                'price': float(price)
-            })
+            try:
+                code, seat_type, price = item.split('|')
+                final_seats_list.append({
+                    'code': code,
+                    'type': seat_type,
+                    'price': float(price)
+                })
+            except (ValueError, IndexError):
+                # Invalid seat data format, skip this item
+                continue
 
         session['selected_seats_data'] = final_seats_list
         session['selected_flight_id'] = flight_id
@@ -153,7 +157,7 @@ def select_seats(flight_id):
             seat_position=pos,
             class_type=c_type,
             plane_id=plane_id,
-            price=curr_price,
+            seat_price=curr_price,
             is_occupied=is_occupied
         )
         # Sort into correct dictionary for the UI grid
@@ -198,7 +202,7 @@ def checkout():
             seat_position=pos,
             class_type=s_data['type'],
             plane_id=None,
-            price=s_data['price']
+            seat_price=s_data['price']
         )
         seat_objects.append(seat)
 
@@ -211,7 +215,7 @@ def checkout():
         guest_email=session.get('guest_email')
     )
 
-    #POST: Finalize Order
+    # POST: Finalize Order
     if request.method == 'POST':
         # collect passenger details from form
         first_name = request.form.get('first_name')
@@ -220,6 +224,8 @@ def checkout():
         birth_date = request.form.get('birth_date')
         cursor.execute("SELECT origin_airport, destination_airport FROM Flight WHERE flight_id=%s", (flight_id,))
         flight_info = cursor.fetchone()
+        if not flight_info:
+            return redirect(url_for('index'))
 
         current_order.code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
         try:
@@ -240,7 +246,10 @@ def checkout():
 
             # 2. Insert seats to DB
             cursor.execute("SELECT plane_id FROM Flight WHERE flight_id=%s", (flight_id,))
-            real_plane_id = cursor.fetchone()[0]
+            plane_result = cursor.fetchone()
+            if not plane_result:
+                raise ValueError("Flight not found")
+            real_plane_id = plane_result[0]
 
             for seat in current_order.seats:
                 cursor.execute("""
@@ -286,6 +295,8 @@ def checkout():
         "SELECT flight_id, origin_airport, destination_airport, duration, departure FROM Flight WHERE flight_id = %s",
         (flight_id,))
     f_data = cursor.fetchone()
+    if not f_data:
+        return redirect(url_for('index'))
     flight_display = Flight(f_data[0], f_data[1], f_data[2], str(f_data[3]), f_data[4], None, 0, 0)
 
     return render_template('checkout.html',
@@ -307,6 +318,8 @@ def my_orders():
 
     # get email - customer or guest?
     email = session.get('customer_email') if role == 'registered' else session.get('guest_email')
+    if not email:
+        return redirect('/login?next=/my_orders')
 
     # 1. define the filter so it's available for the query
     status_filter = request.args.get('status', 'active')
@@ -343,22 +356,27 @@ def my_orders():
     cursor.execute(query, tuple(params))
     orders_data = cursor.fetchall()
 
-    # convert to order list for template
+    # convert to Order objects for template (OOP)
     orders_list = []
     for row in orders_data:
-        order_obj = {
-            'code': row[0],
-            'date': row[1],
-            'price': row[2],
-            'status': row[3],
-            'origin': row[4],
-            'dest': row[5],
-            'departure': row[6],
-            'flight_id': row[7]
-        }
-        # check if order can be canceled using the class method
-        temp_order = Order(row[0], [], row[7], email)
-        order_obj['can_cancel'] = temp_order.is_eligible_for_cancel(row[6]) and row[3] == 'active'
+        # Create Order object
+        order_obj = Order(
+            code=row[0],
+            seats=[],  # Seats not needed for display
+            flight_id=row[7],
+            email=email if role == 'registered' else None,
+            guest_email=email if role == 'guest' else None
+        )
+        # Set additional attributes from DB query for display
+        order_obj.order_date = row[1]  # Override default datetime.now()
+        order_obj.status = row[3]  # Override default 'active'
+        # Add flight display attributes
+        order_obj.origin = row[4]
+        order_obj.dest = row[5]
+        order_obj.departure = row[6]
+        order_obj.total_price = row[2]  # From DB, not calculated
+        # Check if order can be canceled using the class method
+        order_obj.can_cancel = order_obj.is_eligible_for_cancel(row[6]) and row[3] == 'active'
         orders_list.append(order_obj)
 
     return render_template('my_orders.html',
@@ -376,27 +394,33 @@ def login():
     ''' login from different pages - each login will redirect to the correct page:
         order -> checkout
         homepage -> back to homepage'''
-    if session.get("customer_email"): # checking if user is already connected
+    if session.get("customer_email"):  # checking if user is already connected
         return redirect('/homepage')
     target_destination = request.args.get('next')
     error_msg = None
     if request.method == 'POST':
-        customer_email = request.form.get('customer_email').lower()
+        customer_email = request.form.get('customer_email')
         password = request.form.get('password')
-        destination_after_login = request.form.get('next_url_hidden') # from hidden destination in HTML
-        cursor.execute("SELECT customer_email, password, first_name FROM Customer WHERE customer_email = %s AND password = %s",(customer_email, password))
-        customer = cursor.fetchone() # either one result or None
-        if customer: # find if entered email is in Customer DB, and if so - login the user
+        if not customer_email or not password:
+            error_msg = "אנא מלא את כל השדות"
+            return render_template("login.html", message=error_msg, next_param=target_destination)
+        customer_email = customer_email.lower()
+        destination_after_login = request.form.get('next_url_hidden')  # from hidden destination in HTML
+        cursor.execute(
+            "SELECT customer_email, password, first_name FROM Customer WHERE customer_email = %s AND password = %s",
+            (customer_email, password))
+        customer = cursor.fetchone()  # either one result or None
+        if customer:  # find if entered email is in Customer DB, and if so - login the user
             session['role'] = 'registered'
             session['customer_email'] = customer[0]
-            session['first_name'] = customer[2] # for the homepage display
+            session['first_name'] = customer[2]  # for the homepage display
             # check whether the next page will be homepage or checkout
             if destination_after_login:
                 return redirect(destination_after_login)
             else:
                 return redirect('/homepage')
         error_msg = "one of the details you provided are incorrect"  # If either the id or the password entered are incorrect or don't match
-    return render_template("login.html", message=error_msg, next_param = target_destination)
+    return render_template("login.html", message=error_msg, next_param=target_destination)
 
 
 @app.route('/login_guest', methods=['POST'])
@@ -414,6 +438,7 @@ def login_guest():
     else:
         return redirect('/homepage')
 
+
 @app.route('/login_manager', methods=['POST', 'GET'])
 def login_manager():
     if session.get("manager_id"):  # checking if manager is already connected
@@ -422,21 +447,26 @@ def login_manager():
     if request.method == 'POST':
         manager_id = request.form.get('manager_id')
         password = request.form.get('password')
-        cursor.execute("SELECT manager_id, password FROM Manager WHERE manager_id = %s AND password = %s", (manager_id, password))
-        manager = cursor.fetchone() # either one result or None
-        if manager: # Find if entered id is in Manager DB, and if so - login the manager
+        cursor.execute("SELECT manager_id, password FROM Manager WHERE manager_id = %s AND password = %s",
+                       (manager_id, password))
+        manager = cursor.fetchone()  # either one result or None
+        if manager:  # Find if entered id is in Manager DB, and if so - login the manager
             session['role'] = 'manager'
             session['manager_id'] = manager_id
             return redirect('/manager')
-        error_msg = "incorrect ID or password" # If either the id or the password entered are incorrect or don't match
+        error_msg = "incorrect ID or password"  # If either the id or the password entered are incorrect or don't match
     return render_template('login_manager.html', message=error_msg)
+
 
 @app.route('/register', methods=['POST', 'GET'])
 def register():
     target_destination = request.args.get('next')
     if request.method == 'POST':
         # Retrieves the needed information to enter customer into DB
-        customer_email = request.form.get('customer_email').lower()
+        customer_email = request.form.get('customer_email')
+        if not customer_email:
+            return render_template('register.html', message="אימייל הוא שדה חובה")
+        customer_email = customer_email.lower()
         first_name = request.form.get('first_name')
         last_name = request.form.get('last_name')
         passport = request.form.get('passport')
@@ -447,13 +477,17 @@ def register():
         reg_date = date.today()
 
         destination_after_login = request.form.get('next_url_hidden')  # from hidden destination in HTML
-        cursor.execute("SELECT customer_email FROM Customer WHERE customer_email = %s", (customer_email,)) # We won't allow the same email to have 2 different accounts
+        cursor.execute("SELECT customer_email FROM Customer WHERE customer_email = %s",
+                       (customer_email,))  # We won't allow the same email to have 2 different accounts
         if cursor.fetchone():
             return render_template('register.html', message="User Already Exists")
-        cursor.execute("INSERT INTO Customer(customer_email, first_name, last_name, passport, birth_date, password, reg_date) VALUES(%s, %s, "
-                       "%s, %s, %s, %s, %s)", (customer_email, first_name, last_name, passport, birth_date, password, phone_numbers, reg_date))
+        cursor.execute(
+            "INSERT INTO Customer(customer_email, first_name, last_name, passport, birth_date, password, reg_date) VALUES(%s, %s, "
+            "%s, %s, %s, %s, %s)",
+            (customer_email, first_name, last_name, passport, birth_date, password, phone_numbers, reg_date))
         for phone in phone_numbers:
-            cursor.execute("INSERT INTO Customer_Phone_Numbers(phone_customer_email, phone_num) VALUES(%s, %s)",(customer_email, phone))
+            cursor.execute("INSERT INTO Customer_Phone_Numbers(phone_customer_email, phone_num) VALUES(%s, %s)",
+                           (customer_email, phone))
         mydb.commit()
         session['role'] = 'registered'
         session['customer_email'] = customer_email
@@ -531,7 +565,7 @@ def manager_flights():
 
 @app.route('/manager/add_flight/step1', methods=['GET', 'POST'])
 def add_flight_step1():
-# inserting the "basic details" of the flight
+    # inserting the "basic details" of the flight
     if session.get("role") != 'manager':
         return redirect('/login_manager')
 
@@ -539,15 +573,32 @@ def add_flight_step1():
         origin = request.form.get('origin')
         dest = request.form.get('destination')
         dep_str = request.form.get('departure')
-        departure_dt = datetime.strptime(dep_str, '%Y-%m-%dT%H:%M')
+        if not origin or not dest or not dep_str:
+            return render_template('add_flight_s1.html', error="אנא מלא את כל השדות")
+        try:
+            departure_dt = datetime.strptime(dep_str, '%Y-%m-%dT%H:%M')
+        except ValueError:
+            return render_template('add_flight_s1.html', error="פורמט תאריך לא תקין")
 
         # search for this route in DB
-        cursor.execute("SELECT duration, is_long FROM Route WHERE origin_airport = %s AND destination_airport = %s", (origin, dest))
+        cursor.execute("SELECT duration, is_long FROM Route WHERE origin_airport = %s AND destination_airport = %s",
+                       (origin, dest))
         route = cursor.fetchone()
 
         if not route:
             # if it is a new route - fill duration and insert to DB
             duration_str = request.form.get('duration')
+            if not duration_str:
+                return render_template('add_flight_s1.html', error="נדרש להזין משך טיסה")
+            try:
+                # Validate duration format
+                parts = duration_str.split(':')
+                if len(parts) < 2:
+                    raise ValueError
+                int(parts[0])  # Validate hours
+                int(parts[1])  # Validate minutes
+            except (ValueError, IndexError):
+                return render_template('add_flight_s1.html', error="פורמט משך טיסה לא תקין (נדרש: HH:MM)")
             cursor.execute("INSERT INTO Route (origin_airport, destination_airport, duration) VALUES (%s, %s, %s)",
                            (origin, dest, duration_str))
             mydb.commit()
@@ -571,7 +622,12 @@ def add_flight_step1():
 
 @app.route('/manager/add_flight/step2', methods=['GET', 'POST'])
 def add_flight_step2():
+    if session.get("role") != 'manager':
+        return redirect('/login_manager')
+
     f_data = session.get('temp_flight')
+    if not f_data:
+        return redirect('/manager/add_flight/step1')
 
     # filter the available resources (planes, pilots and flight attendants)
     planes = get_available_resources('Plane', 'plane_id', f_data['origin'], f_data['is_long'], cursor)
@@ -580,16 +636,30 @@ def add_flight_step2():
 
     return render_template('add_flight_s2.html', planes=planes, pilots=pilots, fas=fas)
 
+
 @app.route('/manager/add_flight/step3', methods=['GET', 'POST'])
 def add_flight_step3():
-# insert prices for economy and business (if there are) seats
+    if session.get("role") != 'manager':
+        return redirect('/login_manager')
+
+    # insert prices for economy and business (if there are) seats
     f_data = session.get('temp_flight')
+    if not f_data or 'plane_id' not in f_data:
+        return redirect('/manager/add_flight/step1')
+
     # chosen plane size
     cursor.execute("SELECT size FROM Plane WHERE plane_id = %s", (f_data['plane_id'],))
-    plane_size = cursor.fetchone()[0]
+    plane_result = cursor.fetchone()
+    if not plane_result:
+        return render_template('add_flight_s3.html', error="מטוס לא נמצא", plane_size=None)
+    plane_size = plane_result[0]
 
     if request.method == 'POST':
-        p_eco = int(request.form.get('price_economy'))
+        try:
+            p_eco = int(request.form.get('price_economy', 0))
+        except (ValueError, TypeError):
+            return render_template('add_flight_s3.html', error="מחיר כלכלה חייב להיות מספר", plane_size=plane_size)
+
         p_bus = request.form.get('price_business')
         p_bus = int(p_bus) if p_bus else None
 
@@ -602,13 +672,24 @@ def add_flight_step3():
             return render_template('add_flight_s3.html', error=msg, plane_size=plane_size)
 
         # calculate the derived attribute 'arrival' and insert to DB
-        h, m = map(int, f_data['duration'].split(':'))
-        arrival = datetime.strptime(f_data['departure'], '%Y-%m-%dT%H:%M') + timedelta(hours=h, minutes=m)
+        try:
+            h, m = map(int, f_data['duration'].split(':'))
+            arrival = datetime.strptime(f_data['departure'], '%Y-%m-%dT%H:%M') + timedelta(hours=h, minutes=m)
+        except (ValueError, KeyError) as e:
+            return render_template('add_flight_s3.html', error=f"שגיאה בפורמט תאריך/זמן: {e}", plane_size=plane_size)
+
         try:
             cursor.execute("""INSERT INTO Flight (flight_id, origin_airport, destination_airport, departure, arrival, plane_id, economy_seat_price, business_seat_price)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""", (f_data['flight_id'], f_data['origin'], f_data['destination'], f_data['departure'], arrival, f_data['plane_id'], p_eco, p_bus))
-            for pid in f_data['pilots']: cursor.execute("INSERT INTO Pilots_on_Flight VALUES (%s, %s)", (f_data['flight_id'], pid))
-            for fid in f_data['fas']: cursor.execute("INSERT INTO FA_on_Flight VALUES (%s, %s)", (f_data['flight_id'], fid))
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""", (
+            f_data['flight_id'], f_data['origin'], f_data['destination'], f_data['departure'], arrival,
+            f_data['plane_id'], p_eco, p_bus))
+            # Insert pilots and flight attendants if they exist
+            if 'pilots' in f_data:
+                for pid in f_data['pilots']:
+                    cursor.execute("INSERT INTO Pilots_on_Flight VALUES (%s, %s)", (f_data['flight_id'], pid))
+            if 'fas' in f_data:
+                for fid in f_data['fas']:
+                    cursor.execute("INSERT INTO FA_on_Flight VALUES (%s, %s)", (f_data['flight_id'], fid))
             mydb.commit()
             session.pop('temp_flight')
             return redirect('/manager')
@@ -649,10 +730,12 @@ def add_staff():
             return f"שגיאה בהוספת עובד: {e}"
     return render_template('add_staff.html')
 
+
 # ERROR HANDLER
 @app.errorhandler(404)
 def error(e):
     return redirect('/')
+
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -280,6 +280,3 @@ def get_available_resources(table, id_col, origin, is_long, cursor):
 
     cursor.execute(query, (origin,))
     return cursor.fetchall()
-
-
-
