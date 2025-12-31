@@ -271,35 +271,14 @@ def add_flight_step1():
 
 @app.route('/manager/add_flight/step2', methods=['GET', 'POST'])
 def add_flight_step2():
-# choosing plane and crew
     f_data = session.get('temp_flight')
-    dep_dt = datetime.strptime(f_data['departure'], '%Y-%m-%dT%H:%M')
-    is_long = f_data['is_long']
 
-    if request.method == 'POST':
-        session['temp_flight'].update({
-            'plane_id': request.form.get('plane_id'),
-            'pilots': request.form.getlist('pilots'),
-            'fas': request.form.getlist('fas')})
-        return redirect('/manager/add_flight/step3')
+    # filter the available resources (planes, pilots and flight attendants)
+    planes = get_available_resources('Plane', 'plane_id', f_data['origin'], f_data['is_long'], cursor)
+    pilots = get_available_resources('Pilot', 'pilot_id', f_data['origin'], f_data['is_long'], cursor)
+    fas = get_available_resources('Flight_Attendant', 'fa_id', f_data['origin'], f_data['is_long'], cursor)
 
-    # available and suitable planes
-    plane_query = """
-        SELECT plane_id, size 
-        FROM Plane 
-        WHERE plane_id NOT IN (SELECT plane_id 
-                                FROM Flight
-                                WHERE ABS(TIMESTAMPDIFF(HOUR, departure, %s)) < 24)
-    """
-    if is_long:
-        plane_query += " AND size = 'large'"
-    cursor.execute(plane_query, (dep_dt,))
-    available_planes = cursor.fetchall()
-    available_pilots = get_available_staff('Pilot', 'pilot_id')
-    available_fas = get_available_staff('Flight_Attendant', 'fa_id')
-
-    return render_template('add_flight_s2.html', planes=available_planes, pilots=available_pilots, fas=available_fas, is_long=is_long)
-
+    return render_template('add_flight_s2.html', planes=planes, pilots=pilots, fas=fas)
 
 @app.route('/manager/add_flight/step3', methods=['GET', 'POST'])
 def add_flight_step3():
@@ -338,6 +317,38 @@ def add_flight_step3():
             return f"Error: {e}"
 
     return render_template('add_flight_s3.html', plane_size=plane_size)
+
+
+@app.route('/manager/add_staff', methods=['GET', 'POST'])
+def add_staff():
+    if session.get("role") != 'manager':
+        return redirect('/login_manager')
+
+    if request.method == 'POST':
+        staff_data = {
+            'staff_type': request.form.get('staff_type'),
+            'staff_id': request.form.get('staff_id'),
+            'f_name': request.form.get('first_name'),
+            'l_name': request.form.get('last_name'),
+            'phone': request.form.get('phone'),
+            'city': request.form.get('city'),
+            'street': request.form.get('street'),
+            'st_num': request.form.get('st_num'),
+            'start_date': request.form.get('start_date'),
+            'is_long_qualified': 1 if request.form.get('is_long_qualified') else 0
+        }
+
+        # creating manager object and using 'add_staff_member'
+        try:
+            current_manager = Manager(session['manager_id'], "", "", "", "", "", "", "", "")
+            current_manager.add_staff_member(cursor, staff_data)
+            mydb.commit()
+            return redirect('/manager')
+        except Exception as e:
+            mydb.rollback()
+            return f"שגיאה בהוספת עובד: {e}"
+    return render_template('add_staff.html')
+
 
 
 @app.errorhandler(404)

@@ -43,10 +43,10 @@ class Pilot:
         self.st_num = st_num
         self.long_flight_qualified = long_flight_qualified
 
-        def is_qualified_for(self, duration_hours):
-            if duration_hours > 6:
-                return self.long_flight_qualified == 1 # long flight qualification needed
-            return True  # everyone can
+    def is_qualified_for(self, duration_hours):
+        if duration_hours > 6:
+            return self.long_flight_qualified == 1 # long flight qualification needed
+        return True  # everyone can
 
 
 class FlightAttendant:
@@ -61,10 +61,10 @@ class FlightAttendant:
         self.st_num = st_num
         self.long_flight_qualified = long_flight_qualified
 
-        def is_qualified_for(self, duration_hours):
-            if duration_hours > 6:
-                return self.long_flight_qualified == 1 # long flight qualification needed
-            return True  # everyone can
+    def is_qualified_for(self, duration_hours):
+        if duration_hours > 6:
+            return self.long_flight_qualified == 1 # long flight qualification needed
+        return True  # everyone can
 
 
 class Manager:
@@ -98,6 +98,22 @@ class Manager:
         # 5% cancellation fees
         return original_price * 0.05
 
+    def add_staff_member(self, cursor, staff_data):
+        staff_type = staff_data.get('staff_type')
+        # determine if pilot or flight attendant and insert to DB
+        if staff_type == 'pilot':
+            table_name = 'Pilot'
+            id_column = 'pilot_id'
+        else:
+            table_name = 'Flight_Attendant'
+            id_column = 'fa_id'
+        query = f"""INSERT INTO {table_name} 
+            ({id_column}, first_name, last_name, phone_num, start_date, city, street, st_num, long_flight_qualified)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+        params = (staff_data['staff_id'], staff_data['f_name'], staff_data['l_name'],
+                  staff_data['phone'], staff_data['start_date'], staff_data['city'],
+                  staff_data['street'], staff_data['st_num'], staff_data['is_long_qualified'])
+        cursor.execute(query, params)
 
 class Flight:
     def __init__(self, flight_id, origin, destination, duration, departure, plane_id, business_seat_price, economy_seat_price, capacity=0, occupied=0, is_cancelled=False):
@@ -120,7 +136,7 @@ class Flight:
             return "cancelled"
         if now > self.departure:
             return "completed"
-        if self.seats_booked >= self.plane_capacity:
+        if self.occupied >= self.capacity:
             return "full"
         return "active"
 
@@ -183,21 +199,44 @@ class Order:
     def is_eligible_for_cancel(self, flight_departure):
         return (flight_departure - datetime.now()) >= timedelta(hours=36)
 
-# check for available and suitable staff members (pilots and flight attendants)
-def get_available_staff(table, id_col):
+
+def get_available_resources(table, id_col, origin, is_long, cursor):
+    """
+    finding available planes and employees:
+    1. current location = origin or first flight
+    2. for staff - check if long_flight_qualified
+    3. for planes - only large planes for long flights
+    """
+    # long flight - staff qualification and large plane
+    additional_filters = ""
+    if is_long:
+        if table in ['Pilot', 'Flight_Attendant']:
+            additional_filters = " AND long_flight_qualified = 1"
+        elif table == 'Plane':
+            additional_filters = " AND type = 'large'"
+
+    relation_table = f"{table}s_on_Flight" if table != 'Plane' else "Flight"
     query = f"""
-        SELECT * FROM {table} 
-        WHERE {id_col} NOT IN (
-            SELECT {id_col} FROM {table}s_on_Flight sf
-            JOIN Flight f ON sf.flight_id = f.flight_id
-            WHERE ABS(TIMESTAMPDIFF(HOUR, f.departure, %s)) < 24
+            SELECT * FROM {table} 
+            WHERE 1=1 {additional_filters}
+            AND (
+            -- first flight
+            {id_col} NOT IN (SELECT DISTINCT {id_col} FROM {relation_table})
+            OR
+            -- last arrival is the origin
+            (
+                SELECT f.destination_airport 
+                FROM Flight f
+                {"JOIN " + relation_table + " rf ON f.flight_id = rf.flight_id" if table != 'Plane' else ""}
+                WHERE {"rf." if table != 'Plane' else "f."}{id_col} = {table}.{id_col}
+                ORDER BY f.arrival DESC
+                LIMIT 1
+            ) = %s
         )
     """
-    if is_long:
-        query += " AND long_flight_qualified = 1"
-    cursor.execute(query, (dep_dt,))
-    return cursor.fetchall()
 
+    cursor.execute(query, (origin,))
+    return cursor.fetchall()
 
 
 
