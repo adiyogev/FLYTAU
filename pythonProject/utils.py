@@ -175,11 +175,13 @@ class Flight:
 
     @property
     def arrival_time(self):
-        try:
-            hours, minutes = map(int, self.duration.split(':'))
-            return self.departure + timedelta(hours=hours, minutes=minutes)
-        except (ValueError, AttributeError):
-            return None
+        # מנגנון הגנה: המרה מטקסט לזמן אם צריך
+        if isinstance(self.duration, str):
+            h, m, s = map(int, self.duration.split(':'))
+            delta = timedelta(hours=h, minutes=m, seconds=s)
+        else:
+            delta = self.duration
+        return self.departure + delta
 
     @property
     def available_seats(self):
@@ -207,21 +209,29 @@ class Plane:
         self.manufacturer = manufacturer
 
 
-class Class:
-    def __init__(self, seat_row, seat_position, class_type):
+class FlightClass: #'Class' is a reserved key word
+    def __init__(self, seat_row, seat_position, class_type, plane_id, seat_price=0, is_occupied=False):
         self.seat_row = seat_row
         self.seat_position = seat_position
         self.class_type = class_type
+        self.plane_id = plane_id
+        self.seat_price = seat_price
+        self.is_occupied = is_occupied
+
+    @property
+    def code(self):
+        return f"{self.seat_row}{self.seat_position}"
 
 
 class Order:
-    def __init__(self, code, seats, flight_id, email):
+    def __init__(self, code, seats, flight_id, email, guest_email=None):
         self.code = code
         self.order_date = datetime.now()
-        self.seats = seats
+        self.seats = seats # list of FlightClass objects
         self.status = 'active'
         self.flight_id = flight_id
         self.email = email
+        self.guest_email = guest_email
 
     def total_order_price(self):
         total_price = 0
@@ -246,7 +256,7 @@ def get_available_resources(table, id_col, origin, is_long, cursor):
         if table in ['Pilot', 'Flight_Attendant']:
             additional_filters = " AND long_flight_qualified = 1"
         elif table == 'Plane':
-            additional_filters = " AND type = 'large'"
+            additional_filters = " AND size = 'large'"
 
     relation_table = f"{table}s_on_Flight" if table != 'Plane' else "Flight"
     query = f"""

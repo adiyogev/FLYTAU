@@ -1,5 +1,7 @@
-from flask import Flask, render_template, redirect, request, session
+from flask import Flask, render_template, redirect, request, session, url_for
 from flask_session import Session
+import random
+import string
 import mysql.connector
 from utils import *
 from datetime import datetime, date
@@ -13,166 +15,286 @@ Session(app)
 mydb = mysql.connector.connect(host="localhost", user="root", password="root", database="db_team46")
 cursor = mydb.cursor()
 
-@app.route('/', methods=['POST', 'GET'])
-def landingpage():
-    if session.get("customer_email"): # checking if user is already connected
-        return redirect('/homepage')
+# ============================================================================
+#                                 MAIN ROUTES
+# ============================================================================
+@app.route('/', methods=['GET'])
+def index():
+    """
+    Renders the main landing page which includes the search form.
+    Checks if a user is logged in to adjust the Header display.
+    """
+    user_name = session.get('first_name')
+    is_logged_in = session.get('customer_email') is not None
+    return render_template('index.html', user_name=user_name, is_logged_in=is_logged_in)
 
-    return render_template('landing_page.html')
 
-@app.route('/homepage', methods=['POST', 'GET'])
-def homepage():
-    if not session.get("customer_email"): # checking if user is connected
-        return redirect("/")
+# USER PAGES
+@app.route('/search_flights', methods=['GET'])
+def search_flights():
+    """
+    Fetches flights matching criteria, creates Flight objects, and renders results.
+    """
+    # 1. Retrieve search parameters from URL
+    origin = request.args.get('origin')
+    destination = request.args.get('destination')
+    departure_date = request.args.get('departure_date')
+    num_passengers = request.args.get('num_passengers', 1, type=int)
+
+    # 2. Validation
+    if not origin or not destination or not departure_date:
+        return redirect(url_for('index'))
+
+    # 3. Store search context in session for later steps
+    session['search_origin'] = origin
+    session['search_destination'] = destination
+    session['num_passengers'] = num_passengers
+
+    # 4. Query DB: Get Flight info + Prices + Plane ID + Capacity/Occupancy calculation
+    query = """
+        SELECT f.flight_id, f.origin_airport, f.destination_airport, f.duration, f.departure, 
+               f.plane_id, f.business_seat_price, f.economy_seat_price,
+               (SELECT COUNT(*) FROM Class as c WHERE c.plane_id = f.plane_id) as capacity,
+               COALESCE(occupied_counts.booked_count, 0) as occupied
+        FROM Flight as f
+        LEFT JOIN (
+            SELECT o.flight_id, COUNT(sio.seat_row) as booked_count
+            FROM Orders as o
+            JOIN Seats_in_Order sio ON o.code = sio.code
+            WHERE o.status != 'cancelled'
+            GROUP BY o.flight_id
+        ) occupied_counts ON f.flight_id = occupied_counts.flight_id
+        WHERE f.origin_airport = %s AND f.destination_airport = %s 
+          AND DATE(f.departure) = %s AND f.status = 'active'
+          HAVING (capacity - occupied) >= %s
+    """
+    cursor.execute(query, (origin, destination, departure_date, num_passengers))
+    flights_from_db = cursor.fetchall()
+
+    # 5. Create Flight Objects (OOP)
+    available_flights = []
+    for f in flights_from_db:
+        # Utilizing the Flight class from utils.py
+        flight_obj = Flight(
+            flight_id=f[0], origin=f[1], destination=f[2],
+            duration=str(f[3]), departure=f[4], plane_id=f[5],
+            business_seat_price=f[6], economy_seat_price=f[7],
+            capacity=f[8], occupied=f[9]
+        )
+        available_flights.append(flight_obj)
+
+    # 6. Render Results
+    return render_template('flight_results.html',
+                           flights=available_flights,
+                           user_name=session.get('first_name'),
+                           is_logged_in=session.get('customer_email') is not None)
 
 
-@app.route('/login', methods=['POST', 'GET'])
-def login():
-    ''' login from different pages - each login will redirect to the correct page:
-        order -> checkout
-        homepage -> back to homepage'''
-    if session.get("customer_email"): # checking if user is already connected
-        return redirect('/homepage')
-    target_destination = request.args.get('next')
-    error_msg = None
+@app.route('/select_seats/<flight_id>', methods=['GET', 'POST'])
+def select_seats(flight_id):
+    """
+    Displays the plane layout (GET) and processes seat selection (POST).
+    """
+    num_passengers = session.get('num_passengers', 1)
+
+    #POST: Handle Selection Submission
     if request.method == 'POST':
-        customer_email = request.form.get('customer_email').lower()
-        password = request.form.get('password')
-        destination_after_login = request.form.get('next_url_hidden') # from hidden destination in HTML
-        cursor.execute("SELECT customer_email, password, first_name FROM Customer WHERE customer_email = %s AND password = %s",(customer_email, password))
-        customer = cursor.fetchone() # either one result or None
-        if customer: # find if entered email is in Customer DB, and if so - login the user
-            session['role'] = 'registered'
-            session['customer_email'] = customer[0]
-            session['first_name'] = customer[2] # for the homepage display
-            # check whether the next page will be homepage or checkout
-            if destination_after_login:
-                return redirect(destination_after_login)
-            else:
-                return redirect('/homepage')
-        error_msg = "one of the details you provided are incorrect"  # If either the id or the password entered are incorrect or don't match
-    return render_template("login.html", message=error_msg, next_param = target_destination)
+        raw_seats = request.form.getlist('selected_seats_raw')
+        # Validation
+        if len(raw_seats) != num_passengers:
+            return redirect(url_for('select_seats', flight_id=flight_id))
+        # Parse data and store in Session (avoiding DB lookups in Checkout)
+        final_seats_list = []
+        for item in raw_seats:
+            code, seat_type, price = item.split('|')
+            final_seats_list.append({
+                'code': code,
+                'type': seat_type,
+                'price': float(price)
+            })
+
+        session['selected_seats_data'] = final_seats_list
+        session['selected_flight_id'] = flight_id
+
+        return redirect(url_for('checkout'))
+
+    # GET: Render Plane Layout
+    # 1. Fetch Flight & Price Info
+    cursor.execute(
+        "SELECT plane_id, economy_seat_price, business_seat_price, origin_airport, destination_airport FROM Flight WHERE flight_id = %s",
+        (flight_id,))
+    flight_data = cursor.fetchone()
+    if not flight_data: return redirect('/')
+    # 2. Fetch plane layout (rows, positions, classes)
+    plane_id, eco_price, bus_price, origin, dest = flight_data
+
+    cursor.execute(
+        "SELECT seat_row, seat_position, class_type FROM Class WHERE plane_id = %s ORDER BY seat_row, seat_position",
+        (plane_id,))
+    all_seats = cursor.fetchall()
+    # 3. Fetch Occupied Seats
+    cursor.execute("""
+        SELECT sio.seat_row, sio.seat_position FROM Seats_in_Order sio
+        JOIN Orders o ON sio.code = o.code
+        WHERE o.flight_id = %s AND o.status != 'cancelled'
+    """, (flight_id,))
+    occupied_set = {(r, p) for r, p in cursor.fetchall()}
+    # 4. Build Logic Maps for Jinja Template (Separating Business/Economy)
+    biz_seats_map = {}
+    eco_seats_map = {}
+
+    for row, pos, c_type in all_seats:
+        is_occupied = (row, pos) in occupied_set
+        curr_price = bus_price if c_type == 'business' else eco_price
+
+        # Creation of FlightClass object
+        seat_obj = FlightClass(
+            seat_row=row,
+            seat_position=pos,
+            class_type=c_type,
+            plane_id=plane_id,
+            price=curr_price,
+            is_occupied=is_occupied
+        )
+        # Sort into correct dictionary for the UI grid
+        target_map = biz_seats_map if c_type == 'business' else eco_seats_map
+        if row not in target_map:
+            target_map[row] = []
+        target_map[row].append(seat_obj)
+
+    return render_template('select_seat.html',
+                           biz_map=biz_seats_map,
+                           eco_map=eco_seats_map,
+                           flight_id=flight_id,
+                           num_passengers=num_passengers,
+                           origin=origin, dest=dest,
+                           eco_price=eco_price, bus_price=bus_price)
 
 
-@app.route('/login_guest', methods=['POST'])
-def login_guest():
-    ''' login from different pages - each login will redirect to the correct page:
-            order -> checkout
-            homepage -> back to homepage'''
-    guest_email = request.form.get('guest_email')
-    destination_after_login = request.form.get('next_url_hidden')  # from hidden destination in HTML
-    session['role'] = 'guest'
-    session['guest_email'] = guest_email
-    # check whether the next page will be homepage or checkout
-    if destination_after_login:
-        return redirect(destination_after_login)
-    else:
-        return redirect('/homepage'))
+@app.route('/checkout', methods=['GET', 'POST'])
+def checkout():
+    """
+    Handles passenger details (Guest/Registered) and order creation.
+    """
+    # Force Login (guest or user)
+    if not session.get('customer_email') and not session.get('guest_email'):
+        return redirect(url_for('login', next='/checkout'))
+    # Validate Session Data
+    flight_id = session.get('selected_flight_id')
+    selected_seats_data = session.get('selected_seats_data')
 
-@app.route('/login_manager', methods=['POST', 'GET'])
-def login_manager():
-    if session.get("manager_id"):  # checking if manager is already connected
-        return redirect("/manager")  # להבין אם מעביר לדף בית מחובר
-    error_msg = None
+    if not flight_id or not selected_seats_data:
+        return redirect(url_for('index'))
+
+    # FlightClass objects from Session
+    seat_objects = []
+    for s_data in selected_seats_data:
+        code = s_data['code']
+        pos = code[-1]
+        row = int(code[:-1])
+
+        seat = FlightClass(
+            seat_row=row,
+            seat_position=pos,
+            class_type=s_data['type'],
+            plane_id=None,
+            price=s_data['price']
+        )
+        seat_objects.append(seat)
+
+    # Create order object
+    current_order = Order(
+        code="TEMP",
+        seats=seat_objects,
+        flight_id=flight_id,
+        email=session.get('customer_email'),
+        guest_email=session.get('guest_email')
+    )
+
+    #POST: Finalize Order
     if request.method == 'POST':
-        manager_id = request.form.get('manager_id')
-        password = request.form.get('password')
-        cursor.execute("SELECT manager_id, password FROM Manager WHERE manager_id = %s AND password = %s", (manager_id, password))
-        manager = cursor.fetchone() # either one result or None
-        if manager: # Find if entered id is in Manager DB, and if so - login the manager
-            session['role'] = 'manager'
-            session['manager_id'] = manager_id
-            return redirect('/manager')
-        error_msg = "incorrect ID or password" # If either the id or the password entered are incorrect or don't match
-    return render_template('login_manager.html', message=error_msg)
-
-@app.route('/register', methods=['POST', 'GET'])
-def register():
-    target_destination = request.args.get('next')
-    if request.method == 'POST':
-        # Retrieves the needed information to enter customer into DB
-        customer_email = request.form.get('customer_email').lower()
+        # collect passenger details from form
         first_name = request.form.get('first_name')
         last_name = request.form.get('last_name')
         passport = request.form.get('passport')
         birth_date = request.form.get('birth_date')
-        password = request.form.get('password')
-        phone_numbers_form = request.form.getlist('phone_numbers')
-        phone_numbers = [p for p in phone_numbers_form if p != ""]
-        reg_date = date.today()
+        cursor.execute("SELECT origin_airport, destination_airport FROM Flight WHERE flight_id=%s", (flight_id,))
+        flight_info = cursor.fetchone()
 
-        destination_after_login = request.form.get('next_url_hidden')  # from hidden destination in HTML
-        cursor.execute("SELECT customer_email FROM Customer WHERE customer_email = %s", (customer_email,)) # We won't allow the same email to have 2 different accounts
-        if cursor.fetchone():
-            return render_template('register.html', message="User Already Exists")
-        cursor.execute("INSERT INTO Customer(customer_email, first_name, last_name, passport, birth_date, password, reg_date) VALUES(%s, %s, "
-                       "%s, %s, %s, %s, %s)", (customer_email, first_name, last_name, passport, birth_date, password, phone_numbers, reg_date))
-        for phone in phone_numbers:
-            cursor.execute("INSERT INTO Customer_Phone_Numbers(phone_customer_email, phone_num) VALUES(%s, %s)",(customer_email, phone))
-        mydb.commit()
-        session['role'] = 'registered'
-        session['customer_email'] = customer_email
-        if destination_after_login:
-            return redirect(destination_after_login)
-        else:
-            return redirect('/homepage')
-    return render_template("register.html")
+        current_order.code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+        try:
+            # 1. Insert order to DB
+            query_order = """
+                INSERT INTO Orders (code, status, total_price, order_date, flight_id, customer_email, guest_email)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """
+            cursor.execute(query_order, (
+                current_order.code,
+                current_order.status,
+                current_order.total_order_price(),  # Order class function
+                current_order.order_date,
+                current_order.flight_id,
+                current_order.email,
+                current_order.guest_email
+            ))
 
+            # 2. Insert seats to DB
+            cursor.execute("SELECT plane_id FROM Flight WHERE flight_id=%s", (flight_id,))
+            real_plane_id = cursor.fetchone()[0]
 
-@app.route('/logout')
-def logout():
-    session.clear()
-    return redirect('/')
+            for seat in current_order.seats:
+                cursor.execute("""
+                    INSERT INTO Seats_in_Order (seat_row, seat_position, code, seats_plane_id, price)
+                    VALUES (%s, %s, %s, %s, %s)
+                 """, (seat.seat_row, seat.seat_position, current_order.code, real_plane_id, seat.seat_price))
 
+            mydb.commit()
+            # Cleanup Session
+            session.pop('selected_seats_data', None)
+            session.pop('selected_flight_id', None)
 
-@app.route('/search_flights', methods=['POST', 'GET'])
-def search_flights():
-    if request.method == 'POST':
-        origin = request.form.get('origin')
-        destination = request.form.get('destination')
-        departure_date = request.form.get('departure_date')
-        num_passengers = int(request.form.get('num_passengers', 1))
+            return render_template('confirmation.html',
+                                   order_code=current_order.code,
+                                   first_name=first_name,
+                                   last_name=last_name,
+                                   passport=passport,
+                                   birth_date=birth_date,
+                                   origin=flight_info[0],
+                                   dest=flight_info[1],
+                                   flight_id=flight_id)
 
-        session['search_origin'] = origin
-        session['search_destination'] = destination
-        session['num_passengers'] = num_passengers
+        except Exception as e:
+            mydb.rollback()
+            return f"תקלה ביצירת ההזמנה: {e}"
 
-        query = """
-            SELECT 
-                f.flight_id, f.origin_airport, f.destination_airport, 
-                f.duration, f.departure,
-                (SELECT COUNT(*) FROM Class as c WHERE c.plane_id = f.plane_id) as capacity,
-                COALESCE(occupied_counts.booked_count, 0) as occupied
-            FROM Flight as f
-            LEFT JOIN (
-                SELECT o.flight_id, COUNT(sio.seat_row) as booked_count
-                FROM Orders as o
-                JOIN Seats_in_Order sio ON o.code = sio.code
-                WHERE o.status != 'cancelled'
-                GROUP BY o.flight_id
-            ) occupied_counts ON f.flight_id = occupied_counts.flight_id
-            WHERE f.origin_airport = %s 
-              AND f.destination_airport = %s 
-              AND DATE(f.departure) = %s
-              AND f.status = 'active'
-              HAVING (capacity - occupied) >= %s
-        """
+    # GET: Render Checkout Page
+    # 1. Fetch user details for auto fill (if registered)
+    user_details = {}
+    is_guest = True
+    if session.get('customer_email'):
+        is_guest = False
+        cursor.execute("SELECT first_name, last_name, passport, birth_date FROM Customer WHERE customer_email = %s",
+                       (session['customer_email'],))
+        cust_data = cursor.fetchone()
+        if cust_data:
+            user_details = {
+                'first_name': cust_data[0], 'last_name': cust_data[1],
+                'passport': cust_data[2], 'birth_date': cust_data[3]
+            }
+    # 2. Prepare flight object for display
+    cursor.execute(
+        "SELECT flight_id, origin_airport, destination_airport, duration, departure FROM Flight WHERE flight_id = %s",
+        (flight_id,))
+    f_data = cursor.fetchone()
+    flight_display = Flight(f_data[0], f_data[1], f_data[2], str(f_data[3]), f_data[4], None, 0, 0)
 
-        cursor.execute(query, (origin, destination, departure_date, num_passengers))
-        flights_from_db = cursor.fetchall()
-
-        available_flights = []
-        for f in flights_from_db:
-            flight_obj = Flight(
-                flight_id=f[0], origin=f[1], destination=f[2],
-                duration=f[3], departure=f[4],
-                capacity=f[5], occupied=f[6]
-            )
-            available_flights.append(flight_obj)
-
-        return render_template('flight_results.html', flights=available_flights)
-
-    return redirect('/homepage')
+    return render_template('checkout.html',
+                           flight=flight_display,
+                           seats=current_order.seats,
+                           total_price=current_order.total_order_price(),
+                           user=user_details,
+                           is_guest=is_guest,
+                           user_name=session.get('first_name'))
 
 
 @app.route('/my_orders', methods=['GET', 'POST'])
@@ -245,6 +367,112 @@ def my_orders():
                            current_filter=status_filter,
                            message=message)
 
+
+# ============================================================================
+#                           LOGIN, REGISTER, LOGOUT
+# ============================================================================
+@app.route('/login', methods=['POST', 'GET'])
+def login():
+    ''' login from different pages - each login will redirect to the correct page:
+        order -> checkout
+        homepage -> back to homepage'''
+    if session.get("customer_email"): # checking if user is already connected
+        return redirect('/homepage')
+    target_destination = request.args.get('next')
+    error_msg = None
+    if request.method == 'POST':
+        customer_email = request.form.get('customer_email').lower()
+        password = request.form.get('password')
+        destination_after_login = request.form.get('next_url_hidden') # from hidden destination in HTML
+        cursor.execute("SELECT customer_email, password, first_name FROM Customer WHERE customer_email = %s AND password = %s",(customer_email, password))
+        customer = cursor.fetchone() # either one result or None
+        if customer: # find if entered email is in Customer DB, and if so - login the user
+            session['role'] = 'registered'
+            session['customer_email'] = customer[0]
+            session['first_name'] = customer[2] # for the homepage display
+            # check whether the next page will be homepage or checkout
+            if destination_after_login:
+                return redirect(destination_after_login)
+            else:
+                return redirect('/homepage')
+        error_msg = "one of the details you provided are incorrect"  # If either the id or the password entered are incorrect or don't match
+    return render_template("login.html", message=error_msg, next_param = target_destination)
+
+
+@app.route('/login_guest', methods=['POST'])
+def login_guest():
+    ''' login from different pages - each login will redirect to the correct page:
+            order -> checkout
+            homepage -> back to homepage'''
+    guest_email = request.form.get('guest_email')
+    destination_after_login = request.form.get('next_url_hidden')  # from hidden destination in HTML
+    session['role'] = 'guest'
+    session['guest_email'] = guest_email
+    # check whether the next page will be homepage or checkout
+    if destination_after_login:
+        return redirect(destination_after_login)
+    else:
+        return redirect('/homepage')
+
+@app.route('/login_manager', methods=['POST', 'GET'])
+def login_manager():
+    if session.get("manager_id"):  # checking if manager is already connected
+        return redirect("/manager")  # להבין אם מעביר לדף בית מחובר
+    error_msg = None
+    if request.method == 'POST':
+        manager_id = request.form.get('manager_id')
+        password = request.form.get('password')
+        cursor.execute("SELECT manager_id, password FROM Manager WHERE manager_id = %s AND password = %s", (manager_id, password))
+        manager = cursor.fetchone() # either one result or None
+        if manager: # Find if entered id is in Manager DB, and if so - login the manager
+            session['role'] = 'manager'
+            session['manager_id'] = manager_id
+            return redirect('/manager')
+        error_msg = "incorrect ID or password" # If either the id or the password entered are incorrect or don't match
+    return render_template('login_manager.html', message=error_msg)
+
+@app.route('/register', methods=['POST', 'GET'])
+def register():
+    target_destination = request.args.get('next')
+    if request.method == 'POST':
+        # Retrieves the needed information to enter customer into DB
+        customer_email = request.form.get('customer_email').lower()
+        first_name = request.form.get('first_name')
+        last_name = request.form.get('last_name')
+        passport = request.form.get('passport')
+        birth_date = request.form.get('birth_date')
+        password = request.form.get('password')
+        phone_numbers_form = request.form.getlist('phone_numbers')
+        phone_numbers = [p for p in phone_numbers_form if p != ""]
+        reg_date = date.today()
+
+        destination_after_login = request.form.get('next_url_hidden')  # from hidden destination in HTML
+        cursor.execute("SELECT customer_email FROM Customer WHERE customer_email = %s", (customer_email,)) # We won't allow the same email to have 2 different accounts
+        if cursor.fetchone():
+            return render_template('register.html', message="User Already Exists")
+        cursor.execute("INSERT INTO Customer(customer_email, first_name, last_name, passport, birth_date, password, reg_date) VALUES(%s, %s, "
+                       "%s, %s, %s, %s, %s)", (customer_email, first_name, last_name, passport, birth_date, password, phone_numbers, reg_date))
+        for phone in phone_numbers:
+            cursor.execute("INSERT INTO Customer_Phone_Numbers(phone_customer_email, phone_num) VALUES(%s, %s)",(customer_email, phone))
+        mydb.commit()
+        session['role'] = 'registered'
+        session['customer_email'] = customer_email
+        if destination_after_login:
+            return redirect(destination_after_login)
+        else:
+            return redirect('/homepage')
+    return render_template("register.html")
+
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect('/')
+
+
+# ============================================================================
+#                               MANAGER ROUTES
+# ============================================================================
 @app.route('/manager', methods=['GET', 'POST'])
 def manager_flights():
     if session.get("role") != 'manager':
@@ -421,8 +649,7 @@ def add_staff():
             return f"שגיאה בהוספת עובד: {e}"
     return render_template('add_staff.html')
 
-
-
+# ERROR HANDLER
 @app.errorhandler(404)
 def error(e):
     return redirect('/')
