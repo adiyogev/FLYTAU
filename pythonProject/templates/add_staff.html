@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FLYTAU - הוספת עובד</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --flytau-navy: #001b33;
+            --flytau-teal: #00818a;
+            --bg-body: #f1f5f9;
+            --bg-card: #ffffff;
+            --text-main: #001b33;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Heebo', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--flytau-navy);
+            margin-bottom: 30px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .label {
+            display: block;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-main);
+        }
+
+        .input-box {
+            display: flex;
+            align-items: center;
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 14px 15px;
+        }
+
+        .input-box:focus-within {
+            border-color: var(--flytau-teal);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(0,129,138,.1);
+        }
+
+        .input-box i {
+            color: var(--text-secondary);
+            margin-left: 10px;
+        }
+
+        .input-box input, .input-box select {
+            border: none;
+            background: transparent;
+            width: 100%;
+            font-size: 16px;
+            outline: none;
+            color: var(--text-main);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 12px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .btn {
+            background: var(--flytau-teal);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn:hover {
+            background: #006b72;
+        }
+
+        .btn-secondary {
+            background: var(--text-secondary);
+            margin-left: 10px;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1 class="page-title">הוספת עובד חדש</h1>
+
+            <form method="POST" action="/manager/add_staff">
+                <div class="input-group">
+                    <label class="label">סוג עובד</label>
+                    <div class="input-box">
+                        <i class="fas fa-user-tag"></i>
+                        <select name="staff_type" required>
+                            <option value="">בחר סוג עובד</option>
+                            <option value="pilot">טייס</option>
+                            <option value="flight_attendant">דייל/ת</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label class="label">מספר עובד</label>
+                        <div class="input-box">
+                            <i class="fas fa-id-badge"></i>
+                            <input type="text" name="staff_id" required>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="label">תאריך התחלה</label>
+                        <div class="input-box">
+                            <i class="far fa-calendar"></i>
+                            <input type="date" name="start_date" required>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="label">שם פרטי</label>
+                        <div class="input-box">
+                            <i class="fas fa-user"></i>
+                            <input type="text" name="first_name" required>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="label">שם משפחה</label>
+                        <div class="input-box">
+                            <i class="fas fa-user"></i>
+                            <input type="text" name="last_name" required>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="label">טלפון</label>
+                        <div class="input-box">
+                            <i class="fas fa-phone"></i>
+                            <input type="tel" name="phone" required>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="label">עיר</label>
+                        <div class="input-box">
+                            <i class="fas fa-city"></i>
+                            <input type="text" name="city" required>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="label">רחוב</label>
+                        <div class="input-box">
+                            <i class="fas fa-road"></i>
+                            <input type="text" name="street" required>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="label">מספר בית</label>
+                        <div class="input-box">
+                            <i class="fas fa-home"></i>
+                            <input type="text" name="st_num" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-group full-width">
+                    <div class="checkbox-group">
+                        <input type="checkbox" name="is_long_qualified" id="long_qualified">
+                        <label for="long_qualified" style="cursor: pointer; font-weight: 600;">
+                            מוסמך לטיסות ארוכות (מעל 6 שעות)
+                        </label>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <a href="/manager" class="btn btn-secondary">ביטול</a>
+                    <button type="submit" class="btn">הוסף עובד <i class="fas fa-check"></i></button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
+

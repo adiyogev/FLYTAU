@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FLYTAU - הוספת טיסה - שלב 2</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --flytau-navy: #001b33;
+            --flytau-teal: #00818a;
+            --bg-body: #f1f5f9;
+            --bg-card: #ffffff;
+            --text-main: #001b33;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Heebo', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--flytau-navy);
+            margin-bottom: 10px;
+        }
+
+        .step-indicator {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .step {
+            flex: 1;
+            padding: 10px;
+            background: var(--bg-body);
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .step.active {
+            background: var(--flytau-teal);
+            color: white;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--bg-body);
+        }
+
+        .resource-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .resource-item {
+            background: var(--bg-body);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 15px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .resource-item:hover {
+            border-color: var(--flytau-teal);
+            transform: translateY(-3px);
+        }
+
+        .resource-item.selected {
+            border-color: var(--flytau-teal);
+            background: rgba(0, 129, 138, 0.1);
+        }
+
+        .resource-item input[type="checkbox"] {
+            margin-left: 10px;
+        }
+
+        .resource-id {
+            font-weight: 800;
+            color: var(--flytau-navy);
+            margin-bottom: 5px;
+        }
+
+        .resource-details {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .btn {
+            background: var(--flytau-teal);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn:hover {
+            background: #006b72;
+        }
+
+        .btn-secondary {
+            background: var(--text-secondary);
+            margin-left: 10px;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1 class="page-title">הוספת טיסה חדשה - שלב 2</h1>
+            
+            <div class="step-indicator">
+                <div class="step">1. פרטים בסיסיים</div>
+                <div class="step active">2. משאבים</div>
+                <div class="step">3. תמחור</div>
+            </div>
+
+            <form method="POST" action="/manager/add_flight/step2" id="step2-form">
+                <div class="section-title"><i class="fas fa-plane"></i> בחר מטוס</div>
+                <div class="resource-grid">
+                    {% for plane in planes %}
+                    <label class="resource-item">
+                        <input type="radio" name="plane_id" value="{{ plane[0] }}" required>
+                        <div class="resource-id">מטוס #{{ plane[0] }}</div>
+                        <div class="resource-details">גודל: {{ plane[1] }}</div>
+                    </label>
+                    {% endfor %}
+                </div>
+
+                <div class="section-title"><i class="fas fa-user-tie"></i> בחר טייסים</div>
+                <div class="resource-grid">
+                    {% for pilot in pilots %}
+                    <label class="resource-item">
+                        <input type="checkbox" name="pilots" value="{{ pilot[0] }}">
+                        <div class="resource-id">טייס #{{ pilot[0] }}</div>
+                        <div class="resource-details">{{ pilot[1] }} {{ pilot[2] }}</div>
+                    </label>
+                    {% endfor %}
+                </div>
+
+                <div class="section-title"><i class="fas fa-user-friends"></i> בחר דיילים</div>
+                <div class="resource-grid">
+                    {% for fa in fas %}
+                    <label class="resource-item">
+                        <input type="checkbox" name="fas" value="{{ fa[0] }}">
+                        <div class="resource-id">דייל #{{ fa[0] }}</div>
+                        <div class="resource-details">{{ fa[1] }} {{ fa[2] }}</div>
+                    </label>
+                    {% endfor %}
+                </div>
+
+                <div class="actions">
+                    <a href="/manager/add_flight/step1" class="btn btn-secondary">חזור</a>
+                    <button type="submit" class="btn">המשך לשלב 3 <i class="fas fa-arrow-left"></i></button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.resource-item input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', function() {
+                this.closest('.resource-item').classList.toggle('selected', this.checked);
+            });
+        });
+
+        document.querySelectorAll('.resource-item input[type="radio"]').forEach(rb => {
+            rb.addEventListener('change', function() {
+                document.querySelectorAll('.resource-item').forEach(item => {
+                    if (item.querySelector('input[type="radio"]')) {
+                        item.classList.remove('selected');
+                    }
+                });
+                this.closest('.resource-item').classList.add('selected');
+            });
+        });
+
+        document.getElementById('step2-form').addEventListener('submit', function(e) {
+            const planeSelected = document.querySelector('input[name="plane_id"]:checked');
+            if (!planeSelected) {
+                e.preventDefault();
+                alert('אנא בחר מטוס');
+                return false;
+            }
+        });
+    </script>
+</body>
+</html>
+

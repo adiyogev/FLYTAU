@@ -210,12 +210,12 @@ class Plane:
 
 
 class FlightClass: #'Class' is a reserved key word
-    def __init__(self, seat_row, seat_position, class_type, plane_id, seat_price=0, is_occupied=False):
+    def __init__(self, seat_row, seat_position, class_type, plane_id, price=0, is_occupied=False):
         self.seat_row = seat_row
         self.seat_position = seat_position
         self.class_type = class_type
         self.plane_id = plane_id
-        self.seat_price = seat_price
+        self.seat_price = price  # Changed from self.price to self.seat_price
         self.is_occupied = is_occupied
 
     @property
@@ -227,7 +227,7 @@ class Order:
     def __init__(self, code, seats, flight_id, email, guest_email=None):
         self.code = code
         self.order_date = datetime.now()
-        self.seats = seats # list of FlightClass objects
+        self.seats = seats
         self.status = 'active'
         self.flight_id = flight_id
         self.email = email

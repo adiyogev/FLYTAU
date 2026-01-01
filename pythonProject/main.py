@@ -11,7 +11,7 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-mydb = mysql.connector.connect(host="localhost", user="root", password="root", database="db_team46")
+mydb = mysql.connector.connect(host="localhost", user="root", password="root", database="FLYTAU")
 cursor = mydb.cursor()
 
 
@@ -52,22 +52,24 @@ def search_flights():
 
     # 4. Query DB: Get Flight info + Prices + Plane ID + Capacity/Occupancy calculation
     query = """
-        SELECT f.flight_id, f.origin_airport, f.destination_airport, f.duration, f.departure, 
-               f.plane_id, f.business_seat_price, f.economy_seat_price,
-               (SELECT COUNT(*) FROM Class as c WHERE c.plane_id = f.plane_id) as capacity,
-               COALESCE(occupied_counts.booked_count, 0) as occupied
-        FROM Flight as f
-        LEFT JOIN (
-            SELECT o.flight_id, COUNT(sio.seat_row) as booked_count
-            FROM Orders as o
-            JOIN Seats_in_Order sio ON o.code = sio.code
-            WHERE o.status != 'cancelled'
-            GROUP BY o.flight_id
-        ) occupied_counts ON f.flight_id = occupied_counts.flight_id
-        WHERE f.origin_airport = %s AND f.destination_airport = %s 
-          AND DATE(f.departure) = %s AND f.status = 'active'
-          HAVING (capacity - occupied) >= %s
-    """
+            SELECT f.flight_id, f.origin_airport, f.destination_airport, r.duration, f.departure, 
+                   f.plane_id, f.business_seat_price, f.economy_seat_price,
+                   (SELECT COUNT(*) FROM Class as c WHERE c.plane_id = f.plane_id) as capacity,
+                   COALESCE(occupied_counts.booked_count, 0) as occupied
+            FROM Flight as f
+            JOIN Route as r ON f.origin_airport = r.origin_airport 
+                           AND f.destination_airport = r.destination_airport
+            LEFT JOIN (
+                SELECT o.flight_id, COUNT(sio.seat_row) as booked_count
+                FROM Orders as o
+                JOIN Seats_in_Order sio ON o.code = sio.code
+                WHERE o.status != 'cancelled'
+                GROUP BY o.flight_id
+            ) occupied_counts ON f.flight_id = occupied_counts.flight_id
+            WHERE f.origin_airport = %s AND f.destination_airport = %s 
+              AND DATE(f.departure) = %s AND f.status = 'active'
+              HAVING (capacity - occupied) >= %s
+        """
     cursor.execute(query, (origin, destination, departure_date, num_passengers))
     flights_from_db = cursor.fetchall()
 
@@ -157,7 +159,7 @@ def select_seats(flight_id):
             seat_position=pos,
             class_type=c_type,
             plane_id=plane_id,
-            seat_price=curr_price,
+            price=curr_price,
             is_occupied=is_occupied
         )
         # Sort into correct dictionary for the UI grid

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FLYTAU - בחירת מושבים</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --flytau-navy: #001b33;
+            --flytau-teal: #00818a;
+            --flytau-teal-hover: #006b72;
+            --flytau-bg: #f1f5f9;
+            --text-main: #001b33;
+            --text-muted: #64748b;
+            --border-color: #cbd5e1;
+            
+            /* צבעי מושבים */
+            --seat-biz-bg: #1e293b; 
+            --seat-biz-icon: #ffffff; 
+            --seat-eco-bg: #e0f2fe; 
+            --seat-eco-border: #7dd3fc;
+            --seat-eco-icon: #0284c7;
+            --seat-occ-bg: #e2e8f0; 
+            --seat-occ-icon: #94a3b8;
+        }
+
+        body {
+            font-family: 'Heebo', sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding-bottom: 100px;
+            overflow-x: hidden;
+        }
+
+        /* --- Header מוקטן --- */
+        header {
+            width: 100%; height: 60px; /* הוקטן מ-75px */
+            background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            position: sticky; top: 0; z-index: 1000; box-sizing: border-box;
+            border-top: 3px solid var(--flytau-teal);
+        }
+
+        .logo img { height: 40px; width: auto; display: block; } /* לוגו מוקטן */
+        
+        .flight-route { 
+            display: flex; align-items: center; gap: 8px; 
+            font-weight: 800; font-size: 16px; color: var(--flytau-navy); 
+            background: #f1f5f9; padding: 4px 12px; border-radius: 20px;
+        }
+        .flight-route i { color: var(--flytau-teal); font-size: 14px; transform: rotate(180deg); }
+        .flight-tag { background: var(--flytau-navy); padding: 2px 6px; border-radius: 4px; font-size: 11px; color: white; }
+
+        /* --- Status Bar מוקטן --- */
+        .status-bar {
+            margin-top: 10px; /* רווח עליון מוקטן */
+            background: white; padding: 8px 20px;
+            border-radius: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex; gap: 20px; align-items: center; font-size: 13px; z-index: 900;
+        }
+        .status-info b { color: var(--flytau-teal); font-size: 14px; }
+        .legend { display: flex; gap: 15px; border-right: 1px solid var(--border-color); padding-right: 15px; }
+        .legend-item { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 12px; }
+        .dot { width: 10px; height: 10px; border-radius: 3px; }
+
+        /* --- Airplane Structure --- */
+        .airplane-wrapper {
+            position: relative;
+            margin-top: 20px; /* הרמתי את המטוס למעלה */
+            filter: drop-shadow(0 40px 80px rgba(15, 23, 42, 0.15));
+        }
+
+        .wing {
+            position: absolute; top: 38%; width: 240px; height: 300px;
+            background: #cbd5e1; z-index: -1; border: 1px solid #94a3b8;
+        }
+        .wing.left { left: -160px; transform: skewY(15deg); border-radius: 30px 0 0 100px; border-right: none; background: linear-gradient(90deg, #e2e8f0, #cbd5e1); }
+        .wing.right { right: -160px; transform: skewY(-15deg); border-radius: 0 30px 100px 0; border-left: none; background: linear-gradient(-90deg, #e2e8f0, #cbd5e1); }
+
+        .tail-fin {
+            position: absolute; bottom: -50px; left: 50%; transform: translateX(-50%);
+            width: 160px; height: 100px; background: #cbd5e1; z-index: -2;
+            clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
+            background: linear-gradient(180deg, #e2e8f0, #94a3b8);
+        }
+
+        .fuselage {
+            width: 320px;
+            background: white;
+            border-radius: 160px 160px 80px 80px;
+            border: 1px solid white;
+            position: relative;
+            display: flex; flex-direction: column; align-items: center;
+            padding-bottom: 50px;
+        }
+
+        .cockpit {
+            width: 100%; height: 120px;
+            background: linear-gradient(180deg, #f8fafc 0%, #ffffff 60%, #ffffff 100%);
+            border-radius: 160px 160px 0 0;
+            display: flex; justify-content: center; align-items: center;
+            padding-top: 30px; 
+            border-bottom: 2px solid #f1f5f9;
+        }
+
+        .window-glass {
+            width: 110px; height: 45px;
+            border-radius: 22px 22px 12px 12px; position: relative;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            background: linear-gradient(135deg, var(--flytau-navy) 0%, #334155 100%);
+        }
+        .window-glass::after {
+            content: ''; position: absolute; top: 8px; right: 18px; width: 30px; height: 6px;
+            background: rgba(255,255,255,0.15); border-radius: 10px; transform: rotate(-10deg);
+        }
+
+        .cabin { width: 100%; padding-top: 5px; }
+
+        .section-title {
+            text-align: center; font-size: 11px; font-weight: 800; letter-spacing: 1px;
+            color: var(--flytau-teal); text-transform: uppercase; margin: 15px 0 10px 0;
+            position: relative;
+        }
+        .section-title span { background: white; padding: 0 10px; position: relative; z-index: 1; border: 1px solid #e2e8f0; border-radius: 10px; }
+        .section-title::before {
+            content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+            width: 80%; height: 1px; background: #e2e8f0; z-index: 0;
+        }
+
+        /* --- Grid & Seats --- */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 42px) 30px repeat(2, 42px);
+            gap: 12px; justify-content: center;
+        }
+
+        .aisle-num {
+            grid-column: 3; display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 700; color: #cbd5e1;
+        }
+
+        .seat {
+            width: 42px; height: 46px;
+            border-radius: 8px 8px 12px 12px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; position: relative; transition: 0.2s;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.08); 
+            border: 1px solid transparent;
+        }
+
+        .seat i { font-size: 18px; transition: 0.2s; }
+
+        .seat.biz { background: var(--seat-biz-bg); border-color: var(--seat-biz-bg); color: var(--seat-biz-icon); }
+        .seat.eco { background: var(--seat-eco-bg); border-color: var(--seat-eco-border); color: var(--seat-eco-icon); }
+        .seat.occ { background: var(--seat-occ-bg); color: var(--seat-occ-icon); cursor: not-allowed; border: none; box-shadow: none; opacity: 0.6; }
+
+        .seat:not(.occ):hover { transform: translateY(-3px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
+
+        .seat.selected {
+            background: var(--flytau-teal); color: white; border-color: var(--flytau-teal);
+            transform: scale(1.1); box-shadow: 0 6px 20px rgba(13, 148, 136, 0.4); z-index: 10;
+        }
+        .seat.selected i { color: white; }
+        .seat.selected::after {
+            content: '\f00c'; font-family: "Font Awesome 6 Free"; font-weight: 900;
+            position: absolute; top: -6px; right: -6px; background: white; color: var(--flytau-teal);
+            width: 18px; height: 18px; border-radius: 50%; font-size: 11px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* --- Footer מוקטן --- */
+        footer {
+            position: fixed; bottom: 0; width: 100%;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
+            padding: 10px 20px; /* הוקטן */
+            display: flex; justify-content: space-between; align-items: center;
+            border-top: 1px solid var(--border-color); z-index: 2000; box-sizing: border-box;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
+        }
+        .price-box div:first-child { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .total-price { font-size: 24px; font-weight: 900; color: var(--flytau-navy); line-height: 1; }
+        
+        .btn-continue {
+            background: var(--flytau-navy); color: white; border: none;
+            padding: 10px 30px; border-radius: 10px; font-size: 14px; font-weight: 700;
+            cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px;
+            box-shadow: 0 5px 15px rgba(0, 27, 51, 0.2);
+        }
+        .btn-continue:hover:not(:disabled) { background: var(--flytau-teal); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(13, 148, 136, 0.3); }
+        .btn-continue:disabled { background: var(--seat-occ-bg); color: #94a3b8; cursor: not-allowed; opacity: 1; box-shadow: none; }
+
+        @media (max-width: 450px) {
+            .fuselage { width: 100%; max-width: 300px; }
+            .wing, .tail-fin { display: none; } 
+            header { padding: 0 20px; }
+            .status-bar { flex-direction: column; width: 90%; text-align: center; gap: 10px; }
+            .legend { border-right: none; padding-right: 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">
+            <img src="LOGO.jpeg" alt="FLYTAU" onerror="this.src='https://via.placeholder.com/150x50?text=LOGO'">
+        </div>
+        <div class="flight-route">
+            TLV <i class="fas fa-plane"></i> JFK
+            <span class="flight-tag">FT-101</span>
+        </div>
+    </header>
+
+    <div class="status-bar">
+        <div class="legend">
+            <div class="legend-item"><div class="dot" style="background:var(--seat-biz-bg);"></div> ביזנס</div>
+            <div class="legend-item"><div class="dot" style="background:var(--seat-eco-bg); border:1px solid var(--seat-eco-border);"></div> תיירים</div>
+            <div class="legend-item"><div class="dot" style="background:var(--seat-occ-bg);"></div> תפוס</div>
+            <div class="legend-item"><div class="dot" style="background:var(--flytau-teal);"></div> נבחר</div>
+        </div>
+        <div class="status-info">
+            נוסעים: <b><span id="selected-count">0</span></b> / 3
+        </div>
+    </div>
+
+    <div class="airplane-wrapper">
+        <div class="wing left"></div>
+        <div class="wing right"></div>
+        
+        <div class="fuselage">
+            <div class="cockpit">
+                <div class="window-glass"></div>
+            </div>
+
+            <div class="cabin">
+                
+                <div class="section-title"><span>Business Class ($450)</span></div>
+                <div class="grid" id="grid-biz"></div>
+
+                <div class="section-title"><span>Economy Class ($150)</span></div>
+                <div class="grid" id="grid-eco"></div>
+
+            </div>
+            
+            <div class="tail-fin"></div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="price-box">
+            <div>סה"כ לתשלום</div>
+            <div class="total-price">$<span id="total-price">0</span></div>
+        </div>
+        <button class="btn-continue" id="btn-next" disabled onclick="alert('הזמנה אושרה! מעבר לתשלום...')">
+            אישור ותשלום <i class="fas fa-arrow-left"></i>
+        </button>
+    </footer>
+
+    <script>
+        const maxSeats = 3;
+        let selected = [];
+
+        function createSeat(id, type, price, occupied) {
+            const seat = document.createElement('div');
+            seat.className = `seat ${type} ${occupied ? 'occ' : ''}`;
+            const icon = document.createElement('i');
+            icon.className = 'fas fa-chair';
+            seat.appendChild(icon);
+
+            if (!occupied) {
+                seat.onclick = () => toggleSeat(seat, id, price);
+                seat.title = `מושב ${id} - $${price}`;
+            }
+            return seat;
+        }
+
+        function buildGrid(targetId, rows, startRow, type, price) {
+            const container = document.getElementById(targetId);
+            for (let r = startRow; r < startRow + rows; r++) {
+                container.appendChild(createSeat(r + 'A', type, price, Math.random() < 0.2));
+                container.appendChild(createSeat(r + 'B', type, price, Math.random() < 0.2));
+                
+                const aisle = document.createElement('div');
+                aisle.className = 'aisle-num'; aisle.innerText = r;
+                container.appendChild(aisle);
+
+                container.appendChild(createSeat(r + 'C', type, price, Math.random() < 0.2));
+                container.appendChild(createSeat(r + 'D', type, price, Math.random() < 0.2));
+            }
+        }
+
+        function toggleSeat(el, id, price) {
+            const index = selected.findIndex(s => s.id === id);
+            if (index > -1) {
+                selected.splice(index, 1);
+                el.classList.remove('selected');
+            } else {
+                if (selected.length < maxSeats) {
+                    selected.push({ id, price });
+                    el.classList.add('selected');
+                } else {
+                    alert('ניתן לבחור מקסימום 3 מושבים');
+                }
+            }
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById('selected-count').innerText = selected.length;
+            document.getElementById('total-price').innerText = selected.reduce((sum, item) => sum + item.price, 0);
+            const btn = document.getElementById('btn-next');
+            btn.disabled = selected.length !== maxSeats;
+        }
+
+        buildGrid('grid-biz', 3, 1, 'biz', 450);
+        buildGrid('grid-eco', 12, 4, 'eco', 150);
+    </script>
+
+</body>
+</html>

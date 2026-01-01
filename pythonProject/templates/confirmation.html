@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>אישור הזמנה - FLYTAU</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --flytau-navy: #001b33;
+            --flytau-teal: #00818a;
+            --bg-color: #e2e8f0; /* רקע כהה יותר כדי להבליט את הכרטיס הלבן */
+        }
+
+        body {
+            font-family: 'Heebo', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--flytau-navy);
+        }
+
+        /* עיצוב הכרטיס */
+        .ticket-card {
+            background: white;
+            width: 100%;
+            max-width: 450px;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 27, 51, 0.15);
+            overflow: hidden;
+            position: relative;
+            margin: 20px;
+            animation: slideUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* החלק העליון - ירוק */
+        .header {
+            background: var(--flytau-teal);
+            color: white;
+            padding: 40px 20px 50px; /* רווח למטה בשביל ה"חיתוך" */
+            text-align: center;
+            position: relative;
+            /* רקע דוגמה עדין */
+            background-image: radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .icon-circle {
+            background: white;
+            color: var(--flytau-teal);
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 36px;
+            margin: 0 auto 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            animation: popIn 0.5s 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+        }
+        @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
+
+        .header h1 { margin: 0; font-size: 28px; font-weight: 900; }
+        .header p { margin: 10px 0 0; opacity: 0.9; font-size: 15px; }
+
+        /* אפקט ה"חיתוך" (Notches) */
+        .ticket-card::before, .ticket-card::after {
+            content: ''; position: absolute;
+            top: 240px; /* מיקום קו התפר */
+            width: 30px; height: 30px;
+            background-color: var(--bg-color);
+            border-radius: 50%;
+            z-index: 10;
+        }
+        .ticket-card::before { left: -15px; }
+        .ticket-card::after { right: -15px; }
+
+        /* קו מקווקו */
+        .dashed-line {
+            border-top: 3px dashed #e2e8f0;
+            margin: 0 20px;
+            position: relative;
+            top: -2px; /* הרמה קטנה */
+        }
+
+        /* גוף הכרטיס */
+        .content { padding: 40px 30px 30px; }
+
+        /* קוד ההזמנה */
+        .pnr-box {
+            text-align: center; margin-bottom: 30px;
+            background: #f8fafc; padding: 15px;
+            border-radius: 12px; border: 1px solid #e2e8f0;
+        }
+        .pnr-label { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #64748b; font-weight: 700; }
+        .pnr-code { font-size: 32px; font-weight: 900; letter-spacing: 3px; color: var(--flytau-navy); margin-top: 5px; font-family: monospace; }
+
+        /* רשימת הפרטים */
+        .details-list { display: flex; flex-direction: column; gap: 15px; }
+        .detail-row { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9; }
+        .detail-row:last-child { border-bottom: none; }
+        .d-label { font-size: 14px; color: #64748b; }
+        .d-value { font-size: 16px; font-weight: 700; }
+
+        /* ויזואליזציה של המסלול */
+        .route-visual {
+            display: flex; align-items: center; gap: 10px;
+            background: rgba(13, 148, 136, 0.1);
+            padding: 6px 15px; border-radius: 20px;
+            color: var(--flytau-teal);
+        }
+
+        /* כפתור חזרה */
+        .footer { padding: 0 30px 30px; }
+        .btn-home {
+            display: block; width: 100%;
+            background: var(--flytau-navy); color: white;
+            text-align: center; padding: 16px;
+            border-radius: 12px; text-decoration: none;
+            font-weight: 700; font-size: 16px;
+            transition: 0.2s;
+            box-shadow: 0 10px 20px rgba(0, 27, 51, 0.15);
+        }
+        .btn-home:hover { background: #283046; transform: translateY(-2px); }
+
+        /* אנימציית מטוס עדינות */
+        .flying-plane {
+            position: absolute; top: 30px; left: 30px; font-size: 80px;
+            color: rgba(255,255,255,0.1); transform: rotate(15deg);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ticket-card">
+        
+        <div class="header">
+            <i class="fas fa-plane flying-plane"></i> <div class="icon-circle">
+                <i class="fas fa-check"></i>
+            </div>
+            <h1>איזה כיף!</h1>
+            <p>ההזמנה אושרה וכרטיסי הטיסה נשלחו למייל.</p>
+        </div>
+
+        <div class="dashed-line"></div>
+
+        <div class="content">
+            <div class="pnr-box">
+                <div class="pnr-label">קוד הזמנה (PNR)</div>
+                <div class="pnr-code">{{ order_code }}</div>
+            </div>
+
+            <div class="details-list">
+                
+                <div class="detail-row">
+                    <span class="d-label">מסלול</span>
+                    <div class="d-value route-visual">
+                        {{ origin }} 
+                        <i class="fas fa-plane" style="transform: rotate(180deg); font-size: 12px;"></i> 
+                        {{ dest }}
+                    </div>
+                </div>
+
+                <div class="detail-row">
+                    <span class="d-label">מספר טיסה</span>
+                    <span class="d-value">{{ flight_id }}</span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="d-label">נוסע ראשי</span>
+                    <span class="d-value">{{ first_name }} {{ last_name }}</span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="d-label">מספר דרכון</span>
+                    <span class="d-value">{{ passport }}</span>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="footer">
+            <a href="/" class="btn-home">
+                חזרה לדף הבית <i class="fas fa-home" style="margin-right: 8px;"></i>
+            </a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script>
+        window.onload = function() {
+            var duration = 3 * 1000;
+            var animationEnd = Date.now() + duration;
+            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+            function randomInRange(min, max) { return Math.random() * (max - min) + min; }
+
+            var interval = setInterval(function() {
+              var timeLeft = animationEnd - Date.now();
+              if (timeLeft <= 0) { return clearInterval(interval); }
+              var particleCount = 50 * (timeLeft / duration);
+              confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+              confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+            }, 250);
+        };
+    </script>
+
+</body>
+</html>
