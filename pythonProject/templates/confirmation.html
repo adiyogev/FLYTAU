@@ -11,7 +11,7 @@
         :root {
             --flytau-navy: #001b33;
             --flytau-teal: #00818a;
-            --bg-color: #e2e8f0; /* רקע כהה יותר כדי להבליט את הכרטיס הלבן */
+            --bg-color: #e2e8f0;
         }
 
         body {
@@ -40,14 +40,12 @@
 
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        /* החלק העליון - ירוק */
         .header {
             background: var(--flytau-teal);
             color: white;
-            padding: 40px 20px 50px; /* רווח למטה בשביל ה"חיתוך" */
+            padding: 40px 20px 50px;
             text-align: center;
             position: relative;
-            /* רקע דוגמה עדין */
             background-image: radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px);
             background-size: 20px 20px;
         }
@@ -68,10 +66,9 @@
         .header h1 { margin: 0; font-size: 28px; font-weight: 900; }
         .header p { margin: 10px 0 0; opacity: 0.9; font-size: 15px; }
 
-        /* אפקט ה"חיתוך" (Notches) */
         .ticket-card::before, .ticket-card::after {
             content: ''; position: absolute;
-            top: 240px; /* מיקום קו התפר */
+            top: 240px;
             width: 30px; height: 30px;
             background-color: var(--bg-color);
             border-radius: 50%;
@@ -80,15 +77,13 @@
         .ticket-card::before { left: -15px; }
         .ticket-card::after { right: -15px; }
 
-        /* קו מקווקו */
         .dashed-line {
             border-top: 3px dashed #e2e8f0;
             margin: 0 20px;
             position: relative;
-            top: -2px; /* הרמה קטנה */
+            top: -2px;
         }
 
-        /* גוף הכרטיס */
         .content { padding: 40px 30px 30px; }
 
         /* קוד ההזמנה */
@@ -128,7 +123,6 @@
         }
         .btn-home:hover { background: #283046; transform: translateY(-2px); }
 
-        /* אנימציית מטוס עדינות */
         .flying-plane {
             position: absolute; top: 30px; left: 30px; font-size: 80px;
             color: rgba(255,255,255,0.1); transform: rotate(15deg);

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlyTau Manager - ניהול מערכת</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-body: #f1f5f9;
+            --sidebar-bg: #0f172a;
+            --sidebar-width: 260px;
+            --primary-accent: #6366f1;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Heebo', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-dark);
+            overflow-x: hidden;
+        }
+
+        /* --- Sidebar --- */
+        .sidebar {
+            position: fixed; top: 0; right: 0; height: 100vh; width: var(--sidebar-width);
+            background-color: var(--sidebar-bg); color: #94a3b8; padding: 24px 0;
+            display: flex; flex-direction: column; z-index: 1000; border-left: 1px solid #1e293b;
+        }
+
+        .brand-area {
+            padding: 0 24px 30px 24px; font-size: 1.4rem; font-weight: 800;
+            color: #f8fafc; letter-spacing: 0.5px; display: flex; align-items: center; gap: 12px;
+            text-decoration: none;
+        }
+        .brand-area i { color: var(--primary-accent); }
+
+        .nav-category {
+            font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px;
+            padding: 0 24px; margin-top: 24px; margin-bottom: 12px; font-weight: 600; color: #475569;
+        }
+
+        .nav-link {
+            color: #cbd5e1; padding: 12px 24px; display: flex; align-items: center; gap: 12px;
+            font-size: 0.95rem; text-decoration: none; transition: all 0.2s ease;
+            border-right: 3px solid transparent;
+        }
+        .nav-link:hover { color: #fff; background-color: rgba(255,255,255,0.03); }
+        .nav-link.active {
+            color: #fff; background-color: rgba(99, 102, 241, 0.1);
+            border-right-color: var(--primary-accent); font-weight: 600;
+        }
+
+        /* --- Main Content --- */
+        .main-wrapper { margin-right: var(--sidebar-width); padding: 40px; }
+
+        .top-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px; }
+        .page-heading h1 { font-size: 1.75rem; font-weight: 800; color: var(--text-dark); margin-bottom: 4px; }
+        .page-heading p { color: var(--text-muted); font-size: 0.95rem; margin: 0; }
+
+        /* KPI Cards */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-bottom: 32px; }
+
+        .stat-card {
+            background: var(--white); border: 1px solid var(--border-color); border-radius: 12px;
+            padding: 24px; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); display: flex; flex-direction: column; justify-content: center;
+        }
+
+        .stat-label { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; margin-bottom: 8px; }
+        .stat-value { font-size: 2rem; font-weight: 700; color: var(--text-dark); line-height: 1; }
+
+        /* Table */
+        .table-container {
+            background: var(--white); border: 1px solid var(--border-color); border-radius: 12px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); overflow: hidden;
+        }
+
+        .table-toolbar {
+            padding: 20px 24px; border-bottom: 1px solid var(--border-color);
+            display: flex; justify-content: space-between; align-items: center; background-color: #fff;
+        }
+
+        .filter-select {
+            border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px;
+            font-size: 0.9rem; background-color: #f8fafc; color: var(--text-dark); font-weight: 500; outline: none;
+        }
+
+        .table { margin-bottom: 0; width: 100%; border-collapse: separate; border-spacing: 0; }
+        .table th {
+            background-color: #f8fafc; color: #475569; font-weight: 600; font-size: 0.8rem;
+            text-transform: uppercase; padding: 16px 24px; border-bottom: 1px solid var(--border-color);
+        }
+        .table td { padding: 16px 24px; vertical-align: middle; border-bottom: 1px solid var(--border-color); font-size: 0.95rem; }
+
+        /* Status Pills */
+        .status-pill { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+        .status-pill::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-left: 8px; }
+
+        .st-active { background: #dcfce7; color: #166534; } .st-active::before { background: #166534; }
+        .st-full { background: #ffedd5; color: #9a3412; } .st-full::before { background: #9a3412; }
+        .st-completed { background: #f1f5f9; color: #475569; } .st-completed::before { background: #475569; }
+        .st-cancelled { background: #fee2e2; color: #b91c1c; } .st-cancelled::before { background: #b91c1c; }
+
+        .btn-icon {
+            color: #94a3b8; background: transparent; border: 1px solid transparent;
+            padding: 6px; border-radius: 6px; transition: 0.2s; cursor: pointer;
+        }
+        .btn-icon:hover { background-color: #f1f5f9; color: var(--text-dark); border-color: #e2e8f0; }
+        .btn-icon.danger:hover { color: #dc2626; background-color: #fef2f2; border-color: #fee2e2; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <a href="/manager" class="brand-area"><i class="bi bi-airplane-engines-fill"></i> FLYTAU</a>
+        <div class="nav-category">ניהול שוטף</div>
+        <nav class="nav flex-column">
+            <a href="/manager" class="nav-link active"><i class="bi bi-grid-1x2"></i> לוח טיסות</a>
+            <a href="/manager/add_flight/step1" class="nav-link"><i class="bi bi-plus-lg"></i> הוספת טיסה</a>
+            <a href="/manager/add_staff" class="nav-link"><i class="bi bi-people"></i> ניהול צוות</a>
+        </nav>
+        <div class="nav-category">מערכת</div>
+        <nav class="nav flex-column">
+            <a href="#" class="nav-link"><i class="bi bi-bar-chart"></i> דוחות כספיים</a>
+            <a href="/logout" class="nav-link text-danger mt-4"><i class="bi bi-box-arrow-right"></i> יציאה</a>
+        </nav>
+    </aside>
+
+    <main class="main-wrapper">
+        <header class="top-header">
+            <div class="page-heading">
+                <h1>ניהול טיסות</h1>
+                <p>סקירה כללית, סטטוסים וניהול לו"ז בזמן אמת</p>
+            </div>
+
+            <div class="d-flex align-items-center gap-3">
+                <div class="d-flex align-items-center gap-2 bg-white px-3 py-2 rounded-pill border shadow-sm">
+                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 32px; height: 32px;">M</div>
+                    <span class="small fw-bold text-dark">שלום, מנהל</span>
+                </div>
+
+                <a href="/logout" class="btn btn-outline-danger btn-sm d-flex align-items-center gap-2 rounded-pill px-3 py-2" style="background: white;">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span class="fw-bold">התנתק</span>
+                </a>
+            </div>
+        </header>
+
+        {% if message %}
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endif %}
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">הכנסה חודשית משוערת</div>
+                <div class="stat-value" dir="ltr">₪450K</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">שיעור תפוסה ממוצע</div>
+                <div class="stat-value" dir="ltr">82%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">טיסות פעילות</div>
+                <div class="stat-value">24</div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <div class="table-toolbar">
+                <h5 class="fw-bold m-0 text-dark">לוח טיסות</h5>
+                <form method="GET" action="/manager">
+                    <select name="status" id="statusFilter" class="filter-select" onchange="this.form.submit()">
+                        <option value="all" {% if current_filter == 'all' %}selected{% endif %}>הצג הכל</option>
+                        <option value="active" {% if current_filter == 'active' %}selected{% endif %}>Active (פעילות)</option>
+                        <option value="completed" {% if current_filter == 'completed' %}selected{% endif %}>Completed (הושלמו)</option>
+                        <option value="cancelled" {% if current_filter == 'cancelled' %}selected{% endif %}>Cancelled (מבוטלות)</option>
+                    </select>
+                </form>
+            </div>
+            <div class="table-responsive">
+                <table class="table" id="flightsTable">
+                    <thead>
+                        <tr>
+                            <th>מזהה (ID)</th><th>נתיב</th><th>מטוס</th><th>המראה</th><th>תפוסה</th><th>סטטוס</th><th class="text-end">פעולות</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if flights %}
+                            {% for flight in flights %}
+                            <tr>
+                                <td class="font-monospace text-muted">#{{ flight.flight_id }}</td>
+                                <td>{{ flight.origin }} <i class="bi bi-arrow-left"></i> {{ flight.destination }}</td>
+                                <td>Plane #{{ flight.plane_id }}</td>
+                                <td dir="ltr">{{ flight.departure.strftime('%d/%m/%Y %H:%M') if flight.departure else '-' }}</td>
+                                <td>{{ flight.occupied }} / {{ flight.capacity }}</td>
+                                <td><span class="status-pill st-{{ flight.status }}">{{ flight.status }}</span></td>
+                                <td class="text-end">
+                                    {% if flight.status == 'active' %}
+                                    <form method="POST" action="/manager" style="display:inline;">
+                                        <input type="hidden" name="flight_id" value="{{ flight.flight_id }}">
+                                        <button type="submit" class="btn-icon danger" title="בטל טיסה" onclick="return confirm('האם לבטל את הטיסה?')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr><td colspan="7" class="text-center py-4">אין טיסות להצגה</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -246,7 +246,7 @@
                             <div class="seat biz {% if seat.is_occupied %}occ{% endif %}" 
                                  data-seat-code="{{ seat.code }}" 
                                  data-seat-type="{{ seat.class_type }}" 
-                                 data-seat-price="{{ seat.seat_price }}"
+                                 data-seat-price="{{ seat.price }}"
                                  {% if not seat.is_occupied %}onclick="toggleSeat(this)"{% endif %}>
                                 <i class="fas fa-chair"></i>
                             </div>
@@ -278,7 +278,7 @@
                             <div class="seat eco {% if seat.is_occupied %}occ{% endif %}" 
                                  data-seat-code="{{ seat.code }}" 
                                  data-seat-type="{{ seat.class_type }}" 
-                                 data-seat-price="{{ seat.seat_price }}"
+                                 data-seat-price="{{ seat.price }}"
                                  {% if not seat.is_occupied %}onclick="toggleSeat(this)"{% endif %}>
                                 <i class="fas fa-chair"></i>
                             </div>

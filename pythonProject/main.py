@@ -26,7 +26,14 @@ def index():
     """
     user_name = session.get('first_name')
     is_logged_in = session.get('customer_email') is not None
-    return render_template('index.html', user_name=user_name, is_logged_in=is_logged_in)
+    # All origin and destination options from Route
+    cursor.execute("""
+        SELECT DISTINCT origin_airport FROM Route 
+        UNION 
+        SELECT DISTINCT destination_airport FROM Route
+    """)
+    routes = [row[0] for row in cursor.fetchall()]
+    return render_template('index.html', user_name=user_name, is_logged_in=is_logged_in, available_routes=routes)
 
 
 # USER PAGES
@@ -140,7 +147,8 @@ def select_seats(flight_id):
     all_seats = cursor.fetchall()
     # 3. Fetch Occupied Seats
     cursor.execute("""
-        SELECT sio.seat_row, sio.seat_position FROM Seats_in_Order sio
+        SELECT sio.seat_row, sio.seat_position 
+        FROM Seats_in_Order sio
         JOIN Orders o ON sio.code = o.code
         WHERE o.flight_id = %s AND o.status != 'cancelled'
     """, (flight_id,))
@@ -204,7 +212,7 @@ def checkout():
             seat_position=pos,
             class_type=s_data['type'],
             plane_id=None,
-            seat_price=s_data['price']
+            price=s_data['price']
         )
         seat_objects.append(seat)
 
@@ -253,11 +261,12 @@ def checkout():
                 raise ValueError("Flight not found")
             real_plane_id = plane_result[0]
 
+            # Insert order data to DB
             for seat in current_order.seats:
                 cursor.execute("""
-                    INSERT INTO Seats_in_Order (seat_row, seat_position, code, seats_plane_id, price)
-                    VALUES (%s, %s, %s, %s, %s)
-                 """, (seat.seat_row, seat.seat_position, current_order.code, real_plane_id, seat.seat_price))
+                    INSERT INTO Seats_in_Order (seat_row, seat_position, code, seats_plane_id)
+                    VALUES (%s, %s, %s, %s)
+                 """, (seat.seat_row, seat.seat_position, current_order.code, real_plane_id))
 
             mydb.commit()
             # Cleanup Session
@@ -293,9 +302,14 @@ def checkout():
                 'passport': cust_data[2], 'birth_date': cust_data[3]
             }
     # 2. Prepare flight object for display
-    cursor.execute(
-        "SELECT flight_id, origin_airport, destination_airport, duration, departure FROM Flight WHERE flight_id = %s",
-        (flight_id,))
+    query = """
+        SELECT f.flight_id, f.origin_airport, f.destination_airport, r.duration, f.departure 
+        FROM Flight f
+        JOIN Route r ON f.origin_airport = r.origin_airport 
+                     AND f.destination_airport = r.destination_airport
+        WHERE f.flight_id = %s
+    """
+    cursor.execute(query, (flight_id,))
     f_data = cursor.fetchone()
     if not f_data:
         return redirect(url_for('index'))
@@ -432,13 +446,28 @@ def login_guest():
             homepage -> back to homepage'''
     guest_email = request.form.get('guest_email')
     destination_after_login = request.form.get('next_url_hidden')  # from hidden destination in HTML
-    session['role'] = 'guest'
-    session['guest_email'] = guest_email
+
+    try:
+        # If doesn't exist in DB - add to Guest table
+        cursor.execute("SELECT guest_email FROM Guest WHERE guest_email = %s", (guest_email,))
+        existing_guest = cursor.fetchone()
+        if not existing_guest:
+            cursor.execute("INSERT INTO Guest (guest_email) VALUES (%s)", (guest_email,))
+            mydb.commit()
+            print(f"Guest {guest_email} added to database.")
+        session['role'] = 'guest'
+        session['guest_email'] = guest_email
+
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        mydb.rollback()
+        return "שגיאה ברישום האורח למערכת"
+
     # check whether the next page will be homepage or checkout
     if destination_after_login:
         return redirect(destination_after_login)
     else:
-        return redirect('/homepage')
+        return redirect('/')
 
 
 @app.route('/login_manager', methods=['POST', 'GET'])

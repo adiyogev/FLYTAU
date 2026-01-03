@@ -215,7 +215,7 @@ class FlightClass: #'Class' is a reserved key word
         self.seat_position = seat_position
         self.class_type = class_type
         self.plane_id = plane_id
-        self.seat_price = price  # Changed from self.price to self.seat_price
+        self.price = price
         self.is_occupied = is_occupied
 
     @property
@@ -224,7 +224,7 @@ class FlightClass: #'Class' is a reserved key word
 
 
 class Order:
-    def __init__(self, code, seats, flight_id, email, guest_email=None):
+    def __init__(self, code, seats, flight_id, email=None, guest_email=None):
         self.code = code
         self.order_date = datetime.now()
         self.seats = seats
@@ -236,7 +236,7 @@ class Order:
     def total_order_price(self):
         total_price = 0
         for seat in self.seats:
-            total_price += seat.seat_price
+            total_price += seat.price
         return total_price
 
     def is_eligible_for_cancel(self, flight_departure):
