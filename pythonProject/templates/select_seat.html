@@ -258,7 +258,7 @@
                             <div class="seat biz {% if seat.is_occupied %}occ{% endif %}" 
                                  data-seat-code="{{ seat.code }}" 
                                  data-seat-type="{{ seat.class_type }}" 
-                                 data-seat-price="{{ seat.seat_price }}"
+                                 data-seat-price="{{ seat.price }}"
                                  {% if not seat.is_occupied %}onclick="toggleSeat(this)"{% endif %}>
                                 <i class="fas fa-chair"></i>
                             </div>
@@ -290,7 +290,7 @@
                             <div class="seat eco {% if seat.is_occupied %}occ{% endif %}" 
                                  data-seat-code="{{ seat.code }}" 
                                  data-seat-type="{{ seat.class_type }}" 
-                                 data-seat-price="{{ seat.seat_price }}"
+                                 data-seat-price="{{ seat.price }}"
                                  {% if not seat.is_occupied %}onclick="toggleSeat(this)"{% endif %}>
                                 <i class="fas fa-chair"></i>
                             </div>
@@ -324,11 +324,11 @@
 
         function toggleSeat(el) {
             if (el.classList.contains('occ')) return;
-            
+
             const code = el.getAttribute('data-seat-code');
             const type = el.getAttribute('data-seat-type');
             const price = parseFloat(el.getAttribute('data-seat-price'));
-            
+
             const index = selected.findIndex(s => s.code === code);
             if (index > -1) {
                 selected.splice(index, 1);
@@ -347,14 +347,24 @@
         function updateUI() {
             document.getElementById('selected-count').innerText = selected.length;
             const total = selected.reduce((sum, item) => sum + item.price, 0);
-            document.getElementById('total-price').innerText = total;
-            
+            document.getElementById('total-price').innerText = total.toLocaleString();
+
             const btn = document.getElementById('btn-next');
             btn.disabled = selected.length !== maxSeats;
-            
-            // Update hidden input for form submission
-            const seatsData = selected.map(s => `${s.code}|${s.type}|${s.price}`).join(',');
-            document.getElementById('selected-seats-input').value = seatsData;
+
+            const form = document.getElementById('seat-form');
+            // הסרת אינפוטים ישנים
+            form.querySelectorAll('.temp-seat-input').forEach(el => el.remove());
+
+            // יצירת אינפוט מוסתר לכל מושב בנפרד
+            selected.forEach(s => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'selected_seats_raw';
+                input.className = 'temp-seat-input';
+                input.value = `${s.code}|${s.type}|${s.price}`;
+                form.appendChild(input);
+            });
         }
 
         document.getElementById('seat-form').addEventListener('submit', function(e) {

@@ -207,13 +207,7 @@ def checkout():
         pos = code[-1]
         row = int(code[:-1])
 
-        seat = FlightClass(
-            seat_row=row,
-            seat_position=pos,
-            class_type=s_data['type'],
-            plane_id=None,
-            price=s_data['price']
-        )
+        seat = FlightClass(seat_row=row, seat_position=pos, class_type=s_data['type'], plane_id=None, price=s_data['price'])
         seat_objects.append(seat)
 
     # Create order object
@@ -410,9 +404,9 @@ def login():
     ''' login from different pages - each login will redirect to the correct page:
         order -> checkout
         homepage -> back to homepage'''
-    if session.get("customer_email"):  # checking if user is already connected
-        return redirect('/homepage')
     target_destination = request.args.get('next')
+    if session.get("customer_email"):  # checking if user is already connected
+        return redirect(target_destination if target_destination else '/')
     error_msg = None
     if request.method == 'POST':
         customer_email = request.form.get('customer_email')
@@ -434,7 +428,7 @@ def login():
             if destination_after_login:
                 return redirect(destination_after_login)
             else:
-                return redirect('/homepage')
+                return redirect('/')
         error_msg = "one of the details you provided are incorrect"  # If either the id or the password entered are incorrect or don't match
     return render_template("login.html", message=error_msg, next_param=target_destination)
 
@@ -507,7 +501,7 @@ def register():
         phone_numbers = [p for p in phone_numbers_form if p != ""]
         reg_date = date.today()
 
-        destination_after_login = request.form.get('next_url_hidden')  # from hidden destination in HTML
+        destination_after_login = request.form.get('next_url_hidden')
         cursor.execute("SELECT customer_email FROM Customer WHERE customer_email = %s",
                        (customer_email,))  # We won't allow the same email to have 2 different accounts
         if cursor.fetchone():
@@ -524,9 +518,8 @@ def register():
         session['customer_email'] = customer_email
         if destination_after_login:
             return redirect(destination_after_login)
-        else:
-            return redirect('/homepage')
-    return render_template("register.html")
+        return redirect('/')
+    return render_template("register.html", next_param=target_destination)
 
 
 @app.route('/logout')
