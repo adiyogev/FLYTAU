@@ -10,7 +10,7 @@ INSERT INTO `Customer` VALUES
 ('moshe@gmail.com', 'Moshe', 'Peretz', '12345678', '1990-05-15', '2025-01-01', 'pass123'),
 ('dana@gmail.com', 'Dana', 'Israeli', '87654321', '1995-10-20', '2025-06-01', 'dana456');
 
--- Adding phone numbers for the registered customers
+-- Phone numbers for the registered customers
 INSERT INTO `Customer_Phone_Numbers` (`phone_customer_email`, `phone_num`) VALUES 
 ('moshe@gmail.com', '0501112222'),
 ('moshe@gmail.com', '0543334444'), -- Moshe has 2 numbers
@@ -78,7 +78,7 @@ INSERT INTO `Route` (origin_airport, destination_airport, duration) VALUES
 ('TLV', 'CDG', '04:50:00'),
 ('CDG', 'TLV', '04:30:00');
 
--- Seats for Large Planes (P-LG1, P-LG2, P-LG3)
+-- 8. Seats for Large Planes (P-LG1, P-LG2, P-LG3)
 -- Business Class: Rows 1-3, Seats A, B, C, D
 INSERT INTO `Class` (`plane_id`, `seat_row`, `seat_position`, `class_type`)
 SELECT p.plane_id, r.row_num, pos.pos_char, 'business'
@@ -94,10 +94,28 @@ CROSS JOIN (SELECT 4 AS row_num UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNI
 CROSS JOIN (SELECT 'A' AS pos_char UNION SELECT 'B' UNION SELECT 'C' UNION SELECT 'D' UNION SELECT 'E' UNION SELECT 'F') pos;
 
 
--- Seats for Small Planes (P-SM1, P-SM2, P-SM3)
+-- 9. Seats for Small Planes (P-SM1, P-SM2, P-SM3)
 -- Economy Only: Rows 1-10, Seats A, B, C, D
 INSERT INTO `Class` (`plane_id`, `seat_row`, `seat_position`, `class_type`)
 SELECT p.plane_id, r.row_num, pos.pos_char, 'economy'
 FROM (SELECT plane_id FROM Plane WHERE size = 'small') p
 CROSS JOIN (SELECT 1 AS row_num UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10) r
 CROSS JOIN (SELECT 'A' AS pos_char UNION SELECT 'B' UNION SELECT 'C' UNION SELECT 'D') pos;
+
+-- 10. Flight
+INSERT INTO `Flight` (`flight_id`, `status`, `origin_airport`, `destination_airport`, `departure`, `arrival`, `plane_id`, `economy_seat_price`, `business_seat_price` ) VALUES
+('FT101', 'active', 'TLV', 'JFK', '2026-01-10 10:00:00', '2026-01-10 22:00:00', 'P-LG1', '850', '1600');
+
+-- 11. Employees on flight
+INSERT INTO `Pilots_on_Flight` (flight_id, pilot_id) VALUES 
+('FT101', '311444555'),
+('FT101', '311111111'), 
+('FT101', '311111112'); 
+
+INSERT INTO `FA_on_Flight` (flight_id, fa_id) VALUES 
+('FT101', '411000001'),
+('FT101', '411000003'),
+('FT101', '411000005'),
+('FT101', '411000008'), 
+('FT101', '411000010'),
+('FT101', '411222333');
