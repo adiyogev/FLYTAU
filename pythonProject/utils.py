@@ -1,9 +1,12 @@
-from abc import ABC, abstractmethod
 from datetime import datetime, date, timedelta
+import re
 
-class User(ABC):
-    def __init__(self, email):
+class User:
+    def __init__(self, email, first_name, last_name, phone_numbers):
         self.email = email
+        self.first_name = first_name
+        self.last_name = last_name
+        self.phone_numbers = phone_numbers
 
     def cancel_order(self, cursor, mydb, order_code):
         # collect all data from DB
@@ -44,25 +47,25 @@ class User(ABC):
 
 
 class Customer(User):
-    def __init__(self, email, first_name, last_name, passport, birth_date, password, phone_numbers, reg_date):
-        super().__init__(email)
-        self.first_name = first_name
-        self.last_name = last_name
+    def __init__(self, email, passport, birth_date, password, reg_date):
+        super().__init__(email, first_name, last_name, phone_numbers)
         self.passport = passport
         self.birth_date = birth_date
         self.password = password
-        self.phone_numbers = phone_numbers
         self.reg_date = reg_date
 
 
-class Guest(User):
-    def __init__(self, email):
-        super().__init__(email)
-        self.email = email
-        # will be added when details from checkout will be received:
-        self.passport = ""
-        self.name = ""
+def validate_guest_data(first_name, last_name, phone):
+    # Name in English
+    name_regex = r'^[a-zA-Z\s]+$'
+    if not re.match(name_regex, first_name) or not re.match(name_regex, last_name):
+        return False, "אנא הכנס פרטיך באנגלית"
 
+    # Phone number validation (10 digits)
+    if not (phone.isdigit() and len(phone) == 10):
+        return False, "יש להכניס מספר בעל 10 ספרות"
+
+    return True, ""
 
 class Pilot:
     def __init__(self, id, first_name, last_name, phone_num, start_date, city, street, st_num, long_flight_qualified):
@@ -175,7 +178,6 @@ class Flight:
 
     @property
     def arrival_time(self):
-        # מנגנון הגנה: המרה מטקסט לזמן אם צריך
         if isinstance(self.duration, str):
             h, m, s = map(int, self.duration.split(':'))
             delta = timedelta(hours=h, minutes=m, seconds=s)

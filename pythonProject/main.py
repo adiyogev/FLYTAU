@@ -190,111 +190,148 @@ def checkout():
     """
     Handles passenger details (Guest/Registered) and order creation.
     """
-    # Force Login (guest or user)
-    if not session.get('customer_email') and not session.get('guest_email'):
-        return redirect(url_for('login', next='/checkout'))
-    # Validate Session Data
+    # 1. Session Data
     flight_id = session.get('selected_flight_id')
     selected_seats_data = session.get('selected_seats_data')
 
     if not flight_id or not selected_seats_data:
         return redirect(url_for('index'))
 
-    # FlightClass objects from Session
+    # 2. Seats objects
     seat_objects = []
+    total_price = 0
     for s_data in selected_seats_data:
         code = s_data['code']
-        pos = code[-1]
-        row = int(code[:-1])
-
-        seat = FlightClass(seat_row=row, seat_position=pos, class_type=s_data['type'], plane_id=None, price=s_data['price'])
+        price = s_data['price']
+        total_price += price
+        seat = FlightClass(seat_row=int(code[:-1]), seat_position=code[-1],
+                           class_type=s_data['type'], plane_id=None, price=price)
         seat_objects.append(seat)
 
-    # Create order object
-    current_order = Order(
-        code="TEMP",
-        seats=seat_objects,
-        flight_id=flight_id,
-        email=session.get('customer_email'),
-        guest_email=session.get('guest_email')
-    )
+    # 3. Check if user is logged in
+    user_data = None
+    is_logged_in = 'customer_email' in session
+    if is_logged_in:
+        # if logged - auto fill details from DB
+        cursor.execute("SELECT first_name, last_name, passport, birth_date FROM Customer WHERE customer_email = %s",
+                       (session['customer_email'],))
+        row = cursor.fetchone()
+        if row:
+            user_data = {
+                'first_name': row[0],
+                'last_name': row[1],
+                'passport': row[2],
+                'birth_date': row[3],
+                'phone': ""
+            }
+            cursor.execute("SELECT phone_num FROM customer_phone_numbers WHERE phone_customer_email = %s",
+                           (session['customer_email'],))
+            p_row = cursor.fetchone()
+            if p_row: user_data['phone'] = p_row[0]
 
     # POST: Finalize Order
     if request.method == 'POST':
-        # collect passenger details from form
+        email = request.form.get('email').lower()
         first_name = request.form.get('first_name')
         last_name = request.form.get('last_name')
+        phone = request.form.get('phone')
         passport = request.form.get('passport')
         birth_date = request.form.get('birth_date')
-        cursor.execute("SELECT origin_airport, destination_airport FROM Flight WHERE flight_id=%s", (flight_id,))
-        flight_info = cursor.fetchone()
-        if not flight_info:
-            return redirect(url_for('index'))
 
-        current_order.code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-        try:
-            # 1. Insert order to DB
-            query_order = """
-                INSERT INTO Orders (code, status, total_price, order_date, flight_id, customer_email, guest_email)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
-            """
-            cursor.execute(query_order, (
-                current_order.code,
-                current_order.status,
-                current_order.total_order_price(),  # Order class function
-                current_order.order_date,
-                current_order.flight_id,
-                current_order.email,
-                current_order.guest_email
-            ))
+        # 1. Check if already registered and validate details
+        cursor.execute("SELECT customer_email FROM Customer WHERE customer_email = %s", (email,))
+        is_registered_db = cursor.fetchone()
 
-            # 2. Insert seats to DB
-            cursor.execute("SELECT plane_id FROM Flight WHERE flight_id=%s", (flight_id,))
-            plane_result = cursor.fetchone()
-            if not plane_result:
-                raise ValueError("Flight not found")
-            real_plane_id = plane_result[0]
+        if is_registered_db:
+            final_customer_email = email
+            final_guest_email = None
+        else:
+            valid, msg = validate_guest_data(first_name, last_name, phone)
+            if not valid:
+                cursor.execute(
+                    "SELECT flight_id, origin_airport, destination_airport, departure FROM Flight WHERE flight_id = %s",
+                    (flight_id,))
+                f_db = cursor.fetchone()
+                flight_obj = Flight(f_db[0], f_db[1], f_db[2], None, f_db[3], None, 0, 0)
+                return render_template('checkout.html',
+                                       error=msg,
+                                       flight=flight_obj,
+                                       seats=seat_objects,
+                                       total_price=total_price,
+                                       is_guest=True)
+            # 2. Guest DB insert
+            try:
+                # dont save the email if exists
+                cursor.execute("INSERT IGNORE INTO Guest (guest_email, first_name, last_name) VALUES (%s, %s, %s)",
+                               (email, first_name, last_name))
+                cursor.execute("INSERT INTO guest_phone_numbers (phone_guest_email, phone_num) VALUES (%s, %s)",
+                               (email, phone))
+                mydb.commit()
+                final_customer_email = None
+                final_guest_email = email
+            except Exception as e:
+                mydb.rollback()
+                return f"שגיאה בשמירת פרטי אורח: {e}"
 
-            # Insert order data to DB
-            for seat in current_order.seats:
+            # 3. Creating order code and DB insert
+            order_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+            try:
                 cursor.execute("""
-                    INSERT INTO Seats_in_Order (seat_row, seat_position, code, seats_plane_id)
-                    VALUES (%s, %s, %s, %s)
-                 """, (seat.seat_row, seat.seat_position, current_order.code, real_plane_id))
+                        INSERT INTO Orders (code, status, total_price, order_date, flight_id, customer_email, guest_email)
+                        VALUES (%s, 'active', %s, %s, %s, %s, %s)
+                    """, (order_code, total_price, datetime.now(), flight_id, final_customer_email, final_guest_email))
 
-            mydb.commit()
-            # Cleanup Session
-            session.pop('selected_seats_data', None)
-            session.pop('selected_flight_id', None)
+                # 4. Insert seats to Seats_in_Order
+                cursor.execute("SELECT plane_id FROM Flight WHERE flight_id=%s", (flight_id,))
+                plane_result = cursor.fetchone()
+                if not plane_result:
+                    raise ValueError("Flight not found")
+                real_plane_id = plane_result[0]
 
-            return render_template('confirmation.html',
-                                   order_code=current_order.code,
-                                   first_name=first_name,
-                                   last_name=last_name,
-                                   passport=passport,
-                                   birth_date=birth_date,
-                                   origin=flight_info[0],
-                                   dest=flight_info[1],
-                                   flight_id=flight_id)
+                for seat in seat_objects:
+                    cursor.execute("""
+                            INSERT INTO Seats_in_Order (seat_row, seat_position, code, seats_plane_id)
+                            VALUES (%s, %s, %s, %s)
+                         """, (seat.seat_row, seat.seat_position, order_code, real_plane_id))
 
-        except Exception as e:
-            mydb.rollback()
-            return f"תקלה ביצירת ההזמנה: {e}"
+                mydb.commit()
+
+                # 6. Session sleaning
+                session.pop('selected_seats_data', None)
+                session.pop('selected_flight_id', None)
+
+                # route information for confirmation
+                cursor.execute("SELECT origin_airport, destination_airport FROM Flight WHERE flight_id=%s",
+                               (flight_id,))
+                f_info = cursor.fetchone()
+
+                return render_template('confirmation.html',
+                                       order_code=order_code,
+                                       first_name=first_name,
+                                       last_name=last_name,
+                                       passport=passport,
+                                       birth_date=birth_date,
+                                       flight_id=flight_id,
+                                       origin=f_info[0],
+                                       dest=f_info[1])
+
+            except Exception as e:
+                mydb.rollback()
+                return f"שגיאה ביצירת הזמנה: {e}"
 
     # GET: Render Checkout Page
     # 1. Fetch user details for auto fill (if registered)
     user_details = {}
-    is_guest = True
-    if session.get('customer_email'):
-        is_guest = False
-        cursor.execute("SELECT first_name, last_name, passport, birth_date FROM Customer WHERE customer_email = %s",
-                       (session['customer_email'],))
+    if is_logged_in:
+        cursor.execute("""SELECT first_name, last_name, passport, birth_date FROM Customer WHERE customer_email = %s""", (session['customer_email'],))
         cust_data = cursor.fetchone()
         if cust_data:
-            user_details = {
-                'first_name': cust_data[0], 'last_name': cust_data[1],
-                'passport': cust_data[2], 'birth_date': cust_data[3]
-            }
+            user_details = {'first_name': cust_data[0], 'last_name': cust_data[1], 'passport': cust_data[2], 'birth_date': cust_data[3]}
+            cursor.execute("SELECT phone_num FROM Customer_Phone_Numbers WHERE phone_customer_email = %s LIMIT 1",
+                           (session['customer_email'],))
+            p_data = cursor.fetchone()
+            user_details['phone'] = p_data[0] if p_data else ""
+
     # 2. Prepare flight object for display
     query = """
         SELECT f.flight_id, f.origin_airport, f.destination_airport, r.duration, f.departure 
@@ -311,10 +348,10 @@ def checkout():
 
     return render_template('checkout.html',
                            flight=flight_display,
-                           seats=current_order.seats,
-                           total_price=current_order.total_order_price(),
-                           user=user_details,
-                           is_guest=is_guest,
+                           seats=seat_objects,
+                           total_price=total_price,
+                           user=user_data,
+                           is_guest=(not is_logged_in),
                            user_name=session.get('first_name'))
 
 
@@ -339,7 +376,7 @@ def my_orders():
     if request.method == 'POST' and request.form.get('action') == 'cancel':
         order_code = request.form.get('order_code')
         # user object (Polymorphism)
-        user = Customer(email, "", "", "", "", "", [], "") if role == 'registered' else Guest(email)
+        user = Customer(email, "", "", "", "") if role == 'registered' else User(email, first_name, last_name, phone_numbers)
         success, message = user.cancel_order(cursor, mydb, order_code)
 
     # 3. fetch the updated data for display
@@ -431,37 +468,6 @@ def login():
                 return redirect('/')
         error_msg = "one of the details you provided are incorrect"  # If either the id or the password entered are incorrect or don't match
     return render_template("login.html", message=error_msg, next_param=target_destination)
-
-
-@app.route('/login_guest', methods=['POST'])
-def login_guest():
-    ''' login from different pages - each login will redirect to the correct page:
-            order -> checkout
-            homepage -> back to homepage'''
-    guest_email = request.form.get('guest_email')
-    destination_after_login = request.form.get('next_url_hidden')  # from hidden destination in HTML
-
-    try:
-        # If doesn't exist in DB - add to Guest table
-        cursor.execute("SELECT guest_email FROM Guest WHERE guest_email = %s", (guest_email,))
-        existing_guest = cursor.fetchone()
-        if not existing_guest:
-            cursor.execute("INSERT INTO Guest (guest_email) VALUES (%s)", (guest_email,))
-            mydb.commit()
-            print(f"Guest {guest_email} added to database.")
-        session['role'] = 'guest'
-        session['guest_email'] = guest_email
-
-    except mysql.connector.Error as err:
-        print(f"Error: {err}")
-        mydb.rollback()
-        return "שגיאה ברישום האורח למערכת"
-
-    # check whether the next page will be homepage or checkout
-    if destination_after_login:
-        return redirect(destination_after_login)
-    else:
-        return redirect('/')
 
 
 @app.route('/login_manager', methods=['POST', 'GET'])

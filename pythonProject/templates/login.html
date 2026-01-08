@@ -1,172 +1,152 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FLYTAU - התחברות</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FLYTAU - התחברות</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 
-    <style>
-        :root {
-            --flytau-navy: #001b33;
-            --flytau-teal: #00818a;
-            --text-main: #001b33;
-            --bg-body: #f1f5f9;
-        }
+  <style>
+    :root{
+      --flytau-navy:#001b33;
+      --flytau-teal:#00818a;
+      --text-light:#64748b;
+      --bg-input:#f8fafc;
+      --border:#e2e8f0;
+    }
 
-        body {
-            font-family: 'Heebo', sans-serif;
-            background-color: var(--bg-body);
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
+    body{
+      margin:0; padding:0;
+      font-family:'Heebo', sans-serif;
+      height:100vh;
+      display:flex; overflow:hidden;
+      background:white;
+    }
 
-        .login-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            max-width: 900px;
-            width: 95%;
-            background: white;
-            border-radius: 24px;
-            overflow: hidden;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
-        }
+    .panel{
+      flex:1; background:white;
+      display:flex; flex-direction:column;
+      justify-content: center;
+      align-items:center;
+      padding: 40px;
+    }
 
-        .login-box {
-            padding: 40px;
-            border-left: 1px solid #eee;
-        }
+    .wrapper{
+        width:100%; max-width:400px;
+        animation:fadeIn .8s ease-out;
+    }
 
-        .guest-box {
-            padding: 40px;
-            background-color: #f8fafc;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
+    @keyframes fadeIn{ from{opacity:0; transform:translateY(20px);} to{opacity:1; transform:translateY(0);} }
 
-        h2 { color: var(--flytau-navy); font-weight: 800; margin-bottom: 10px; }
-        p { color: #64748b; margin-bottom: 25px; font-size: 15px; }
+    h1{
+      font-size:32px; color:var(--flytau-navy); margin-bottom:10px; font-weight:800;
+      text-align:right;
+    }
 
-        .input-group { margin-bottom: 20px; }
-        .input-group label { display: block; font-weight: 700; margin-bottom: 8px; font-size: 14px; }
+    .subtitle{ color:var(--text-light); font-size:16px; margin-bottom:30px; text-align:right; line-height:1.5; }
 
-        .input-wrapper {
-            display: flex;
-            align-items: center;
-            background: #f1f5f9;
-            border: 1px solid #cbd5e1;
-            border-radius: 12px;
-            padding: 12px;
-        }
-        .input-wrapper i { color: var(--flytau-teal); margin-left: 10px; }
-        .input-wrapper input { border: none; background: transparent; width: 100%; outline: none; font-size: 16px; }
+    .error-message {
+      background: #fee2e2; color: #b91c1c; padding: 12px; border-radius: 12px;
+      margin-bottom: 20px; font-size: 14px; text-align: center; border: 1px solid #fecaca;
+    }
 
-        .btn-submit {
-            width: 100%;
-            padding: 14px;
-            border-radius: 12px;
-            border: none;
-            font-weight: 800;
-            font-size: 16px;
-            cursor: pointer;
-            transition: 0.3s;
-            margin-top: 10px;
-        }
+    .input-group{margin-bottom:20px;}
+    .label{display:block; font-size:14px; font-weight:700; color:var(--flytau-navy); margin-bottom:8px;}
 
-        .btn-primary { background: var(--flytau-navy); color: white; }
-        .btn-primary:hover { opacity: 0.9; transform: translateY(-2px); }
+    .input-box{
+      display:flex; align-items:center; background:var(--bg-input);
+      border:1px solid var(--border); border-radius:12px; transition:.3s;
+    }
+    .input-box:focus-within{ border-color:var(--flytau-teal); background:white; box-shadow:0 0 0 4px rgba(0,129,138,.1); }
+    .input-box i{padding:0 15px; color:#94a3b8; font-size:18px;}
+    .input-box input{
+      border:none; background:transparent; width:100%; padding:16px 0;
+      font-size:16px; outline:none; color:var(--flytau-navy); font-family: inherit;
+    }
 
-        .btn-secondary { background: white; color: var(--flytau-navy); border: 2px solid var(--flytau-navy); }
-        .btn-secondary:hover { background: var(--flytau-navy); color: white; }
+    .btn{
+      width:100%; background:var(--flytau-navy); color:white; border:none;
+      padding:18px; border-radius:12px; font-size:16px; font-weight:800;
+      cursor:pointer; transition:.3s; margin-top:10px; font-family: inherit;
+    }
+    .btn:hover{ background:#002d54; transform:translateY(-2px); box-shadow:0 10px 20px rgba(0,27,51,0.2); }
 
-        .error-message {
-            background: #fee2e2;
-            color: #b91c1c;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            text-align: center;
-            border: 1px solid #fecaca;
-        }
+    .links{margin-top:25px; text-align:center; font-size:14px; color:var(--text-light);}
+    .links a{color:var(--flytau-teal); text-decoration:none; font-weight:800;}
 
-        .register-link { text-align: center; margin-top: 20px; font-size: 14px; }
-        .register-link a { color: var(--flytau-teal); font-weight: 700; text-decoration: none; }
+    .image-section{
+      flex:1.3;
+      background-image:url("{{ url_for('static', filename='sunset_airplane.jpg') }}");
+      background-size:cover; background-position:center; position:relative;
+      display:flex; flex-direction:column; justify-content:space-between; padding:60px; color:white;
+    }
+    .overlay{ position:absolute; inset:0; background:linear-gradient(to top, rgba(0,27,51,0.9) 0%, rgba(0,27,51,0.3) 100%); }
 
-        @media (max-width: 768px) {
-            .login-container { grid-template-columns: 1fr; }
-            .login-box { border-left: none; border-bottom: 1px solid #eee; }
-        }
-    </style>
+    .top-logo {
+        position: relative; z-index: 2; width: 180px; align-self: flex-start;
+    }
+
+    .promo-content{position:relative; z-index:2; animation:slideUp 1s ease-out;}
+    @keyframes slideUp{ from{opacity:0; transform:translateY(40px);} to{opacity:1; transform:translateY(0);} }
+
+    .promo-title{font-size:48px; font-weight:800; margin-bottom:15px; line-height:1.1;}
+    .promo-desc{font-size:18px; opacity:.9; line-height:1.6; font-weight:300;}
+
+    @media (max-width:1000px){
+      .image-section{display:none;}
+      .panel{width:100%;}
+    }
+  </style>
 </head>
+
 <body>
 
-    <div class="login-container">
+  <div class="panel">
+    <div class="wrapper">
+      <h1>התחברות</h1>
+      <p class="subtitle">התחברו כדי לצפות בהזמנות שלכם ולבצע רכישות מהירות.</p>
 
-        <div class="login-box">
-            <h2>התחברות לקוחות</h2>
-            <p>שלום שוב! התחברו כדי להמשיך בהזמנה.</p>
+      {% if message %}
+      <div class="error-message">{{ message }}</div>
+      {% endif %}
 
-            {% if message %}
-                <div class="error-message">{{ message }}</div>
-            {% endif %}
+      <form action="/login" method="POST">
+        <input type="hidden" name="next_url_hidden" value="{{ next_param }}">
 
-            <form action="/login" method="POST">
-                <input type="hidden" name="next_url_hidden" value="{{ next_param }}">
-
-                <div class="input-group">
-                    <label>אימייל</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-envelope"></i>
-                        <input type="email" name="customer_email" placeholder="email@example.com" required>
-                    </div>
-                </div>
-
-                <div class="input-group">
-                    <label>סיסמה</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" name="password" placeholder="הכנס סיסמה" required>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn-submit btn-primary">התחברות</button>
-            </form>
-
-            <div class="register-link">
-                אין לך חשבון? <a href="/register?next={{ next_param }}">הירשם עכשיו</a>
-            </div>
+        <div class="input-group">
+          <label class="label">אימייל</label>
+          <div class="input-box">
+              <i class="far fa-envelope"></i>
+              <input name="customer_email" type="email" placeholder="email@example.com" required>
+          </div>
         </div>
 
-        <div class="guest-box">
-            <h2>המשך כאורח</h2>
-            <p>אין לך כוח להירשם? אין בעיה. אפשר להמשיך להזמנה רק עם אימייל.</p>
-
-            <form action="/login_guest" method="POST">
-                <input type="hidden" name="next_url_hidden" value="{{ next_param }}">
-
-                <div class="input-group">
-                    <label>אימייל ליצירת קשר</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-user-clock"></i>
-                        <input type="email" name="guest_email" placeholder="guest@example.com" required>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn-submit btn-secondary">המשך כאורח</button>
-            </form>
-
-            <div style="margin-top: 30px; text-align: center; color: #94a3b8; font-size: 12px;">
-                <i class="fas fa-shield-alt"></i> הפרטים שלך מאובטחים אצלנו
-            </div>
+        <div class="input-group">
+          <label class="label">סיסמה</label>
+          <div class="input-box">
+              <i class="fas fa-lock"></i>
+              <input name="password" type="password" placeholder="••••••••" required>
+          </div>
         </div>
 
+        <button class="btn" type="submit">כניסה למערכת</button>
+
+        <div class="links">אין לך חשבון? <a href="/register?next={{ next_param }}">הירשם עכשיו</a></div>
+      </form>
     </div>
+  </div>
+
+  <div class="image-section">
+    <div class="overlay"></div>
+
+    <img src="{{ url_for('static', filename='LOGO.png') }}" alt="FLYTAU" class="top-logo">
+
+    <div class="promo-content">
+      <div class="promo-title">העולם מחכה לכם.</div>
+      <div class="promo-desc">התחברו והתחילו לתכנן את המסע הבא שלכם עם FLYTAU.</div>
+    </div>
+  </div>
 
 </body>
 </html>

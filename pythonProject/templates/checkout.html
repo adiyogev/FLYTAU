@@ -17,6 +17,7 @@
             --text-main: #001b33;
             --text-muted: #64748b;
             --border-color: #e2e8f0;
+            --error-red: #dc2626;
         }
 
         body {
@@ -60,22 +61,29 @@
         .section-title i { color: var(--flytau-teal); }
 
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .full-width { grid-column: 1 / -1; }
         .label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 8px; }
 
-        .input-wrapper { background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 15px; display: flex; align-items: center; gap: 10px; }
-        .form-input { width: 100%; border: none; background: transparent; font-size: 16px; outline: none; }
+        .input-wrapper { background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 15px; display: flex; align-items: center; gap: 10px; transition: 0.3s; }
+        .input-wrapper:focus-within { border-color: var(--flytau-teal); background: white; }
+        .form-input { width: 100%; border: none; background: transparent; font-size: 16px; outline: none; color: var(--text-main); }
 
-        .readonly { background-color: #f1f5f9; cursor: default; }
+        .readonly { background-color: #edf2f7; cursor: not-allowed; opacity: 0.8; }
+        .readonly .form-input { cursor: not-allowed; }
 
-        .btn-pay { width: 100%; background: var(--flytau-teal); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: 800; font-size: 18px; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        .error-message { background: #fee2e2; color: var(--error-red); padding: 12px; border-radius: 8px; margin-bottom: 20px; font-weight: 600; border-right: 4px solid var(--error-red); }
+
+        .btn-pay { width: 100%; background: var(--flytau-teal); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: 800; font-size: 18px; cursor: pointer; transition: 0.3s; margin-top: 25px; font-family: inherit; }
         .btn-pay:hover { background: var(--flytau-teal-hover); transform: translateY(-2px); }
 
-        .summary-card { background: var(--flytau-navy); color: white; }
-        .flight-route { display: flex; align-items: center; justify-content: space-between; font-size: 28px; font-weight: 900; }
+        .summary-card { background: var(--flytau-navy); color: white; height: fit-content; position: sticky; top: 100px; }
+        .summary-header { font-size: 18px; font-weight: 700; margin-bottom: 20px; color: var(--flytau-teal); text-transform: uppercase; letter-spacing: 1px; }
+        .flight-route { display: flex; align-items: center; justify-content: space-between; font-size: 28px; font-weight: 900; margin-bottom: 5px; }
         .summary-row { display: flex; justify-content: space-between; margin-bottom: 12px; color: #cbd5e1; }
         .total { margin-top: 20px; padding-top: 20px; border-top: 1px dashed rgba(255,255,255,0.2); font-size: 20px; color: white; }
-        .big-price { font-size: 32px; color: var(--flytau-teal); }
+        .big-price { font-size: 32px; color: var(--flytau-teal); font-weight: 900; }
+
+        .guest-notice { margin-top: 15px; font-size: 14px; text-align: center; color: var(--text-muted); }
+        .guest-notice a { color: var(--flytau-teal); font-weight: 700; text-decoration: none; }
     </style>
 </head>
 <body>
@@ -91,7 +99,7 @@
                 <i class="fas fa-user-circle"></i> שלום, <span>{{ user_name }}</span>
             </div>
             <a href="/my_orders" class="auth-link">ניהול הזמנות</a>
-            <a href="/logout" class="auth-link logout">התנתק</a>
+            <a href="/logout" class="auth-link">התנתק</a>
             {% else %}
             <a href="/login" class="auth-link">התחברות</a>
             <a href="/register" class="btn-register">הירשם</a>
@@ -101,42 +109,85 @@
 
     <div class="container">
         <div class="card">
-            <form action="/checkout" method="POST">
-                <div class="section-title"><i class="fas fa-user-circle"></i> פרטי הנוסע הראשי</div>
+            <div class="section-title"><i class="fas fa-user-circle"></i> פרטי הנוסע והתשלום</div>
 
+            {% if error %}
+            <div class="error-message">
+                <i class="fas fa-exclamation-circle"></i> {{ error }}
+            </div>
+            {% endif %}
+
+            <form action="/checkout" method="POST">
                 <div class="form-grid">
                     <div class="input-group">
-                        <label class="label">שם פרטי</label>
-                        <div class="input-wrapper readonly">
+                        <label class="label">שם פרטי (באנגלית)</label>
+                        <div class="input-wrapper {{ 'readonly' if not is_guest else '' }}">
                             <i class="fas fa-user"></i>
-                            <input type="text" name="first_name" class="form-input" value="{{ user.first_name if user else '' }}" required>
+                            <input type="text" name="first_name" class="form-input"
+                                   value="{{ user.first_name if user else '' }}"
+                                   {{ 'readonly' if not is_guest else '' }} required>
                         </div>
                     </div>
+
                     <div class="input-group">
-                        <label class="label">שם משפחה</label>
-                        <div class="input-wrapper readonly">
+                        <label class="label">שם משפחה (באנגלית)</label>
+                        <div class="input-wrapper {{ 'readonly' if not is_guest else '' }}">
                             <i class="fas fa-user"></i>
-                            <input type="text" name="last_name" class="form-input" value="{{ user.last_name if user else '' }}" required>
+                            <input type="text" name="last_name" class="form-input"
+                                   value="{{ user.last_name if user else '' }}"
+                                   {{ 'readonly' if not is_guest else '' }} required>
                         </div>
                     </div>
+
+                    <div class="input-group">
+                        <label class="label">אימייל</label>
+                        <div class="input-wrapper {{ 'readonly' if not is_guest else '' }}">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" name="email" class="form-input"
+                                   value="{{ session.get('customer_email') or '' }}"
+                                   {{ 'readonly' if not is_guest else '' }} required>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="label">מספר טלפון (10 ספרות)</label>
+                        <div class="input-wrapper {{ 'readonly' if not is_guest else '' }}">
+                            <i class="fas fa-phone"></i>
+                            <input type="tel" name="phone" class="form-input"
+                                   value="{{ user.phone if user else '' }}"
+                                   {{ 'readonly' if not is_guest else '' }} required>
+                        </div>
+                    </div>
+
                     <div class="input-group">
                         <label class="label">מספר דרכון</label>
-                        <div class="input-wrapper readonly">
+                        <div class="input-wrapper {{ 'readonly' if not is_guest else '' }}">
                             <i class="fas fa-passport"></i>
-                            <input type="text" name="passport" class="form-input" value="{{ user.passport if user else '' }}" required>
+                            <input type="text" name="passport" class="form-input"
+                                   value="{{ user.passport if user else '' }}"
+                                   {{ 'readonly' if not is_guest else '' }} required>
                         </div>
                     </div>
+
                     <div class="input-group">
                         <label class="label">תאריך לידה</label>
-                        <div class="input-wrapper readonly">
+                        <div class="input-wrapper {{ 'readonly' if not is_guest else '' }}">
                             <i class="fas fa-cake-candles"></i>
-                            <input type="date" name="birth_date" class="form-input" value="{{ user.birth_date if user else '' }}" required>
+                            <input type="date" name="birth_date" class="form-input"
+                                   value="{{ user.birth_date if user else '' }}"
+                                   {{ 'readonly' if not is_guest else '' }} required>
                         </div>
                     </div>
                 </div>
 
-                <button type="submit" class="btn-pay">בצע תשלום והזמנה <i class="fas fa-check"></i></button>
+                <button type="submit" class="btn-pay">בצע תשלום והזמנה <i class="fas fa-check" style="margin-right: 8px;"></i></button>
             </form>
+
+            {% if not session.get('customer_email') %}
+            <div class="guest-notice">
+                כבר רשומים? <a href="/login?next=/checkout">התחברו כאן</a> למילוי אוטומטי.
+            </div>
+            {% endif %}
         </div>
 
         <div class="card summary-card">
@@ -144,14 +195,14 @@
             <div class="flight-route">
                 {{ flight.origin }} <i class="fas fa-plane" style="transform: rotate(180deg);"></i> {{ flight.destination }}
             </div>
-            <span style="color: #94a3b8; font-size: 14px;">
+            <span style="color: #94a3b8; font-size: 14px; display: block; margin-bottom: 25px;">
                 <i class="far fa-clock"></i> {{ flight.departure.strftime('%d/%m/%Y | %H:%M') }}
             </span>
 
-            <div style="margin-top: 30px;">
+            <div style="margin-top: 10px;">
                 {% for seat in seats %}
                 <div class="summary-row">
-                    <span><i class="fas fa-chair"></i> מושב {{ seat.seat_row }}{{ seat.seat_position }} ({{ seat.class_type }})</span>
+                    <span><i class="fas fa-chair" style="margin-left: 5px;"></i> מושב {{ seat.seat_row }}{{ seat.seat_position }} ({{ seat.class_type }})</span>
                     <span>₪{{ "{:,.0f}".format(seat.price) }}</span>
                 </div>
                 {% endfor %}
@@ -163,5 +214,6 @@
             </div>
         </div>
     </div>
+
 </body>
 </html>
