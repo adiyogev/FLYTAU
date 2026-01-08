@@ -1,26 +1,12 @@
-USE FLYTAU;
+USE `FLYTAU`;
 
-SELECT AVG(occupancy_rate) as final_avg_occupancy
+SELECT AVG(occupied_seats / total_capacity) * 100 AS avg_occupancy_percentage
 FROM (
-    SELECT 
-        f.flight_id,
-        -- ספירת המושבים המוזמנים לטיסה זו (סינון הזמנות מבוטלות)
+    SELECT f.flight_id,
+        (SELECT COUNT(*) FROM Class c WHERE c.plane_id = f.plane_id) AS total_capacity,
         (SELECT COUNT(*) 
-         FROM seats_in_order sio 
-         JOIN orders o ON sio.code = o.code 
-         WHERE o.flight_id = f.flight_id 
-         AND o.status != 'cancelled') as booked_seats,
-        
-        -- ספירת סך המושבים במטוס הספציפי של הטיסה
-        (SELECT COUNT(*) 
-         FROM class 
-         WHERE plane_id = f.plane_id) as total_capacity,
-         
-        -- חישוב אחוז התפוסה לטיסה הבודדת
-        ((SELECT COUNT(*) FROM seats_in_order sio JOIN orders o ON sio.code = o.code WHERE o.flight_id = f.flight_id AND o.status != 'cancelled') / 
-         (SELECT COUNT(*) FROM class WHERE plane_id = f.plane_id)) * 100 as occupancy_rate
-         
-    FROM flight f
-    -- סינון: רק טיסות פעילות
+		 FROM Seats_in_Order sio JOIN Orders o ON sio.code = o.code 
+         WHERE o.flight_id = f.flight_id AND o.status != 'cancelled by user') AS occupied_seats
+    FROM Flight f
     WHERE f.status = 'completed'
-) as flight_occupancy_table;
+	) AS flight_occupancy;
