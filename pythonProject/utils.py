@@ -165,6 +165,7 @@ class Flight:
         self.occupied = occupied
         self.is_cancelled = is_cancelled
 
+
     @property
     def status(self):
         now = datetime.now()

@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, request, session, url_for
+from flask import Flask, render_template, redirect, request, session, url_for, flash
 from flask_session import Session
 import random
 import string
@@ -473,7 +473,7 @@ def login():
 @app.route('/login_manager', methods=['POST', 'GET'])
 def login_manager():
     if session.get("manager_id"):  # checking if manager is already connected
-        return redirect("/manager")  # להבין אם מעביר לדף בית מחובר
+        return redirect("/manager")
     error_msg = None
     if request.method == 'POST':
         manager_id = request.form.get('manager_id')
@@ -565,89 +565,101 @@ def manager_flights():
                     mydb.rollback()
                     message = f"error while updating data in DB {e}"
             else:
-                message = "לא ניתן לבטל טיסה פחות מ-72 שעות לפני מועד קיומה."[cite: 47]
+                message = "לא ניתן לבטל טיסה פחות מ-72 שעות לפני מועד קיומה."
 
     # GET - presenting all flights with important details for the manager to review
-    cursor.execute("""
-        SELECT f.flight_id, f.origin_airport, f.destination_airport, 
-               f.departure, r.duration, p.size, f.status, f.plane_id,
-               (SELECT COUNT(*) FROM Class WHERE plane_id = f.plane_id) as capacity,
-               (SELECT COUNT(*) FROM Seats_in_Order WHERE code IN 
-                    (SELECT code FROM Orders WHERE flight_id = f.flight_id)) as occupied
-        FROM Flight as f JOIN Route as r ON f.origin_airport = r.origin_airport 
-            AND f.destination_airport = r.destination_airport
-            JOIN Plane as p ON f.plane_id = p.plane_id
-        ORDER BY f.departure DESC
-    """)
+    query = """
+            SELECT f.flight_id, f.origin_airport, f.destination_airport, 
+                   f.departure, r.duration, f.plane_id, 
+                   f.business_seat_price, f.economy_seat_price, f.status,
+                   (SELECT COUNT(*) FROM Class WHERE plane_id = f.plane_id) as capacity,
+                   (SELECT COUNT(*) FROM Seats_in_Order WHERE code IN 
+                        (SELECT code FROM Orders WHERE flight_id = f.flight_id AND status != 'cancelled')) as occupied
+            FROM Flight as f 
+            JOIN Route as r ON f.origin_airport = r.origin_airport 
+                AND f.destination_airport = r.destination_airport
+            ORDER BY f.departure DESC
+        """
+    cursor.execute(query)
     flights_data = cursor.fetchall()
+
     flights_list = []
     for row in flights_data:
+        # כאן אנחנו שולחים את כל 8 הפרמטרים ש-Flight.__init__ דורש
         f = Flight(
-            flight_id=row[0], origin=row[1], destination=row[2],
-            departure=row[3], duration=str(row[4]),
-            capacity=row[8], occupied=row[9],
-            is_cancelled=(row[6] == 'cancelled'),
-            plane_id=row[7]
+            flight_id=row[0],
+            origin=row[1],
+            destination=row[2],
+            duration=str(row[4]),  # duration מה-DB
+            departure=row[3],  # departure מה-DB
+            plane_id=row[5],  # plane_id
+            business_seat_price=row[6],  # מחיר עסקים מה-DB
+            economy_seat_price=row[7],  # מחיר תיירים מה-DB
+            capacity=row[9],  # קיבולת שחושבה בשאילתה
+            occupied=row[10],  # תפוסה שחושבה בשאילתה
+            is_cancelled=(row[8] == 'cancelled')  # בדיקת סטטוס ביטול
         )
         flights_list.append(f)
-    return render_template('manager_flights.html', flights=flights_list)
+
+    # שליפת נתונים אמיתיים לכרטיסיות (KPI)
+    cursor.execute("SELECT COUNT(*) FROM Pilot")
+    p_count = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM Flight_Attendant")
+    fa_count = cursor.fetchone()[0]
+
+    # חישוב הכנסה כוללת מהזמנות שלא בוטלו
+    cursor.execute("SELECT SUM(total_price) FROM Orders WHERE status != 'cancelled'")
+    total_income = cursor.fetchone()[0] or 0
+
+    return render_template('manager_flights.html',
+                           flights=flights_list,
+                           total_staff=(p_count + fa_count),
+                           total_income=total_income,
+                           total_orders=len(flights_list),  # או שאילתה לספירת הזמנות
+                           status_dict={'Active': 5, 'Cancelled': 1},  # דוגמה לגרף
+                           dest_labels=['TLV', 'JFK'], dest_values=[100, 200])
 
 
 @app.route('/manager/add_flight/step1', methods=['GET', 'POST'])
 def add_flight_step1():
-    # inserting the "basic details" of the flight
     if session.get("role") != 'manager':
         return redirect('/login_manager')
 
+    message = None
     if request.method == 'POST':
-        origin = request.form.get('origin')
-        dest = request.form.get('destination')
-        dep_str = request.form.get('departure')
-        if not origin or not dest or not dep_str:
-            return render_template('add_flight_s1.html', error="אנא מלא את כל השדות")
-        try:
-            departure_dt = datetime.strptime(dep_str, '%Y-%m-%dT%H:%M')
-        except ValueError:
-            return render_template('add_flight_s1.html', error="פורמט תאריך לא תקין")
+        flight_id = request.form.get('flight_id').strip().upper()
+        origin = request.form.get('origin').upper().strip()
+        destination = request.form.get('destination').upper().strip()
+        departure = request.form.get('departure')
 
-        # search for this route in DB
-        cursor.execute("SELECT duration, is_long FROM Route WHERE origin_airport = %s AND destination_airport = %s",
-                       (origin, dest))
-        route = cursor.fetchone()
+        # Validation - flight_id is not in DB and route is in DB. if not - error message
+        cursor.execute("SELECT flight_id FROM Flight WHERE flight_id = %s", (flight_id,))
+        if cursor.fetchone():
+            message = f"שגיאה: מספר טיסה {flight_id} כבר קיים במערכת."
+            return render_template('add_flight_s1.html', message=message)
 
-        if not route:
-            # if it is a new route - fill duration and insert to DB
-            duration_str = request.form.get('duration')
-            if not duration_str:
-                return render_template('add_flight_s1.html', error="נדרש להזין משך טיסה")
-            try:
-                # Validate duration format
-                parts = duration_str.split(':')
-                if len(parts) < 2:
-                    raise ValueError
-                int(parts[0])  # Validate hours
-                int(parts[1])  # Validate minutes
-            except (ValueError, IndexError):
-                return render_template('add_flight_s1.html', error="פורמט משך טיסה לא תקין (נדרש: HH:MM)")
-            cursor.execute("INSERT INTO Route (origin_airport, destination_airport, duration) VALUES (%s, %s, %s)",
-                           (origin, dest, duration_str))
-            mydb.commit()
-            duration = duration_str
-            is_long = int(duration.split(':')[0]) > 6
-        else:
-            duration = str(route[0])
-            is_long = route[1]
+        cursor.execute("""
+                    SELECT duration, is_long 
+                    FROM Route 
+                    WHERE origin_airport = %s AND destination_airport = %s
+                """, (origin, destination))
+        route_data = cursor.fetchone()
 
-        session['temp_flight'] = {
-            'flight_id': request.form.get('flight_id'),
-            'origin': origin,
-            'destination': dest,
-            'departure': dep_str,
-            'duration': duration,
-            'is_long': is_long
-        }
+        if not route_data:
+            message = "מסלול הטיסה לא קיים במערכת, אנא הוסף אותו ל-DB תחילה."
+            return render_template('add_flight_s1.html', message=message)
+
+        # duration to str
+        duration_obj = route_data[0]
+        total_seconds = int(duration_obj.total_seconds())
+        hours = total_seconds // 3600
+        minutes = (total_seconds % 3600) // 60
+        duration_str = f"{hours:02d}:{minutes:02d}"
+
+        session['temp_flight'] = {'flight_id': flight_id, 'origin': origin, 'destination': destination, 'departure': departure, 'duration': duration_str, 'is_long': route_data[1]}
         return redirect('/manager/add_flight/step2')
-    return render_template('add_flight_s1.html')
+
+    return render_template('add_flight_s1.html', message=message)
 
 
 @app.route('/manager/add_flight/step2', methods=['GET', 'POST'])
@@ -659,12 +671,33 @@ def add_flight_step2():
     if not f_data:
         return redirect('/manager/add_flight/step1')
 
-    # filter the available resources (planes, pilots and flight attendants)
+    # Staff requirements in order to flight length
+    if f_data.get('is_long') == 1:
+        req_pilots = 3
+        req_fas = 6
+    else:
+        req_pilots = 2
+        req_fas = 3
+
+    if request.method == 'POST':
+        selected_plane = request.form.get('plane_id')
+        selected_pilots = request.form.getlist('pilots')
+        selected_fas = request.form.getlist('fas')
+
+        # Validation
+        if len(selected_pilots) != req_pilots or len(selected_fas) != req_fas:
+            pass
+
+        session['temp_flight'].update({'plane_id': selected_plane, 'pilots': selected_pilots, 'fas': selected_fas})
+        return redirect('/manager/add_flight/step3')
+
     planes = get_available_resources('Plane', 'plane_id', f_data['origin'], f_data['is_long'], cursor)
     pilots = get_available_resources('Pilot', 'pilot_id', f_data['origin'], f_data['is_long'], cursor)
     fas = get_available_resources('Flight_Attendant', 'fa_id', f_data['origin'], f_data['is_long'], cursor)
 
-    return render_template('add_flight_s2.html', planes=planes, pilots=pilots, fas=fas)
+    return render_template('add_flight_s2.html',
+                           planes=planes, pilots=pilots, fas=fas,
+                           req_pilots=req_pilots, req_fas=req_fas)
 
 
 @app.route('/manager/add_flight/step3', methods=['GET', 'POST'])
@@ -719,10 +752,15 @@ def add_flight_step3():
                     cursor.execute("INSERT INTO Pilots_on_Flight VALUES (%s, %s)", (f_data['flight_id'], pid))
             if 'fas' in f_data:
                 for fid in f_data['fas']:
-                    cursor.execute("INSERT INTO FA_on_Flight VALUES (%s, %s)", (f_data['flight_id'], fid))
+                    cursor.execute("INSERT INTO Flight_Attendants_on_Flight VALUES (%s, %s)", (f_data['flight_id'], fid))
+            cursor.execute("""INSERT INTO flight_created_by (flight_id, manager_id) VALUES (%s, %s)""", (f_data['flight_id'], session.get("manager_id")))
             mydb.commit()
+            flight_num = f_data['flight_id']
+            flash(f"טיסה {flight_num} התווספה בהצלחה!", "success")
+
             session.pop('temp_flight')
             return redirect('/manager')
+
         except Exception as e:
             mydb.rollback()
             return f"Error: {e}"

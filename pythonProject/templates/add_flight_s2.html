@@ -166,7 +166,10 @@
                     {% endfor %}
                 </div>
 
-                <div class="section-title"><i class="fas fa-user-tie"></i> בחר טייסים</div>
+                <div class="section-title">
+                    <i class="fas fa-user-tie"></i> בחר טייסים
+                    <span style="font-size: 14px; color: var(--flytau-teal);">(יש לבחור בדיוק {{ req_pilots }})</span>
+                </div>
                 <div class="resource-grid">
                     {% for pilot in pilots %}
                     <label class="resource-item">
@@ -177,7 +180,10 @@
                     {% endfor %}
                 </div>
 
-                <div class="section-title"><i class="fas fa-user-friends"></i> בחר דיילים</div>
+                <div class="section-title">
+                    <i class="fas fa-user-friends"></i> בחר דיילים
+                    <span style="font-size: 14px; color: var(--flytau-teal);">(יש לבחור בדיוק {{ req_fas }})</span>
+                </div>
                 <div class="resource-grid">
                     {% for fa in fas %}
                     <label class="resource-item">
@@ -197,29 +203,39 @@
     </div>
 
     <script>
-        document.querySelectorAll('.resource-item input[type="checkbox"]').forEach(cb => {
-            cb.addEventListener('change', function() {
+        // עיצוב פריטים נבחרים
+        document.querySelectorAll('.resource-item input').forEach(input => {
+            input.addEventListener('change', function() {
+                if (this.type === 'radio') {
+                    document.querySelectorAll('input[name="plane_id"]').forEach(r =>
+                        r.closest('.resource-item').classList.remove('selected'));
+                }
                 this.closest('.resource-item').classList.toggle('selected', this.checked);
             });
         });
 
-        document.querySelectorAll('.resource-item input[type="radio"]').forEach(rb => {
-            rb.addEventListener('change', function() {
-                document.querySelectorAll('.resource-item').forEach(item => {
-                    if (item.querySelector('input[type="radio"]')) {
-                        item.classList.remove('selected');
-                    }
-                });
-                this.closest('.resource-item').classList.add('selected');
-            });
-        });
-
+        // ולידציה לפני שליחה
         document.getElementById('step2-form').addEventListener('submit', function(e) {
-            const planeSelected = document.querySelector('input[name="plane_id"]:checked');
-            if (!planeSelected) {
+            const selectedPilots = document.querySelectorAll('input[name="pilots"]:checked').length;
+            const selectedFas = document.querySelectorAll('input[name="fas"]:checked').length;
+            const reqPilots = {{ req_pilots }};
+            const reqFas = {{ req_fas }};
+
+            let errorMessage = "";
+
+            if (!document.querySelector('input[name="plane_id"]:checked')) {
+                errorMessage += "אנא בחר מטוס.\n";
+            }
+            if (selectedPilots !== reqPilots) {
+                errorMessage += `עליך לבחור בדיוק ${reqPilots} טייסים (בחרת ${selectedPilots}).\n`;
+            }
+            if (selectedFas !== reqFas) {
+                errorMessage += `עליך לבחור בדיוק ${reqFas} דיילים (בחרת ${selectedFas}).\n`;
+            }
+
+            if (errorMessage) {
                 e.preventDefault();
-                alert('אנא בחר מטוס');
-                return false;
+                alert(errorMessage);
             }
         });
     </script>
