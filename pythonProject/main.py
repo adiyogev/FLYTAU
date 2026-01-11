@@ -542,6 +542,18 @@ def manager_flights():
     if session.get("role") != 'manager':
         return redirect('/login_manager')
 
+    # Retrieve the manager's first name for the dashboard header
+    manager_id = session.get('manager_id')
+    current_manager_name = "Admin"  # Default fallback value
+
+    try:
+        cursor.execute("SELECT first_name FROM Manager WHERE manager_id = %s", (manager_id,))
+        result = cursor.fetchone()
+        if result:
+            current_manager_name = result[0]
+    except Exception as e:
+        print(f"Error fetching manager name: {e}")
+
     # POST - request for flight cancelling
     if request.method == 'POST':
         flight_id = request.form.get('flight_id')
@@ -612,12 +624,14 @@ def manager_flights():
     total_income = cursor.fetchone()[0] or 0
 
     return render_template('manager_flights.html',
+                           manager_name=current_manager_name,  # <-- Pass the name to HTML
                            flights=flights_list,
                            total_staff=(p_count + fa_count),
                            total_income=total_income,
-                           total_orders=len(flights_list),  # או שאילתה לספירת הזמנות
-                           status_dict={'Active': 5, 'Cancelled': 1},  # דוגמה לגרף
-                           dest_labels=['TLV', 'JFK'], dest_values=[100, 200])
+                           total_orders=len(flights_list),
+                           status_dict={'Active': 5, 'Cancelled': 1},
+                           dest_labels=['TLV', 'JFK'],
+                           dest_values=[100, 200])
 
 
 @app.route('/manager/add_flight/step1', methods=['GET', 'POST'])

@@ -4,43 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FLYTAU - תוצאות</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+
     <style>
         :root {
             --flytau-navy: #001b33;
             --flytau-teal: #00818a;
             --flytau-teal-hover: #006b72;
+            --flytau-light: #e0f2fe;
             --text-secondary: #64748b;
+            --white: #ffffff;
         }
 
         body {
             font-family: 'Heebo', sans-serif;
             margin: 0;
             padding: 0;
-            background: linear-gradient(rgba(241, 245, 249, 0.85), rgba(241, 245, 249, 0.85)),
-                        url('https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?q=80&w=2070&auto=format&fit=crop') no-repeat center center fixed;
-            background-size: cover;
+            background-color: #f8fafc;
             color: var(--flytau-navy);
             padding-bottom: 50px;
         }
 
+        /* --- Header Styles --- */
         header {
             background: #ffffff; padding: 5px 40px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
             display: flex; justify-content: space-between; align-items: center;
             position: sticky; top: 0; z-index: 1000; height: 70px;
         }
-        
+
         .header-right { display: flex; align-items: center; gap: 20px; }
-        
-        .logo-img { height: 55px; width: auto; object-fit: contain; cursor: default; }
-        
-        .nav-link { 
+        .logo-img { height: 55px; width: auto; object-fit: contain; }
+        .nav-link {
             text-decoration: none; color: var(--flytau-teal); font-weight: 800; font-size: 18px;
             border-bottom: 3px solid var(--flytau-teal); padding-bottom: 2px; line-height: 1;
         }
-
         .header-left { display: flex; align-items: center; gap: 15px; }
         .user-greeting { font-weight: 600; font-size: 15px; }
         .user-greeting span { color: var(--flytau-teal); }
@@ -49,20 +48,45 @@
         .auth-link.logout { color: #ef4444; font-weight: 700; margin-right: 5px; }
         .btn-register { background: var(--flytau-navy); color: white; padding: 8px 18px; border-radius: 20px; text-decoration: none; font-weight: 700; font-size: 14px; }
 
+        /* --- Hero Banner --- */
         .hero-banner {
-            background: linear-gradient(rgba(0, 27, 51, 0.5), rgba(0, 27, 51, 0.5)), 
-                        url('https://images.unsplash.com/photo-1506012733861-7375dc139503?q=80&w=2069&auto=format&fit=crop');
-            background-size: cover; background-position: center;
-            color: white; padding: 80px 20px; text-align: center; margin-top: 0;
+            background: linear-gradient(rgba(0, 27, 51, 0.3), rgba(0, 27, 51, 0.3)),
+                        url("{{ url_for('static', filename='RESULTSPIC.PNG') }}");
+
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
+
+            height: 380px;
+            width: 100%;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            color: white;
+            text-align: center;
+            position: relative;
         }
         .hero-banner h1 {
-            font-size: 40px; font-weight: 300; letter-spacing: 0.1em; margin: 0;
-            text-shadow: 0 2px 15px rgba(0,0,0,0.5); text-transform: uppercase;
+            font-size: 45px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            margin: 0;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.6);
+            text-transform: uppercase;
         }
 
+        /* --- Stepper --- */
         .stepper-container {
-            max-width: 900px; margin: -30px auto 40px; background: white; padding: 30px;
-            border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            max-width: 900px;
+            margin: -40px auto 40px;
+            background: white;
+            padding: 30px;
+            border-radius: 24px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 10;
         }
         .flight-path { display: flex; justify-content: space-between; align-items: center; position: relative; padding: 0 60px; }
         .path-line { position: absolute; top: 50%; left: 100px; right: 100px; height: 2px; border-top: 2px dashed #cbd5e1; z-index: 1; }
@@ -71,88 +95,155 @@
         .step.active .dot { background: var(--flytau-teal); box-shadow: 0 0 15px var(--flytau-teal); }
         .step-label { font-size: 14px; font-weight: 700; color: var(--text-secondary); }
 
-        .results-list { max-width: 950px; margin: 0 auto; padding: 0 20px; }
-        
-        .flight-card {
-            background: rgba(255, 255, 255, 0.98);
-            border-radius: 20px; padding: 25px; margin-bottom: 20px;
-            display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: 0.3s ease; border: 1px solid transparent;
-            position: relative; overflow: hidden;
+        /* --- Flight Card Modern Design --- */
+        .results-list { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+
+        .flight-card-modern {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            margin-bottom: 24px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
         }
 
-        .flight-card::before {
-            content: '\f072'; font-family: 'Font Awesome 6 Free'; font-weight: 900;
-            position: absolute; top: 50%; right: -25%; font-size: 130px;
-            color: rgba(0, 129, 138, 0.03); transform: translateY(-50%) scaleX(-1);
-            transition: all 1.4s cubic-bezier(0.2, 0, 0.2, 1); pointer-events: none; z-index: 0;
-        }
-        .flight-card:hover::before { right: 125%; }
-        .flight-card:hover { transform: translateY(-5px); border-color: var(--flytau-teal); box-shadow: 0 15px 35px rgba(0, 129, 138, 0.1); }
-
-        .airport-code { font-size: 32px; font-weight: 900; color: var(--flytau-navy); margin: 0; }
-        .flight-time { font-size: 18px; color: var(--text-secondary); font-weight: 500; }
-
-        .flight-visual { text-align: center; color: var(--flytau-teal); padding: 0 20px; }
-        .duration-label { display: block; font-weight: 800; font-size: 18px; margin-bottom: 25px; }
-        
-        .visual-line { height: 2px; background: #e2e8f0; margin: 15px 0; position: relative; }
-        .visual-line i {
-            position: absolute; top: -11px; left: 45%; background: white;
-            padding: 0 15px; font-size: 22px; transform: scaleX(-1);
+        .flight-card-modern::before {
+            content: '\f072';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            top: 50%;
+            right: -25%;
+            font-size: 180px;
+            color: rgba(0, 129, 138, 0.04);
+            transform: translateY(-50%) scaleX(-1);
+            transition: all 1.4s cubic-bezier(0.2, 0, 0.2, 1);
+            pointer-events: none;
+            z-index: 0;
         }
 
-        .price-tag { font-size: 15px; color: var(--flytau-navy); font-weight: 700; }
-        .price-tag span { color: var(--flytau-teal); font-size: 24px; font-weight: 900; }
-
-        .availability-badge {
-            display: inline-block; background: #fee2e2; color: #ef4444;
-            padding: 5px 12px; border-radius: 8px; font-weight: 700;
-            font-size: 13px; margin-top: 8px; border: 1px solid #fecaca;
+        .flight-card-modern:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border-color: var(--flytau-teal);
         }
 
-        .btn-continue {
-            background: var(--flytau-teal); color: white; border: none; padding: 12px 35px;
-            border-radius: 10px; font-weight: 800; cursor: pointer; width: 100%; font-size: 18px;
-            transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px;
-            text-decoration: none;
+        .flight-card-modern:hover::before {
+            right: 125%;
         }
-        .btn-continue:hover { background: var(--flytau-teal-hover); }
-        
+
+        .card-header-row, .card-body-grid, .card-footer-row {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Card Header - מעודכן לרקע כחול כהה */
+        .card-header-row {
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--flytau-navy); /* רקע כחול כהה */
+            color: white; /* טקסט לבן */
+            /* עיגול פינות עליונות בלבד כדי להתאים לכרטיס */
+            border-radius: 20px 20px 0 0;
+        }
+
+        .status-active {
+            background: #dcfce7; color: #166534;
+            padding: 2px 8px; border-radius: 20px; font-size: 12px; font-weight: 700;
+        }
+
+        /* Card Body - Grid Layout */
+        .card-body-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr 1fr;
+            padding: 30px 40px;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* Location Column */
+        .location-col { text-align: center; }
+        .city-code { font-size: 36px; font-weight: 900; color: var(--flytau-navy); line-height: 1; margin-bottom: 5px; }
+        .flight-date { font-size: 15px; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 4px; font-weight: 500; }
+        .flight-time-big { font-size: 20px; font-weight: 800; color: var(--flytau-teal); display: flex; align-items: center; justify-content: center; gap: 6px; }
+
+        /* Timeline Column (Middle) */
+        .timeline-col { text-align: center; position: relative; width: 100%; }
+        .duration-text { font-size: 22px; font-weight: 800; color: var(--flytau-teal); margin-bottom: 10px; }
+        .timeline-graphic {
+            height: 6px;
+            background: linear-gradient(270deg, var(--flytau-teal) 0%, #bae6fd 100%);
+            border-radius: 10px;
+            position: relative;
+            margin: 0 auto 10px;
+            width: 80%;
+        }
+        .timeline-graphic::after {
+            content: ''; position: absolute; left: -2px; top: 50%; transform: translateY(-50%);
+            border-width: 6px 8px 6px 0; border-style: solid; border-color: transparent var(--flytau-teal) transparent transparent;
+        }
+        .timeline-graphic::before {
+            content: ''; position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+            width: 8px; height: 8px; background: #bae6fd; border-radius: 50%;
+        }
+        .direct-label { color: var(--text-secondary); font-size: 13px; font-weight: 600; }
+
+        /* Card Footer */
+        .card-footer-row {
+            padding: 20px 24px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            background-color: #ffffff;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        /* Price & Action */
+        .price-area { text-align: left; }
+        .price-label { font-size: 12px; color: var(--text-secondary); display: block; font-weight: 600; }
+        .price-value { font-size: 26px; font-weight: 900; color: var(--flytau-navy); }
+
+        .btn-select {
+            background-color: var(--flytau-teal); color: white;
+            padding: 10px 24px; border-radius: 50px; text-decoration: none;
+            font-weight: 700; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px;
+            border: none; cursor: pointer;
+        }
+        .btn-select:hover { background-color: var(--flytau-teal-hover); box-shadow: 0 4px 12px rgba(0, 129, 138, 0.3); }
+        .btn-select.disabled { background-color: #94a3b8; cursor: not-allowed; box-shadow: none; }
+
+        /* No Results */
         .no-results {
             text-align: center; padding: 60px 20px; background: white; border-radius: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05); max-width: 600px; margin: 0 auto;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
         }
-        .no-results i { font-size: 64px; color: var(--text-secondary); margin-bottom: 20px; }
-        .no-results h2 { color: var(--flytau-navy); margin-bottom: 10px; }
-        .no-results p { color: var(--text-secondary); }
     </style>
 </head>
 <body>
 
     <header>
         <div class="header-right">
-            <img src="{{ url_for('static', filename='LOGO.png') }}" 
-                 onerror="this.src='{{ url_for('static', filename='logo.png') }}';" 
-                 alt="FLYTAU" 
-                 class="logo-img">
-                 
+            <img src="{{ url_for('static', filename='LOGO.png') }}"
+                 onerror="this.src='{{ url_for('static', filename='logo.png') }}';"
+                 alt="FLYTAU" class="logo-img">
             <a href="/" class="nav-link">חיפוש טיסות</a>
         </div>
-   <div class="header-left">
+        <div class="header-left">
             {% if is_logged_in and user_name %}
                 <div class="user-greeting">שלום, <span>{{ user_name }}</span></div>
                 <a href="/my_orders" class="auth-link">ניהול הזמנות</a>
                 <a href="/logout" class="auth-link logout">התנתק</a>
             {% else %}
                 <a href="/login" class="auth-link">התחברות</a>
-
                 <a href="/register" class="btn-register">הירשם</a>
-
                 <a href="/login_manager" class="auth-link" style="color: #001b33;">
                     <i class="fas fa-user-tie"></i> כניסת מנהל
                 </a>
-                {% endif %}
+            {% endif %}
         </div>
     </header>
 
@@ -173,48 +264,87 @@
     <div class="results-list">
         {% if flights %}
             {% for flight in flights %}
-            <div class="flight-card">
-                <div style="text-align: center;">
-                    <p class="airport-code">{{ flight.origin }}</p>
-                    <p class="flight-time">{{ flight.departure.strftime('%H:%M') if flight.departure else '--:--' }}</p>
+            <div class="flight-card-modern">
+
+                <div class="card-header-row">
+                    <div style="text-align: left;">
+                        <div style="font-size: 24px; font-weight: 800; color: #ffffff;">
+                            {{ flight.flight_id }}
+                        </div>
+                        <div class="status-active">פעילה</div>
+                    </div>
+
+                    <div></div>
                 </div>
 
-                <div class="flight-visual">
-                    <span class="duration-label">{{ flight.duration }}</span>
-                    <div class="visual-line"><i class="fas fa-plane"></i></div>
-                    <div style="font-size: 13px; font-weight: 700; opacity: 0.8;">טיסה ישירה</div>
+                <div class="card-body-grid">
+
+                    <div class="location-col">
+                        <div class="text-muted small fw-bold mb-1">המראה</div>
+                        <div class="city-code">{{ flight.origin }}</div>
+                        <div class="flight-date">
+                            <span>{{ flight.departure.strftime('%d-%m-%Y') }}</span>
+                            <i class="far fa-calendar"></i>
+                        </div>
+                        <div class="flight-time-big">
+                            <span>{{ flight.departure.strftime('%H:%M') }}</span>
+                            <i class="far fa-clock" style="font-size: 0.8em;"></i>
+                        </div>
+                    </div>
+
+                    <div class="timeline-col">
+                        <div class="text-secondary small fw-bold mb-1">משך טיסה</div>
+                        <div class="duration-text" dir="ltr">{{ flight.duration }}</div>
+
+                        <div class="timeline-graphic"></div>
+
+                        <div class="direct-label">טיסה ישירה</div>
+                    </div>
+
+                    <div class="location-col">
+                        <div class="text-muted small fw-bold mb-1">נחיתה</div>
+                        <div class="city-code">{{ flight.destination }}</div>
+
+                        <div class="flight-date">
+                            <span>{{ flight.arrival_time.strftime('%d-%m-%Y') if flight.arrival_time else flight.departure.strftime('%d-%m-%Y') }}</span>
+                            <i class="far fa-calendar"></i>
+                        </div>
+
+                        <div class="flight-time-big">
+                            <span>{{ flight.arrival_time.strftime('%H:%M') if flight.arrival_time else '--:--' }}</span>
+                            <i class="far fa-clock" style="font-size: 0.8em;"></i>
+                        </div>
+                    </div>
                 </div>
 
-                <div style="text-align: center;">
-                    <p class="airport-code">{{ flight.destination }}</p>
-                    <p class="flight-time">{{ flight.arrival_time.strftime('%H:%M') if flight.arrival_time else '--:--' }}</p>
-                </div>
+                <div class="card-footer-row">
+                    <div style="display: flex; align-items: center; gap: 20px; width: 100%; justify-content: flex-end;">
+                        <div class="price-area">
+                            <span class="price-label">מחיר לנוסע:</span>
+                            <span class="price-value">₪{{ flight.economy_seat_price }}</span>
+                        </div>
 
-                <div style="grid-column: span 3; margin-top: 25px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 15px;">
-                    <div class="price-tag">
-                        מחיר לכרטיס: החל מ-<span>₪{{ flight.economy_seat_price if flight.economy_seat_price else '0' }}</span><br>
-                        {% if flight.available_seats <= 5 and flight.available_seats > 0 %}
-                        <div class="availability-badge">נותרו {{ flight.available_seats }} מקומות פנויים בלבד!</div>
-                        {% elif flight.available_seats == 0 %}
-                        <div class="availability-badge" style="background: #fee2e2;">אין מקומות פנויים</div>
+                        {% if flight.available_seats > 0 %}
+                        <a href="/select_seats/{{ flight.flight_id }}" class="btn-select">
+                             המשך לבחירה <i class="fas fa-arrow-left"></i>
+                        </a>
+                        {% else %}
+                        <button class="btn-select disabled" disabled>אזל המלאי</button>
                         {% endif %}
                     </div>
-                    <div style="width: 200px;">
-                        <a href="/select_seats/{{ flight.flight_id }}" class="btn-continue">המשך לבחירה <i class="fas fa-chevron-left"></i></a>
-                    </div>
                 </div>
+
             </div>
             {% endfor %}
         {% else %}
             <div class="no-results">
-                <i class="fas fa-search"></i>
-                <h2>לא נמצאו טיסות</h2>
-                <p>נסה לשנות את פרטי החיפוש או לבדוק תאריכים אחרים</p>
-                <a href="/" class="btn-continue" style="margin-top: 20px; width: auto; padding: 12px 30px;">חזור לחיפוש</a>
+                <i class="fas fa-search" style="font-size: 64px; color: var(--text-secondary); margin-bottom: 20px;"></i>
+                <h2 style="color: var(--flytau-navy);">לא נמצאו טיסות</h2>
+                <p style="color: var(--text-secondary);">נסה לשנות את פרטי החיפוש או לבדוק תאריכים אחרים</p>
+                <a href="/" class="btn-select" style="margin-top: 20px;">חזור לחיפוש</a>
             </div>
         {% endif %}
     </div>
 
 </body>
 </html>
-
