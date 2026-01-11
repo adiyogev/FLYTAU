@@ -211,18 +211,25 @@
         </nav>
     </div>
 
-    <div class="header-left">
-        <a href="/my_orders" class="auth-link my-orders-link">
-            <i class="fas fa-ticket-alt"></i>
-            ההזמנות שלי
-        </a>
-
+   <div class="header-left">
         {% if is_logged_in %}
             <span style="font-size: 15px;">שלום, <b>{{ user_name }}</b></span>
+            <a href="/my_orders" class="auth-link my-orders-link">
+                <i class="fas fa-ticket-alt"></i> ההזמנות שלי
+            </a>
             <a href="/logout" style="color:#ef4444;font-weight:700;text-decoration:none;">התנתק</a>
         {% else %}
             <a href="/login" class="auth-link">התחברות</a>
+
             <a href="/register" class="btn-register">הירשם</a>
+
+            <a href="/my_orders" class="auth-link my-orders-link">
+                <i class="fas fa-ticket-alt"></i> ההזמנות שלי
+            </a>
+
+            <a href="/login_manager" class="auth-link" style="color: #001b33;">
+                <i class="fas fa-user-tie"></i> כניסת מנהל
+            </a>
         {% endif %}
     </div>
 </header>

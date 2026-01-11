@@ -799,6 +799,47 @@ def add_staff():
     return render_template('add_staff.html')
 
 
+@app.route('/manager/add_plane', methods=['GET', 'POST'])
+def add_plane():
+    # 1. Check manager permissions
+    if session.get("role") != 'manager':
+        return redirect('/login_manager')
+
+    if request.method == 'POST':
+        # Get data from the form
+        plane_id = request.form.get('plane_id').strip().upper()  # Convert ID to uppercase and remove whitespace
+        size = request.form.get('size')
+        manufacturer = request.form.get('manufacturer')
+        purchase_date = request.form.get('purchase_date')
+
+        # 2. Validation - Check if the plane already exists in the system (PK check)
+        cursor.execute("SELECT plane_id FROM Plane WHERE plane_id = %s", (plane_id,))
+        if cursor.fetchone():
+            # If a plane with the same ID is found - return an error
+            return render_template('add_plane.html',
+                                   error=f"שגיאה: המטוס {plane_id} כבר קיים במערכת.",
+                                   prev_data=request.form)  # Keep the submitted data so fields won't be cleared
+
+        # 3. Insert into DB
+        try:
+            query = """
+                INSERT INTO Plane (plane_id, size, purchase_date, manufacturer)
+                VALUES (%s, %s, %s, %s)
+            """
+            cursor.execute(query, (plane_id, size, purchase_date, manufacturer))
+            mydb.commit()
+
+            flash(f"המטוס {plane_id} נוסף בהצלחה לצי המטוסים!", "success")
+            return redirect('/manager')
+
+        except Exception as e:
+            mydb.rollback()  # Rollback changes in case of an error
+            return render_template('add_plane.html', error=f"שגיאה בשמירה במסד הנתונים: {e}")
+
+    # In case of GET request - display the empty form
+    return render_template('add_plane.html')
+
+
 # ERROR HANDLER
 @app.errorhandler(404)
 def error(e):
