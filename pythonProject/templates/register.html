@@ -141,7 +141,7 @@
   <div class="panel">
     <div class="wrapper">
       <div class="title-row">
-        <img class="inline-logo" src="LOGO.jpeg" alt="FLYTAU" onerror="this.style.display='none'">
+        <img class="inline-logo" src="{{ url_for('static', filename='LOGO.png') }}" alt="FLYTAU">
         <h1>הרשמה</h1>
       </div>
       <p class="subtitle">ממלאים פרטים פעם אחת — וממשיכים להזמין מהר יותר.</p>
@@ -159,11 +159,11 @@
         
         <div class="grid">
           <div class="input-group">
-            <label class="label">שם פרטי</label>
+            <label class="label">שם פרטי (באנגלית)</label>
             <div class="input-box"><i class="fas fa-user icon-start"></i><input id="first_name" name="first_name" type="text" placeholder="דנה" required></div>
           </div>
           <div class="input-group">
-            <label class="label">שם משפחה</label>
+            <label class="label">שם משפחה (באנגלית)</label>
             <div class="input-box"><i class="fas fa-user icon-start"></i><input id="last_name" name="last_name" type="text" placeholder="כהן" required></div>
           </div>
         </div>
@@ -203,7 +203,7 @@
         <div class="input-group">
           <label class="label">סיסמה</label>
           <div class="input-box"><i class="fas fa-lock icon-start"></i><input id="password" name="password" type="password" placeholder="••••••••" minlength="8" required></div>
-          <div class="hint">לפחות 8 תווים (מומלץ לשלב מספרים).</div>
+          <div class="hint"></div>
         </div>
 
         <button id="submitBtn" class="btn" type="submit">יצירת חשבון <i class="fas fa-arrow-left"></i></button>

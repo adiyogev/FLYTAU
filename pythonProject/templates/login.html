@@ -19,30 +19,52 @@
     body{
       margin:0; padding:0;
       font-family:'Heebo', sans-serif;
-      height:100vh;
-      display:flex; overflow:hidden;
+      min-height:100vh;
+      display:flex;
+      overflow:hidden;
       background:white;
+    }
+    .logo-wrap{
+      padding-top: 8px;
+    }
+    .logo-wrap{
+      text-align:center;
+      margin-bottom:5px;
+    }
+
+    .inline-logo{
+      max-width:120px;
+      height:auto;
     }
 
     .panel{
-      flex:1; background:white;
-      display:flex; flex-direction:column;
-      justify-content: center;
+      flex:1;
+      min-height:100vh;
+      background:white;
+      display:flex;
+      flex-direction:column;
+      justify-content:flex-start;
       align-items:center;
-      padding: 40px;
+      padding: 30px;
     }
 
-    .wrapper{
-        width:100%; max-width:400px;
+      .wrapper{
+        width:100%;
+        max-width:400px;
         animation:fadeIn .8s ease-out;
+        margin-top:0px;
     }
+
 
     @keyframes fadeIn{ from{opacity:0; transform:translateY(20px);} to{opacity:1; transform:translateY(0);} }
 
     h1{
-      font-size:32px; color:var(--flytau-navy); margin-bottom:10px; font-weight:800;
-      text-align:right;
-    }
+        font-size:32px; color:var(--flytau-navy);
+        margin-top: 0;
+        margin-bottom:5px; font-weight:800;
+        text-align:right;
+      }
+
 
     .subtitle{ color:var(--text-light); font-size:16px; margin-bottom:30px; text-align:right; line-height:1.5; }
 
@@ -104,6 +126,10 @@
 
   <div class="panel">
     <div class="wrapper">
+    <div class="logo-wrap">
+        <img class="inline-logo" src="{{ url_for('static', filename='LOGO.png') }}" alt="FLYTAU">
+    </div>
+
       <h1>התחברות</h1>
       <p class="subtitle">התחברו כדי לצפות בהזמנות שלכם ולבצע רכישות מהירות.</p>
 
@@ -140,7 +166,6 @@
   <div class="image-section">
     <div class="overlay"></div>
 
-    <img src="{{ url_for('static', filename='LOGO.png') }}" alt="FLYTAU" class="top-logo">
 
     <div class="promo-content">
       <div class="promo-title">העולם מחכה לכם.</div>
