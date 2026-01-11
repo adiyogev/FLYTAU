@@ -47,7 +47,8 @@ class User:
 
 
 class Customer(User):
-    def __init__(self, email, passport, birth_date, password, reg_date):
+    def __init__(self, email, first_name, last_name, phone_numbers,
+                 passport, birth_date, password, reg_date):
         super().__init__(email, first_name, last_name, phone_numbers)
         self.passport = passport
         self.birth_date = birth_date
