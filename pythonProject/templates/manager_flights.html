@@ -32,6 +32,7 @@
             position: fixed; top: 0; right: 0; height: 100vh; width: var(--sidebar-width);
             background-color: var(--sidebar-bg); color: #94a3b8; padding: 24px 0;
             display: flex; flex-direction: column; z-index: 1000; border-left: 1px solid #1e293b;
+            transition: all 0.3s ease;
         }
 
         .brand-area {
@@ -58,7 +59,11 @@
         }
 
         /* --- Main Content --- */
-        .main-wrapper { margin-right: var(--sidebar-width); padding: 40px; }
+        .main-wrapper {
+            margin-right: var(--sidebar-width);
+            padding: 40px;
+            transition: margin-right 0.3s ease;
+        }
 
         .top-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px; }
         .page-heading h1 { font-size: 1.75rem; font-weight: 800; color: var(--text-dark); margin-bottom: 4px; }
@@ -84,6 +89,7 @@
         .table-toolbar {
             padding: 20px 24px; border-bottom: 1px solid var(--border-color);
             display: flex; justify-content: space-between; align-items: center; background-color: #fff;
+            flex-wrap: wrap; gap: 10px;
         }
 
         .filter-select {
@@ -95,17 +101,19 @@
         .table th {
             background-color: #f8fafc; color: #475569; font-weight: 600; font-size: 0.8rem;
             text-transform: uppercase; padding: 16px 24px; border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
         }
         .table td { padding: 16px 24px; vertical-align: middle; border-bottom: 1px solid var(--border-color); font-size: 0.95rem; }
 
         /* Status Pills */
-        .status-pill { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+        .status-pill { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: capitalize; }
         .status-pill::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-left: 8px; }
 
         .st-active { background: #dcfce7; color: #166534; } .st-active::before { background: #166534; }
         .st-full { background: #ffedd5; color: #9a3412; } .st-full::before { background: #9a3412; }
         .st-completed { background: #f1f5f9; color: #475569; } .st-completed::before { background: #475569; }
         .st-cancelled { background: #fee2e2; color: #b91c1c; } .st-cancelled::before { background: #b91c1c; }
+        .st-delayed { background: #fef9c3; color: #854d0e; } .st-delayed::before { background: #854d0e; }
 
         .btn-icon {
             color: #94a3b8; background: transparent; border: 1px solid transparent;
@@ -113,19 +121,46 @@
         }
         .btn-icon:hover { background-color: #f1f5f9; color: var(--text-dark); border-color: #e2e8f0; }
         .btn-icon.danger:hover { color: #dc2626; background-color: #fef2f2; border-color: #fee2e2; }
+
+        /* Custom Alert Style */
+        .custom-flash-alert {
+            background-color: #dcfce7; color: #15803d; padding: 15px; border-radius: 12px;
+            margin-bottom: 24px; border: 1px solid #bbf7d0; font-weight: 700;
+            text-align: center; animation: fadeOut 5s forwards; display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+
+        @keyframes fadeOut {
+            0% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; display: none; }
+        }
+
+        /* --- Mobile Responsiveness --- */
+        @media (max-width: 992px) {
+            .sidebar { transform: translateX(100%); width: 260px; right: 0; }
+            .sidebar.show { transform: translateX(0); }
+            .main-wrapper { margin-right: 0; padding: 20px; }
+            .mobile-toggle { display: block; }
+        }
+        @media (min-width: 993px) {
+            .mobile-toggle { display: none; }
+        }
     </style>
 </head>
 <body>
-<aside class="sidebar">
-        <a href="/manager" class="brand-area"><i class="bi bi-airplane-engines-fill"></i> FLYTAU</a>
+
+    <button class="btn btn-primary mobile-toggle position-fixed top-0 end-0 m-3 z-3" onclick="document.querySelector('.sidebar').classList.toggle('show')">
+        <i class="bi bi-list"></i>
+    </button>
+
+    <aside class="sidebar">
+        <a href="/manager" class="brand-area">
+            <i class="bi bi-airplane-engines-fill"></i> FLYTAU
+        </a>
 
         <div class="nav-category">ניהול שוטף</div>
         <nav class="nav flex-column">
             <a href="/manager" class="nav-link active"><i class="bi bi-grid-1x2"></i> לוח טיסות</a>
             <a href="/manager/add_flight/step1" class="nav-link"><i class="bi bi-plus-lg"></i> הוספת טיסה</a>
-
             <a href="/manager/add_plane" class="nav-link"><i class="bi bi-airplane"></i> הוספת מטוס</a>
-
             <a href="/manager/add_staff" class="nav-link"><i class="bi bi-people"></i> ניהול צוות</a>
         </nav>
 
@@ -136,34 +171,18 @@
         </nav>
     </aside>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="alert alert-{{ category }}" style="
-              background-color: #dcfce7;
-              color: #15803d;
-              padding: 15px;
-              border-radius: 12px;
-              margin: 20px 40px;
-              border: 1px solid #bbf7d0;
-              font-weight: 700;
-              text-align: center;
-              animation: fadeOut 5s forwards;">
-              <i class="fas fa-check-circle"></i> {{ message }}
-          </div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
-
-    <style>
-        @keyframes fadeOut {
-            0% { opacity: 1; }
-            80% { opacity: 1; }
-            100% { opacity: 0; display: none; }
-        }
-    </style>
-
     <main class="main-wrapper">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="custom-flash-alert">
+                  <i class="bi bi-check-circle-fill"></i> {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
         <header class="top-header">
             <div class="page-heading">
                 <h1>ניהול טיסות</h1>
@@ -173,24 +192,12 @@
             <div class="d-flex align-items-center gap-3">
                <div class="d-flex align-items-center gap-2 bg-white px-3 py-2 rounded-pill border shadow-sm">
                     <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 32px; height: 32px;">
-                        {{ manager_name[0] | upper }}
+                        {{ manager_name[0] | upper if manager_name else 'M' }}
                     </div>
-                    <span class="small fw-bold text-dark">שלום, {{ manager_name }}</span>
+                    <span class="small fw-bold text-dark">שלום, {{ manager_name or 'מנהל' }}</span>
                 </div>
-
-                <a href="/logout" class="btn btn-outline-danger btn-sm d-flex align-items-center gap-2 rounded-pill px-3 py-2" style="background: white;">
-                    <i class="bi bi-box-arrow-right"></i>
-                    <span class="fw-bold">התנתק</span>
-                </a>
             </div>
         </header>
-
-        {% if message %}
-        <div class="alert alert-info alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        {% endif %}
 
         <div class="stats-grid">
             <div class="stat-card">
@@ -203,7 +210,7 @@
             </div>
             <div class="stat-card">
                 <div class="stat-label">טיסות פעילות</div>
-                <div class="stat-value">24</div>
+                <div class="stat-value">{{ flights|length if flights else 0 }}</div>
             </div>
         </div>
 
@@ -219,11 +226,18 @@
                     </select>
                 </form>
             </div>
+
             <div class="table-responsive">
                 <table class="table" id="flightsTable">
                     <thead>
                         <tr>
-                            <th>מזהה (ID)</th><th>נתיב</th><th>מטוס</th><th>המראה</th><th>תפוסה</th><th>סטטוס</th><th class="text-end">פעולות</th>
+                            <th>מזהה (ID)</th>
+                            <th>נתיב</th>
+                            <th>מטוס</th>
+                            <th>המראה</th>
+                            <th>תפוסה</th>
+                            <th>סטטוס</th>
+                            <th class="text-end">פעולות</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -231,25 +245,54 @@
                             {% for flight in flights %}
                             <tr>
                                 <td class="font-monospace text-muted">#{{ flight.flight_id }}</td>
-                                <td>{{ flight.origin }} <i class="bi bi-arrow-left"></i> {{ flight.destination }}</td>
-                                <td>Plane #{{ flight.plane_id }}</td>
+                                <td>
+                                    <strong>{{ flight.origin }}</strong>
+                                    <i class="bi bi-arrow-left mx-1 text-muted"></i>
+                                    <strong>{{ flight.destination }}</strong>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">
+                                        <i class="bi bi-airplane me-1"></i> {{ flight.plane_id }}
+                                    </span>
+                                </td>
                                 <td dir="ltr">{{ flight.departure.strftime('%d/%m/%Y %H:%M') if flight.departure else '-' }}</td>
-                                <td>{{ flight.occupied }} / {{ flight.capacity }}</td>
-                                <td><span class="status-pill st-{{ flight.status }}">{{ flight.status }}</span></td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span>{{ flight.occupied }} / {{ flight.capacity }}</span>
+                                        {% set percent = (flight.occupied / flight.capacity * 100) | round | int %}
+                                        <div class="progress" style="width: 50px; height: 4px;">
+                                            <div class="progress-bar bg-{{ 'success' if percent < 80 else 'warning' }}" role="progressbar" style="width: {{ percent }}%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-pill st-{{ flight.status | lower }}">
+                                        {{ flight.status }}
+                                    </span>
+                                </td>
                                 <td class="text-end">
-                                    {% if flight.status == 'active' %}
-                                    <form method="POST" action="/manager" style="display:inline;">
+                                    {% if flight.status | lower == 'active' %}
+                                    <form method="POST" action="/manager/delete_flight" style="display:inline;">
                                         <input type="hidden" name="flight_id" value="{{ flight.flight_id }}">
-                                        <button type="submit" class="btn-icon danger" title="בטל טיסה" onclick="return confirm('האם לבטל את הטיסה?')">
+                                        <button type="submit" class="btn-icon danger" title="בטל טיסה" onclick="return confirm('האם אתה בטוח שברצונך לבטל את הטיסה הזו?')">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </form>
+                                    {% else %}
+                                    <span class="text-muted small">-</span>
                                     {% endif %}
                                 </td>
                             </tr>
                             {% endfor %}
                         {% else %}
-                            <tr><td colspan="7" class="text-center py-4">אין טיסות להצגה</td></tr>
+                            <tr>
+                                <td colspan="7" class="text-center py-5">
+                                    <div class="text-muted">
+                                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                        לא נמצאו טיסות התואמות לחיפוש
+                                    </div>
+                                </td>
+                            </tr>
                         {% endif %}
                     </tbody>
                 </table>
