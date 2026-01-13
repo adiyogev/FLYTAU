@@ -815,42 +815,111 @@ def add_staff():
 
 @app.route('/manager/add_plane', methods=['GET', 'POST'])
 def add_plane():
-    # 1. Check manager permissions
+    # 1. Manager Authentication Check
     if session.get("role") != 'manager':
         return redirect('/login_manager')
 
     if request.method == 'POST':
-        # Get data from the form
-        plane_id = request.form.get('plane_id').strip().upper()  # Convert ID to uppercase and remove whitespace
+        # --- Data Retrieval ---
+        plane_id = request.form.get('plane_id').strip().upper()
         size = request.form.get('size')
         manufacturer = request.form.get('manufacturer')
         purchase_date = request.form.get('purchase_date')
 
-        # 2. Validation - Check if the plane already exists in the system (PK check)
-        cursor.execute("SELECT plane_id FROM Plane WHERE plane_id = %s", (plane_id,))
-        if cursor.fetchone():
-            # If a plane with the same ID is found - return an error
-            return render_template('add_plane.html',
-                                   error=f"שגיאה: המטוס {plane_id} כבר קיים במערכת.",
-                                   prev_data=request.form)  # Keep the submitted data so fields won't be cleared
+        # Economy Configuration
+        eco_cols = request.form.getlist('eco_cols')
+        eco_rows = request.form.get('eco_rows')
 
-        # 3. Insert into DB
+        # --- Validation ---
+        if not eco_rows or not eco_cols:
+            return render_template('add_plane.html',
+                                   error="חובה להזין מספר שורות ולבחור לפחות עמודה אחת במחלקת תיירים",
+                                   prev_data=request.form)
+
         try:
-            query = """
+            eco_rows = int(eco_rows)
+        except ValueError:
+            return render_template('add_plane.html',
+                                   error="מספר שורות תיירים חייב להיות מספר תקין",
+                                   prev_data=request.form)
+
+        # Business Configuration (Only if large)
+        biz_rows = 0
+        biz_cols = []
+        if size == 'large':
+            biz_rows_input = request.form.get('biz_rows')
+            biz_cols = request.form.getlist('biz_cols')
+
+            if not biz_rows_input or not biz_cols:
+                return render_template('add_plane.html',
+                                       error="במטוס גדול חובה להגדיר מחלקת עסקים (שורות ועמודות)",
+                                       prev_data=request.form)
+            try:
+                biz_rows = int(biz_rows_input)
+            except ValueError:
+                return render_template('add_plane.html',
+                                       error="מספר שורות עסקים חייב להיות מספר תקין",
+                                       prev_data=request.form)
+
+        # --- Database Operations ---
+        try:
+            cursor = mydb.cursor()
+
+            # 2. Duplicate Check
+            cursor.execute("SELECT plane_id FROM Plane WHERE plane_id = %s", (plane_id,))
+            if cursor.fetchone():
+                return render_template('add_plane.html',
+                                       error=f"שגיאה: המטוס {plane_id} כבר קיים במערכת.",
+                                       prev_data=request.form)
+
+            # 3. Transaction: Insert Plane -> Generate Seats -> Insert Class
+
+            # Step A: Insert Plane
+            query_plane = """
                 INSERT INTO Plane (plane_id, size, purchase_date, manufacturer)
                 VALUES (%s, %s, %s, %s)
             """
-            cursor.execute(query, (plane_id, size, purchase_date, manufacturer))
+            cursor.execute(query_plane, (plane_id, size, purchase_date, manufacturer))
+
+            # Step B: Generate Seats Data
+            seats_data = []
+            current_row = 1
+
+            # Business Class Logic
+            if size == 'large':
+                for r in range(1, biz_rows + 1):
+                    for col in biz_cols:
+                        seats_data.append((plane_id, r, col, 'business'))
+                current_row = biz_rows + 1
+
+            # Economy Class Logic
+            for r in range(current_row, current_row + eco_rows):
+                for col in eco_cols:
+                    seats_data.append((plane_id, r, col, 'economy'))
+
+            # Step C: Insert into 'Class' table
+            query_seats = """
+                INSERT INTO `Class` (plane_id, seat_row, seat_position, class_type)
+                VALUES (%s, %s, %s, %s)
+            """
+            cursor.executemany(query_seats, seats_data)
+
+            # Commit only if all steps succeeded
             mydb.commit()
 
-            flash(f"המטוס {plane_id} נוסף בהצלחה לצי המטוסים!", "success")
+            # --- REDIRECT HAPPENS HERE ---
             return redirect('/manager')
 
         except Exception as e:
-            mydb.rollback()  # Rollback changes in case of an error
-            return render_template('add_plane.html', error=f"שגיאה בשמירה במסד הנתונים: {e}")
+            mydb.rollback()
+            return render_template('add_plane.html',
+                                   error=f"שגיאה בשמירה במסד הנתונים: {e}",
+                                   prev_data=request.form)
 
-    # In case of GET request - display the empty form
+        finally:
+            cursor.close()
+
+    # GET Request
     return render_template('add_plane.html')
 
 

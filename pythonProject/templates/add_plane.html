@@ -23,7 +23,7 @@
             align-items: center;
             justify-content: center;
             background: linear-gradient(rgba(0, 27, 51, 0.6), rgba(0, 27, 51, 0.6)),
-                        url("{{ url_for('static', filename='FLYTAU_airplane.png') }}") no-repeat center center fixed;
+                        url("{{ url_for('static', filename='ADDPLANE.png') }}") no-repeat center center fixed;
             background-size: cover;
             padding: 20px;
         }
@@ -34,31 +34,16 @@
             border-radius: 24px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.2);
             width: 100%;
-            max-width: 600px;
+            max-width: 700px;
             text-align: center;
         }
 
-        .header {
-            margin-bottom: 30px;
-        }
+        .header { margin-bottom: 30px; }
 
-        .logo-img {
-            height: 40px;
-            margin-bottom: 10px;
-        }
+        .logo-img { height: 70px; margin-bottom: 15px; }
 
-        h2 {
-            color: var(--flytau-navy);
-            font-weight: 900;
-            font-size: 32px;
-            margin: 0 0 10px 0;
-        }
-
-        .subtitle {
-            color: var(--text-secondary);
-            font-size: 18px;
-            font-weight: 500;
-        }
+        h2 { color: var(--flytau-navy); font-weight: 900; font-size: 32px; margin: 0 0 10px 0; }
+        .subtitle { color: var(--text-secondary); font-size: 18px; font-weight: 500; }
 
         .form-grid {
             display: grid;
@@ -68,23 +53,10 @@
             text-align: right;
         }
 
-        @media (max-width: 768px) {
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-        }
+        @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } }
 
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .input-label {
-            font-size: 15px;
-            font-weight: 800;
-            color: var(--text-secondary);
-        }
+        .input-group { display: flex; flex-direction: column; gap: 8px; text-align: right; }
+        .input-label { font-size: 15px; font-weight: 800; color: var(--text-secondary); }
 
         .input-field-wrapper {
             background: var(--bg-input);
@@ -97,85 +69,63 @@
             transition: border-color 0.3s;
         }
 
-        .input-field-wrapper:focus-within {
-            border-color: var(--flytau-teal);
-        }
-
-        .input-field-wrapper i {
-            color: var(--flytau-teal);
-            font-size: 18px;
-            width: 20px;
-            text-align: center;
-        }
+        .input-field-wrapper:focus-within { border-color: var(--flytau-teal); }
+        .input-field-wrapper i { color: var(--flytau-teal); font-size: 18px; width: 20px; text-align: center; }
 
         .input-field-wrapper input,
         .input-field-wrapper select {
-            border: none;
-            background: transparent;
-            width: 100%;
-            outline: none;
-            font-size: 16px;
-            font-family: inherit;
-            color: var(--flytau-navy);
-            font-weight: 500;
+            border: none; background: transparent; width: 100%; outline: none;
+            font-size: 16px; font-family: inherit; color: var(--flytau-navy); font-weight: 500;
         }
 
-        select {
+        input[type="date"]::-webkit-inner-spin-button,
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            display: none;
             -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            cursor: pointer;
         }
+        input[type="date"] { cursor: pointer; }
+
+        .column-selector {
+            display: flex; gap: 8px; justify-content: flex-start; flex-wrap: wrap;
+        }
+        .col-checkbox { display: none; }
+        .col-label {
+            width: 35px; height: 35px;
+            display: flex; align-items: center; justify-content: center;
+            background: var(--bg-input); border: 1px solid var(--border-color);
+            border-radius: 8px; color: var(--text-secondary); font-weight: 700;
+            cursor: pointer; transition: all 0.2s; user-select: none;
+        }
+        .col-checkbox:checked + .col-label {
+            background: var(--flytau-teal); color: white; border-color: var(--flytau-teal);
+            transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0, 129, 138, 0.2);
+        }
+
+        .section-divider {
+            margin: 20px 0 15px 0; border-top: 2px dashed #e2e8f0; padding-top: 15px;
+            text-align: right; color: var(--flytau-navy); font-weight: 800; font-size: 18px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .hidden { display: none; }
 
         .btn-submit {
-            background: var(--flytau-navy);
-            color: white;
-            border: none;
-            padding: 16px;
-            border-radius: 12px;
-            font-weight: 800;
-            font-size: 18px;
-            cursor: pointer;
-            width: 100%;
-            transition: background 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
+            background: var(--flytau-navy); color: white; border: none; padding: 16px;
+            border-radius: 12px; font-weight: 800; font-size: 18px; cursor: pointer;
+            width: 100%; transition: background 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px;
+            margin-top: 20px;
         }
-
-        .btn-submit:hover {
-            background: #002b52;
-        }
+        .btn-submit:hover { background: #002b52; }
 
         .error-message {
-            background: #fee2e2;
-            color: #ef4444;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-align: right;
+            background: #fee2e2; color: #ef4444; padding: 15px; border-radius: 12px;
+            margin-bottom: 25px; font-weight: 700; display: flex; align-items: center; gap: 10px; text-align: right;
         }
 
         .back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            margin-top: 25px;
-            text-decoration: none;
-            color: var(--text-secondary);
-            font-weight: 600;
-            font-size: 15px;
-            transition: color 0.2s;
+            display: inline-flex; align-items: center; gap: 5px; margin-top: 25px;
+            text-decoration: none; color: var(--text-secondary); font-weight: 600; font-size: 15px; transition: color 0.2s;
         }
-
-        .back-link:hover {
-            color: var(--flytau-navy);
-        }
+        .back-link:hover { color: var(--flytau-navy); }
     </style>
 </head>
 <body>
@@ -184,7 +134,7 @@
     <div class="header">
         <img src="{{ url_for('static', filename='LOGO.png') }}" alt="FLYTAU" class="logo-img">
         <h2>הוספת מטוס חדש</h2>
-        <div class="subtitle">הזן את פרטי המטוס להוספה לצי</div>
+        <div class="subtitle">הזן את פרטי המטוס ותצורת המושבים</div>
     </div>
 
     {% if error %}
@@ -216,7 +166,6 @@
                         <option value="Airbus" {% if prev_data and prev_data.manufacturer == 'Airbus' %}selected{% endif %}>Airbus</option>
                         <option value="Dassault" {% if prev_data and prev_data.manufacturer == 'Dassault' %}selected{% endif %}>Dassault</option>
                     </select>
-                    <i class="fas fa-chevron-down" style="font-size: 12px; margin-right: auto; margin-left: 0;"></i>
                 </div>
             </div>
 
@@ -224,22 +173,77 @@
                 <label class="input-label" for="size">גודל מטוס</label>
                 <div class="input-field-wrapper">
                     <i class="fas fa-expand-arrows-alt"></i>
-                    <select id="size" name="size" required>
+                    <select id="size" name="size" required onchange="toggleBusinessFields()">
                         <option value="" disabled selected>בחר גודל</option>
                         <option value="small" {% if prev_data and prev_data.size == 'small' %}selected{% endif %}>Small (קטן)</option>
                         <option value="large" {% if prev_data and prev_data.size == 'large' %}selected{% endif %}>Large (גדול)</option>
                     </select>
-                    <i class="fas fa-chevron-down" style="font-size: 12px; margin-right: auto; margin-left: 0;"></i>
+                </div>
+            </div>
+
+            <div class="input-group" style="grid-column: span 2;">
+                <label class="input-label" for="purchase_date">תאריך רכישה</label>
+                <div class="input-field-wrapper" onclick="document.getElementById('purchase_date').showPicker()">
+                    <i class="far fa-calendar-alt"></i>
+                    <input type="date" id="purchase_date" name="purchase_date" required
+                           value="{{ prev_data.purchase_date if prev_data else '' }}">
                 </div>
             </div>
         </div>
 
-        <div class="input-group" style="margin-bottom: 30px;">
-            <label class="input-label" for="purchase_date">תאריך רכישה</label>
-            <div class="input-field-wrapper">
-                <i class="far fa-calendar-alt"></i>
-                <input type="date" id="purchase_date" name="purchase_date" required
-                       value="{{ prev_data.purchase_date if prev_data else '' }}">
+        <div id="businessSection" class="hidden">
+            <div class="section-divider">
+                <i class="fas fa-briefcase" style="color: var(--flytau-teal);"></i> הגדרות מחלקת עסקים
+            </div>
+
+            <div class="form-grid">
+                <div class="input-group">
+                    <label class="input-label">מספר שורות</label>
+                    <div class="input-field-wrapper">
+                        <i class="fas fa-list-ol"></i>
+                        <input type="number" name="biz_rows" id="bizRows" min="1" placeholder="למשל: 4"
+                               value="{{ prev_data.biz_rows if prev_data else '' }}">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">אותיות מושב (עמודות)</label>
+                    <div class="column-selector">
+                        {% for letter in ['A', 'B', 'C', 'D', 'E', 'F'] %}
+                        <label>
+                            <input type="checkbox" name="biz_cols" value="{{ letter }}" class="col-checkbox">
+                            <span class="col-label">{{ letter }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-divider">
+            <i class="fas fa-users" style="color: var(--flytau-navy);"></i> הגדרות מחלקת תיירים
+        </div>
+
+        <div class="form-grid">
+            <div class="input-group">
+                <label class="input-label">מספר שורות</label>
+                <div class="input-field-wrapper">
+                    <i class="fas fa-list-ol"></i>
+                    <input type="number" name="eco_rows" required min="1" placeholder="למשל: 30"
+                           value="{{ prev_data.eco_rows if prev_data else '' }}">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">אותיות מושב (עמודות)</label>
+                <div class="column-selector">
+                    {% for letter in ['A', 'B', 'C', 'D', 'E', 'F'] %}
+                    <label>
+                        <input type="checkbox" name="eco_cols" value="{{ letter }}" class="col-checkbox">
+                        <span class="col-label">{{ letter }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
             </div>
         </div>
 
@@ -252,6 +256,32 @@
         <i class="fas fa-times"></i> ביטול וחזרה ללוח הבקרה
     </a>
 </div>
+
+<script>
+    function toggleBusinessFields() {
+        const size = document.getElementById('size').value;
+        const bizSection = document.getElementById('businessSection');
+        const bizRows = document.getElementById('bizRows');
+
+        if (size === 'large') {
+            bizSection.classList.remove('hidden');
+            bizRows.required = true;
+        } else {
+            bizSection.classList.add('hidden');
+            bizRows.required = false;
+            bizRows.value = '';
+
+            const checkboxes = document.querySelectorAll('input[name="biz_cols"]');
+            checkboxes.forEach(cb => cb.checked = false);
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', (event) => {
+        const dateInput = document.getElementById('purchase_date');
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.setAttribute('max', today);
+    });
+</script>
 
 </body>
 </html>
