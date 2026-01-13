@@ -10,9 +10,17 @@ app = Flask(__name__)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
+# COOKIES define - 30 minutes since last activity
+app.permanent_session_lifetime = timedelta(minutes=30)
+@app.before_request
+def make_session_permanent():
+    # permanent session - make sure
+    session.permanent = True
+    # update session with every activity
+    session.modified = True
 
 mydb = mysql.connector.connect(host="localhost", user="root", password="root", database="FLYTAU")
-cursor = mydb.cursor()
+cursor = mydb.cursor(buffered=True)
 
 
 # ============================================================================
@@ -273,51 +281,59 @@ def checkout():
                 mydb.rollback()
                 return f"שגיאה בשמירת פרטי אורח: {e}"
 
-            # 3. Creating order code and DB insert
-            order_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-            try:
+        # 3. Creating order code and DB insert
+        order_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+        try:
+            cursor.execute("""
+                    INSERT INTO Orders (code, status, total_price, order_date, flight_id, customer_email, guest_email)
+                    VALUES (%s, 'active', %s, %s, %s, %s, %s)
+                """, (order_code, total_price, datetime.now(), flight_id, final_customer_email, final_guest_email))
+
+            # 4. Insert seats to Seats_in_Order
+            cursor.execute("SELECT plane_id FROM Flight WHERE flight_id=%s", (flight_id,))
+            plane_result = cursor.fetchone()
+            if not plane_result:
+                raise ValueError("Flight not found")
+            real_plane_id = plane_result[0]
+
+            for seat in seat_objects:
                 cursor.execute("""
-                        INSERT INTO Orders (code, status, total_price, order_date, flight_id, customer_email, guest_email)
-                        VALUES (%s, 'active', %s, %s, %s, %s, %s)
-                    """, (order_code, total_price, datetime.now(), flight_id, final_customer_email, final_guest_email))
+                        INSERT INTO Seats_in_Order (seat_row, seat_position, code, seats_plane_id)
+                        VALUES (%s, %s, %s, %s)
+                     """, (seat.seat_row, seat.seat_position, order_code, real_plane_id))
 
-                # 4. Insert seats to Seats_in_Order
-                cursor.execute("SELECT plane_id FROM Flight WHERE flight_id=%s", (flight_id,))
-                plane_result = cursor.fetchone()
-                if not plane_result:
-                    raise ValueError("Flight not found")
-                real_plane_id = plane_result[0]
+            mydb.commit()
 
-                for seat in seat_objects:
-                    cursor.execute("""
-                            INSERT INTO Seats_in_Order (seat_row, seat_position, code, seats_plane_id)
-                            VALUES (%s, %s, %s, %s)
-                         """, (seat.seat_row, seat.seat_position, order_code, real_plane_id))
+            # 6. Session sleaning
+            session.pop('selected_seats_data', None)
+            session.pop('selected_flight_id', None)
 
-                mydb.commit()
+            # route information for confirmation
+            cursor.execute("SELECT origin_airport, destination_airport FROM Flight WHERE flight_id=%s",
+                           (flight_id,))
+            f_info = cursor.fetchone()
 
-                # 6. Session sleaning
-                session.pop('selected_seats_data', None)
-                session.pop('selected_flight_id', None)
+            return render_template('confirmation.html',
+                                   order_code=order_code,
+                                   first_name=first_name,
+                                   last_name=last_name,
+                                   passport=passport,
+                                   birth_date=birth_date,
+                                   flight_id=flight_id,
+                                   origin=f_info[0],
+                                   dest=f_info[1])
 
-                # route information for confirmation
-                cursor.execute("SELECT origin_airport, destination_airport FROM Flight WHERE flight_id=%s",
-                               (flight_id,))
-                f_info = cursor.fetchone()
 
-                return render_template('confirmation.html',
-                                       order_code=order_code,
-                                       first_name=first_name,
-                                       last_name=last_name,
-                                       passport=passport,
-                                       birth_date=birth_date,
-                                       flight_id=flight_id,
-                                       origin=f_info[0],
-                                       dest=f_info[1])
-
-            except Exception as e:
-                mydb.rollback()
-                return f"שגיאה ביצירת הזמנה: {e}"
+        except Exception as e:
+            # מבטל שינויים ב-DB אם קרתה שגיאה באמצע
+            mydb.rollback()
+            # מדפיס את השגיאה המלאה לטרמינל (שורות אדומות ב-VS Code/PyCharm)
+            import traceback
+            print("--- CRITICAL ERROR IN CHECKOUT ---")
+            print(traceback.format_exc())
+            # מחזיר הודעה למסך במקום לרענן את הדף
+            return f"נעצרנו! קרתה שגיאה בתהליך השמירה: {e}"
+            #return f"שגיאה ביצירת הזמנה: {e}"
 
     # GET: Render Checkout Page
     # 1. Fetch user details for auto fill (if registered)
@@ -367,6 +383,9 @@ def my_orders():
     email = session.get('customer_email') if role == 'registered' else session.get('guest_email')
     if not email:
         return redirect('/login?next=/my_orders')
+
+    # update flight status
+    update_flight_statuses()
 
     # 1. define the filter so it's available for the query
     status_filter = request.args.get('status', 'active')
@@ -430,7 +449,8 @@ def my_orders():
                            orders=orders_list,
                            role=role,
                            current_filter=status_filter,
-                           message=message)
+                           message=message,
+                           first_name=session.get("first_name"))
 
 
 # ============================================================================
@@ -454,7 +474,7 @@ def login():
         customer_email = customer_email.lower()
         destination_after_login = request.form.get('next_url_hidden')  # from hidden destination in HTML
         cursor.execute(
-            "SELECT customer_email, password, first_name FROM Customer WHERE customer_email = %s AND password = %s",
+            "SELECT customer_email, password, first_name FROM Customer WHERE customer_email = %s AND BINARY password = %s",
             (customer_email, password))
         customer = cursor.fetchone()  # either one result or None
         if customer:  # find if entered email is in Customer DB, and if so - login the user
@@ -478,7 +498,7 @@ def login_manager():
     if request.method == 'POST':
         manager_id = request.form.get('manager_id')
         password = request.form.get('password')
-        cursor.execute("SELECT manager_id, password FROM Manager WHERE manager_id = %s AND password = %s",
+        cursor.execute("SELECT manager_id, password FROM Manager WHERE manager_id = %s AND BINARY password = %s",
                        (manager_id, password))
         manager = cursor.fetchone()  # either one result or None
         if manager:  # Find if entered id is in Manager DB, and if so - login the manager
@@ -613,18 +633,16 @@ def manager_flights():
         )
         flights_list.append(f)
 
-    # שליפת נתונים אמיתיים לכרטיסיות (KPI)
+    # Data for representation
     cursor.execute("SELECT COUNT(*) FROM Pilot")
     p_count = cursor.fetchone()[0]
     cursor.execute("SELECT COUNT(*) FROM Flight_Attendant")
     fa_count = cursor.fetchone()[0]
-
-    # חישוב הכנסה כוללת מהזמנות שלא בוטלו
     cursor.execute("SELECT SUM(total_price) FROM Orders WHERE status != 'cancelled'")
     total_income = cursor.fetchone()[0] or 0
 
     return render_template('manager_flights.html',
-                           manager_name=current_manager_name,  # <-- Pass the name to HTML
+                           manager_name=current_manager_name,
                            flights=flights_list,
                            total_staff=(p_count + fa_count),
                            total_income=total_income,
@@ -928,8 +946,26 @@ def add_plane():
 def error(e):
     return redirect('/')
 
+# When running the website, check for completed flights and update in DB
+def update_flight_statuses():
+    try:
+        now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        query = "UPDATE Flight SET status = 'completed' WHERE departure < %s AND status = 'active'"
+        cursor.execute(query, (now,))
+        query_orders = """
+            UPDATE Orders o
+            JOIN Flight f ON o.flight_id = f.flight_id
+            SET o.status = 'completed'
+            WHERE f.departure < %s AND o.status = 'active'
+        """
+        cursor.execute(query_orders, (now,))
+
+        mydb.commit()
+    except Exception as e:
+        return f"שגיאה בעדכון סטטוס טיסות: {e}"
 
 if __name__ == "__main__":
+    update_flight_statuses()
     app.run(debug=True)
 
 cursor.close()

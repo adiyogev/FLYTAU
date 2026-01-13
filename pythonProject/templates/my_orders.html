@@ -159,7 +159,6 @@
             border-radius: 20px;
             font-size: 12px;
             font-weight: 700;
-            text-transform: uppercase;
         }
 
         .status-active {
@@ -308,7 +307,7 @@
             <a href="/" style="text-decoration: none; color: var(--flytau-teal); font-weight: 800;">חיפוש טיסות</a>
         </div>
         <div class="header-left">
-            <div class="user-greeting">שלום, <span>משתמש</span></div>
+            <div class="user-greeting">שלום, <span>{{ first_name }}</span></div>
             <a href="/logout" class="auth-link logout">התנתק</a>
         </div>
     </header>
@@ -346,9 +345,9 @@
                         </div>
                     </div>
                     <span class="order-status status-{{ order.status.replace(' ', '-').lower() }}">
-                        {% if order.status == 'active' %}פעילה
-                        {% elif 'cancelled' in order.status.lower() %}מבוטלת
-                        {% elif order.status == 'completed' %}הושלמה
+                        {% if order.status == 'active' %}Active
+                        {% elif 'cancelled' in order.status.lower() %}Cancelled
+                        {% elif order.status == 'completed' %}Completed
                         {% else %}{{ order.status }}{% endif %}
                     </span>
                 </div>
