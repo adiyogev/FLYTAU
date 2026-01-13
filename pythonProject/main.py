@@ -394,8 +394,7 @@ def my_orders():
     message = None
     if request.method == 'POST' and request.form.get('action') == 'cancel':
         order_code = request.form.get('order_code')
-        # user object (Polymorphism)
-        user = Customer(email, "", "", "", "") if role == 'registered' else User(email, first_name, last_name, phone_numbers)
+        user = User(email, "", "", [])
         success, message = user.cancel_order(cursor, mydb, order_code)
 
     # 3. fetch the updated data for display
@@ -413,7 +412,9 @@ def my_orders():
         query += " AND o.status = 'active' AND f.departure > NOW()"
     else:
         # all orders + status filter option
-        if status_filter != 'all':
+        if status_filter == 'cancelled':
+            query += " AND o.status LIKE 'cancelled%'"
+        elif status_filter != 'all':
             query += " AND o.status = %s"
             params.append(status_filter)
 
@@ -422,7 +423,7 @@ def my_orders():
     cursor.execute(query, tuple(params))
     orders_data = cursor.fetchall()
 
-    # convert to Order objects for template (OOP)
+    # convert to Order objects for template
     orders_list = []
     for row in orders_data:
         # Create Order object
