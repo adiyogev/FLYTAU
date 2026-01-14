@@ -534,15 +534,16 @@ def register():
         if cursor.fetchone():
             return render_template('register.html', message="User Already Exists")
         cursor.execute(
-            "INSERT INTO Customer(customer_email, first_name, last_name, passport, birth_date, password, reg_date) VALUES(%s, %s, "
-            "%s, %s, %s, %s, %s)",
-            (customer_email, first_name, last_name, passport, birth_date, password, phone_numbers, reg_date))
+            "INSERT INTO Customer(customer_email, first_name, last_name, passport, birth_date, password, reg_date) VALUES(%s, %s, %s, %s, %s, %s, %s)",
+            (customer_email, first_name, last_name, passport, birth_date, password, reg_date))
         for phone in phone_numbers:
             cursor.execute("INSERT INTO Customer_Phone_Numbers(phone_customer_email, phone_num) VALUES(%s, %s)",
                            (customer_email, phone))
         mydb.commit()
         session['role'] = 'registered'
         session['customer_email'] = customer_email
+        session['first_name'] = first_name
+
         if destination_after_login:
             return redirect(destination_after_login)
         return redirect('/')
@@ -560,14 +561,13 @@ def logout():
 # ============================================================================
 @app.route('/manager', methods=['GET', 'POST'])
 def manager_flights():
-    # Verify manager role
     if session.get("role") != 'manager':
         return redirect('/login_manager')
 
+    # Retrieve the manager's first name for the dashboard header
     manager_id = session.get('manager_id')
-    current_manager_name = "Admin"
+    current_manager_name = "Admin"  # Default fallback value
 
-    # Fetch manager name for dashboard
     try:
         cursor.execute("SELECT first_name FROM Manager WHERE manager_id = %s", (manager_id,))
         result = cursor.fetchone()
@@ -576,41 +576,33 @@ def manager_flights():
     except Exception as e:
         print(f"Error fetching manager name: {e}")
 
-    # --- Flight Cancellation Logic ---
+    # POST - request for flight cancelling
     if request.method == 'POST':
         flight_id = request.form.get('flight_id')
 
-        # Check departure time
+        # verifying at least 72 hours in advance
         cursor.execute("SELECT departure FROM Flight WHERE flight_id = %s", (flight_id,))
         flight_dep = cursor.fetchone()
-
         if flight_dep:
             departure_time = flight_dep[0]
-            # Verify cancellation is at least 72 hours in advance
+            # verifying at least 72 hours in advance
             if departure_time - datetime.now() >= timedelta(hours=72):
                 try:
-                    # Update flight status to 'cancelled'
+                    # update flight status to 'cancelled'
                     cursor.execute("UPDATE Flight SET status = 'cancelled' WHERE flight_id = %s", (flight_id,))
-
-                    # Full refund for all active orders
+                    # full refund for all customers
                     cursor.execute("""UPDATE Orders SET total_price = 0, status = 'cancelled by system'
                         WHERE flight_id = %s AND status = 'active'""", (flight_id,))
-
                     mydb.commit()
-                    flash("הטיסה בוטלה בהצלחה וכל הלקוחות זוכו.", "success")
+                    message = "הטיסה בוטלה בהצלחה וכל הלקוחות זוכו."
                 except Exception as e:
                     mydb.rollback()
-                    flash(f"Error: {e}", "danger")
+                    message = f"error while updating data in DB {e}"
             else:
-                flash("לא ניתן לבטל טיסה פחות מ-72 שעות לפני מועד קיומה.", "warning")
+                message = "לא ניתן לבטל טיסה פחות מ-72 שעות לפני מועד קיומה."
 
-    # --- Display and Filtering Logic (Fixed Section) ---
-
-    # 1. Get status from URL query parameters (default: 'all')
-    status_filter = request.args.get('status', 'all')
-
-    # 2. Build the base query
-    base_query = """
+    # GET - presenting all flights with important details for the manager to review
+    query = """
             SELECT f.flight_id, f.origin_airport, f.destination_airport, 
                    f.departure, r.duration, f.plane_id, 
                    f.business_seat_price, f.economy_seat_price, f.status,
@@ -620,42 +612,30 @@ def manager_flights():
             FROM Flight as f 
             JOIN Route as r ON f.origin_airport = r.origin_airport 
                 AND f.destination_airport = r.destination_airport
-    """
-
-    params = []
-
-    # 3. Add filter condition if specific status is selected
-    if status_filter != 'all':
-        # Note: Ensure statuses in DB match HTML values (active, cancelled, completed)
-        base_query += " WHERE f.status = %s"
-        params.append(status_filter)
-
-    # 4. Finalize query with sorting
-    base_query += " ORDER BY f.departure DESC"
-
-    cursor.execute(base_query, tuple(params))
+            ORDER BY f.departure DESC
+        """
+    cursor.execute(query)
     flights_data = cursor.fetchall()
 
     flights_list = []
     for row in flights_data:
+        # כאן אנחנו שולחים את כל 8 הפרמטרים ש-Flight.__init__ דורש
         f = Flight(
             flight_id=row[0],
             origin=row[1],
             destination=row[2],
-            duration=str(row[4]),
-            departure=row[3],
-            plane_id=row[5],
-            business_seat_price=row[6],
-            economy_seat_price=row[7],
-            capacity=row[9],
-            occupied=row[10],
-            is_cancelled=(row[8] == 'cancelled')
+            duration=str(row[4]),  # duration מה-DB
+            departure=row[3],  # departure מה-DB
+            plane_id=row[5],  # plane_id
+            business_seat_price=row[6],  # מחיר עסקים מה-DB
+            economy_seat_price=row[7],  # מחיר תיירים מה-DB
+            capacity=row[9],  # קיבולת שחושבה בשאילתה
+            occupied=row[10],  # תפוסה שחושבה בשאילתה
+            is_cancelled=(row[8] == 'cancelled')  # בדיקת סטטוס ביטול
         )
-        # Manually update status in object for correct table display
-        f.status = row[8]
         flights_list.append(f)
 
-    # --- Statistics Data ---
+    # Data for representation
     cursor.execute("SELECT COUNT(*) FROM Pilot")
     p_count = cursor.fetchone()[0]
     cursor.execute("SELECT COUNT(*) FROM Flight_Attendant")
@@ -669,8 +649,10 @@ def manager_flights():
                            flights=flights_list,
                            total_staff=(p_count + fa_count),
                            total_income=total_income,
-                           # Pass current filter so HTML template knows which option to select
-                           current_filter=status_filter)
+                           total_orders=len(flights_list),
+                           status_dict={'Active': 5, 'Cancelled': 1},
+                           dest_labels=['TLV', 'JFK'],
+                           dest_values=[100, 200])
 
 
 @app.route('/manager/add_flight/step1', methods=['GET', 'POST'])
@@ -724,33 +706,35 @@ def add_flight_step2():
     if not f_data:
         return redirect('/manager/add_flight/step1')
 
-    # Staff requirements in order to flight length
-    if f_data.get('is_long') == 1:
-        req_pilots = 3
-        req_fas = 6
-    else:
-        req_pilots = 2
-        req_fas = 3
-
-    if request.method == 'POST':
-        selected_plane = request.form.get('plane_id')
-        selected_pilots = request.form.getlist('pilots')
-        selected_fas = request.form.getlist('fas')
-
-        # Validation
-        if len(selected_pilots) != req_pilots or len(selected_fas) != req_fas:
-            pass
-
-        session['temp_flight'].update({'plane_id': selected_plane, 'pilots': selected_pilots, 'fas': selected_fas})
-        return redirect('/manager/add_flight/step3')
-
-    planes = get_available_resources('Plane', 'plane_id', f_data['origin'], f_data['is_long'], cursor)
+    planes_data = get_available_resources('Plane', 'plane_id', f_data['origin'], f_data['is_long'], cursor)
     pilots = get_available_resources('Pilot', 'pilot_id', f_data['origin'], f_data['is_long'], cursor)
     fas = get_available_resources('Flight_Attendant', 'fa_id', f_data['origin'], f_data['is_long'], cursor)
 
-    return render_template('add_flight_s2.html',
-                           planes=planes, pilots=pilots, fas=fas,
-                           req_pilots=req_pilots, req_fas=req_fas)
+    if request.method == 'POST':
+        selected_plane_id = request.form.get('plane_id')
+        selected_pilots = request.form.getlist('pilots')
+        selected_fas = request.form.getlist('fas')
+
+        # Find selected plane size
+        plane_size = next((p[1] for p in planes_data if p[0] == selected_plane_id), 'small')
+
+        # Staff requirements in order to plane size
+        req_p, req_f = get_crew_requirements(plane_size)
+
+        # Validation
+        if len(selected_pilots) != req_p or len(selected_fas) != req_f:
+            error = f"עבור מטוס {plane_size} יש לבחור {req_p} טייסים ו-{req_f} דיילים."
+            return render_template('add_flight_s2.html', planes=planes_data, pilots=pilots, fas=fas, error=error)
+
+        session['temp_flight'].update({
+            'plane_id': selected_plane_id,
+            'plane_size': plane_size,
+            'pilots': selected_pilots,
+            'fas': selected_fas
+        })
+        return redirect('/manager/add_flight/step3')
+
+    return render_template('add_flight_s2.html', planes=planes_data, pilots=pilots, fas=fas)
 
 
 @app.route('/manager/add_flight/step3', methods=['GET', 'POST'])
@@ -762,13 +746,7 @@ def add_flight_step3():
     f_data = session.get('temp_flight')
     if not f_data or 'plane_id' not in f_data:
         return redirect('/manager/add_flight/step1')
-
-    # chosen plane size
-    cursor.execute("SELECT size FROM Plane WHERE plane_id = %s", (f_data['plane_id'],))
-    plane_result = cursor.fetchone()
-    if not plane_result:
-        return render_template('add_flight_s3.html', error="מטוס לא נמצא", plane_size=None)
-    plane_size = plane_result[0]
+    plane_size = f_data.get('plane_size')
 
     if request.method == 'POST':
         try:
