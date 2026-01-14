@@ -704,33 +704,35 @@ def add_flight_step2():
     if not f_data:
         return redirect('/manager/add_flight/step1')
 
-    # Staff requirements in order to flight length
-    if f_data.get('is_long') == 1:
-        req_pilots = 3
-        req_fas = 6
-    else:
-        req_pilots = 2
-        req_fas = 3
-
-    if request.method == 'POST':
-        selected_plane = request.form.get('plane_id')
-        selected_pilots = request.form.getlist('pilots')
-        selected_fas = request.form.getlist('fas')
-
-        # Validation
-        if len(selected_pilots) != req_pilots or len(selected_fas) != req_fas:
-            pass
-
-        session['temp_flight'].update({'plane_id': selected_plane, 'pilots': selected_pilots, 'fas': selected_fas})
-        return redirect('/manager/add_flight/step3')
-
-    planes = get_available_resources('Plane', 'plane_id', f_data['origin'], f_data['is_long'], cursor)
+    planes_data = get_available_resources('Plane', 'plane_id', f_data['origin'], f_data['is_long'], cursor)
     pilots = get_available_resources('Pilot', 'pilot_id', f_data['origin'], f_data['is_long'], cursor)
     fas = get_available_resources('Flight_Attendant', 'fa_id', f_data['origin'], f_data['is_long'], cursor)
 
-    return render_template('add_flight_s2.html',
-                           planes=planes, pilots=pilots, fas=fas,
-                           req_pilots=req_pilots, req_fas=req_fas)
+    if request.method == 'POST':
+        selected_plane_id = request.form.get('plane_id')
+        selected_pilots = request.form.getlist('pilots')
+        selected_fas = request.form.getlist('fas')
+
+        # Find selected plane size
+        plane_size = next((p[1] for p in planes_data if p[0] == selected_plane_id), 'small')
+
+        # Staff requirements in order to plane size
+        req_p, req_f = get_crew_requirements(plane_size)
+
+        # Validation
+        if len(selected_pilots) != req_p or len(selected_fas) != req_f:
+            error = f"עבור מטוס {plane_size} יש לבחור {req_p} טייסים ו-{req_f} דיילים."
+            return render_template('add_flight_s2.html', planes=planes_data, pilots=pilots, fas=fas, error=error)
+
+        session['temp_flight'].update({
+            'plane_id': selected_plane_id,
+            'plane_size': plane_size,
+            'pilots': selected_pilots,
+            'fas': selected_fas
+        })
+        return redirect('/manager/add_flight/step3')
+
+    return render_template('add_flight_s2.html', planes=planes_data, pilots=pilots, fas=fas)
 
 
 @app.route('/manager/add_flight/step3', methods=['GET', 'POST'])
@@ -742,13 +744,7 @@ def add_flight_step3():
     f_data = session.get('temp_flight')
     if not f_data or 'plane_id' not in f_data:
         return redirect('/manager/add_flight/step1')
-
-    # chosen plane size
-    cursor.execute("SELECT size FROM Plane WHERE plane_id = %s", (f_data['plane_id'],))
-    plane_result = cursor.fetchone()
-    if not plane_result:
-        return render_template('add_flight_s3.html', error="מטוס לא נמצא", plane_size=None)
-    plane_size = plane_result[0]
+    plane_size = f_data.get('plane_size')
 
     if request.method == 'POST':
         try:

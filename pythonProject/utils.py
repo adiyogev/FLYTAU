@@ -194,11 +194,6 @@ class Flight:
     def is_long_flight(self):
         return self.duration.total_seconds() > 6 * 3600
 
-    def get_crew_requirements(self, plane_size):
-        if plane_size == 'large':
-            return {'pilots': 3, 'attendants': 6}
-        return {'pilots': 2, 'attendants': 3}
-
     def validate_pricing(self, plane_size, price_business):
         if plane_size == 'small' and price_business is not None:
             return False, "מטוס קטן כולל מושבים רגילים בלבד, לא ניתן לתמחר מחלקת עסקים [cite: 24]"
@@ -246,6 +241,13 @@ class Order:
     def is_eligible_for_cancel(self, flight_departure):
         return (flight_departure - datetime.now()) >= timedelta(hours=36)
 
+
+
+def get_crew_requirements(plane_size):
+    if plane_size == 'large':
+        return 3,6
+    else:
+        return 2,3
 
 def get_available_resources(table, id_col, origin, is_long, cursor):
     """

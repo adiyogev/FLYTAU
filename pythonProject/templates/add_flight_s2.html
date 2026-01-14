@@ -16,159 +16,57 @@
             --text-secondary: #64748b;
             --border-color: #e2e8f0;
         }
-
-        body {
-            font-family: 'Heebo', sans-serif;
-            background-color: var(--bg-body);
-            color: var(--text-main);
-            margin: 0;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        .card {
-            background: var(--bg-card);
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
-            margin-bottom: 20px;
-        }
-
-        .page-title {
-            font-size: 28px;
-            font-weight: 800;
-            color: var(--flytau-navy);
-            margin-bottom: 10px;
-        }
-
-        .step-indicator {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-        }
-
-        .step {
-            flex: 1;
-            padding: 10px;
-            background: var(--bg-body);
-            border-radius: 8px;
-            text-align: center;
-            font-weight: 700;
-            font-size: 14px;
-        }
-
-        .step.active {
-            background: var(--flytau-teal);
-            color: white;
-        }
-
-        .section-title {
-            font-size: 20px;
-            font-weight: 800;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--bg-body);
-        }
-
-        .resource-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-
-        .resource-item {
-            background: var(--bg-body);
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            padding: 15px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .resource-item:hover {
-            border-color: var(--flytau-teal);
-            transform: translateY(-3px);
-        }
-
-        .resource-item.selected {
-            border-color: var(--flytau-teal);
-            background: rgba(0, 129, 138, 0.1);
-        }
-
-        .resource-item input[type="checkbox"] {
-            margin-left: 10px;
-        }
-
-        .resource-id {
-            font-weight: 800;
-            color: var(--flytau-navy);
-            margin-bottom: 5px;
-        }
-
-        .resource-details {
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-
-        .btn {
-            background: var(--flytau-teal);
-            color: white;
-            border: none;
-            padding: 14px 30px;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 16px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .btn:hover {
-            background: #006b72;
-        }
-
-        .btn-secondary {
-            background: var(--text-secondary);
-            margin-left: 10px;
-        }
-
-        .actions {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 30px;
-        }
+        body { font-family: 'Heebo', sans-serif; background-color: var(--bg-body); color: var(--text-main); margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .card { background: var(--bg-card); border-radius: 20px; padding: 40px; box-shadow: 0 10px 40px rgba(0,0,0,0.08); margin-bottom: 20px; }
+        .page-title { font-size: 28px; font-weight: 800; color: var(--flytau-navy); margin-bottom: 10px; }
+        .step-indicator { display: flex; gap: 10px; margin-bottom: 30px; }
+        .step { flex: 1; padding: 10px; background: var(--bg-body); border-radius: 8px; text-align: center; font-weight: 700; font-size: 14px; }
+        .step.active { background: var(--flytau-teal); color: white; }
+        .section-title { font-size: 20px; font-weight: 800; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid var(--bg-body); }
+        .resource-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .resource-item { background: var(--bg-body); border: 2px solid var(--border-color); border-radius: 12px; padding: 15px; cursor: pointer; transition: 0.3s; position: relative; }
+        .resource-item:hover { border-color: var(--flytau-teal); transform: translateY(-3px); }
+        .resource-item.selected { border-color: var(--flytau-teal); background: rgba(0, 129, 138, 0.1); }
+        .resource-id { font-weight: 800; color: var(--flytau-navy); margin-bottom: 5px; }
+        .resource-details { font-size: 12px; color: var(--text-secondary); }
+        .btn { background: var(--flytau-teal); color: white; border: none; padding: 14px 30px; border-radius: 12px; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        .btn:hover { background: #006b72; }
+        .btn-secondary { background: var(--text-secondary); margin-left: 10px; text-decoration: none; padding: 12px 20px; border-radius: 12px; color: white; display: inline-block; }
+        .error-banner { background: #fee2e2; color: #b91c1c; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #fecaca; font-weight: 600; }
+        .req-badge { background: #e0f2f1; color: var(--flytau-teal); padding: 2px 8px; border-radius: 10px; font-size: 13px; font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="card">
             <h1 class="page-title">הוספת טיסה חדשה - שלב 2</h1>
-            
+
             <div class="step-indicator">
                 <div class="step">1. פרטים בסיסיים</div>
                 <div class="step active">2. משאבים</div>
                 <div class="step">3. תמחור</div>
             </div>
 
+            {% if error %}
+            <div class="error-banner"><i class="fas fa-exclamation-circle"></i> {{ error }}</div>
+            {% endif %}
+
             <form method="POST" action="/manager/add_flight/step2" id="step2-form">
                 <div class="section-title"><i class="fas fa-plane"></i> בחר מטוס</div>
                 <div class="resource-grid">
                     {% for plane in planes %}
                     <label class="resource-item">
-                        <input type="radio" name="plane_id" value="{{ plane[0] }}" required>
+                        <input type="radio" name="plane_id" value="{{ plane[0] }}" data-size="{{ plane[1] }}" required>
                         <div class="resource-id">מטוס #{{ plane[0] }}</div>
-                        <div class="resource-details">גודל: {{ plane[1] }}</div>
+                        <div class="resource-details">גודל: <strong>{{ plane[1] }}</strong></div>
                     </label>
                     {% endfor %}
                 </div>
 
                 <div class="section-title">
                     <i class="fas fa-user-tie"></i> בחר טייסים
-                    <span style="font-size: 14px; color: var(--flytau-teal);">(יש לבחור בדיוק {{ req_pilots }})</span>
+                    <span id="pilot-req-text" class="req-badge">בחר מטוס כדי לראות דרישות</span>
                 </div>
                 <div class="resource-grid">
                     {% for pilot in pilots %}
@@ -182,7 +80,7 @@
 
                 <div class="section-title">
                     <i class="fas fa-user-friends"></i> בחר דיילים
-                    <span style="font-size: 14px; color: var(--flytau-teal);">(יש לבחור בדיוק {{ req_fas }})</span>
+                    <span id="fa-req-text" class="req-badge">בחר מטוס כדי לראות דרישות</span>
                 </div>
                 <div class="resource-grid">
                     {% for fa in fas %}
@@ -196,20 +94,42 @@
 
                 <div class="actions">
                     <a href="/manager/add_flight/step1" class="btn btn-secondary">חזור</a>
-                    <button type="submit" class="btn">המשך לשלב 3 <i class="fas fa-arrow-left"></i></button>
+                    <button type="submit" class="btn">המשך לתמחור <i class="fas fa-arrow-left"></i></button>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
-        // עיצוב פריטים נבחרים
-        document.querySelectorAll('.resource-item input').forEach(input => {
-            input.addEventListener('change', function() {
-                if (this.type === 'radio') {
-                    document.querySelectorAll('input[name="plane_id"]').forEach(r =>
-                        r.closest('.resource-item').classList.remove('selected'));
+        let requiredPilots = 0;
+        let requiredFas = 0;
+
+        // עדכון דרישות דינמי לפי בחירת מטוס
+        document.querySelectorAll('input[name="plane_id"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const size = this.getAttribute('data-size');
+
+                if (size === 'large') {
+                    requiredPilots = 3;
+                    requiredFas = 6;
+                } else {
+                    requiredPilots = 2;
+                    requiredFas = 3;
                 }
+
+                document.getElementById('pilot-req-text').innerText = `יש לבחור בדיוק ${requiredPilots} טייסים`;
+                document.getElementById('fa-req-text').innerText = `יש לבחור בדיוק ${requiredFas} דיילים`;
+
+                // עדכון עיצוב ויזואלי
+                document.querySelectorAll('input[name="plane_id"]').forEach(r =>
+                    r.closest('.resource-item').classList.remove('selected'));
+                this.closest('.resource-item').classList.add('selected');
+            });
+        });
+
+        // עיצוב צ'קבוקסים של צוות
+        document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', function() {
                 this.closest('.resource-item').classList.toggle('selected', this.checked);
             });
         });
@@ -218,27 +138,18 @@
         document.getElementById('step2-form').addEventListener('submit', function(e) {
             const selectedPilots = document.querySelectorAll('input[name="pilots"]:checked').length;
             const selectedFas = document.querySelectorAll('input[name="fas"]:checked').length;
-            const reqPilots = {{ req_pilots }};
-            const reqFas = {{ req_fas }};
 
-            let errorMessage = "";
-
-            if (!document.querySelector('input[name="plane_id"]:checked')) {
-                errorMessage += "אנא בחר מטוס.\n";
-            }
-            if (selectedPilots !== reqPilots) {
-                errorMessage += `עליך לבחור בדיוק ${reqPilots} טייסים (בחרת ${selectedPilots}).\n`;
-            }
-            if (selectedFas !== reqFas) {
-                errorMessage += `עליך לבחור בדיוק ${reqFas} דיילים (בחרת ${selectedFas}).\n`;
-            }
-
-            if (errorMessage) {
+            if (requiredPilots === 0) {
                 e.preventDefault();
-                alert(errorMessage);
+                alert("אנא בחר מטוס תחילה.");
+                return;
+            }
+
+            if (selectedPilots !== requiredPilots || selectedFas !== requiredFas) {
+                e.preventDefault();
+                alert(`טעות בבחירת צוות!\nעבור המטוס שבחרת נדרשים ${requiredPilots} טייסים ו-${requiredFas} דיילים.\nבחרת: ${selectedPilots} טייסים ו-${selectedFas} דיילים.`);
             }
         });
     </script>
 </body>
 </html>
-
