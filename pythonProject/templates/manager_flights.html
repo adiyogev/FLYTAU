@@ -10,15 +10,16 @@
 
     <style>
         :root {
-            --bg-body: #f1f5f9;
+            --bg-body: #eef6ff;
             --sidebar-bg: #0f172a;
             --sidebar-width: 260px;
-            --primary-accent: #6366f1;
+            --primary-accent: #14b8a6;
             --text-dark: #1e293b;
             --text-muted: #64748b;
             --border-color: #e2e8f0;
             --white: #ffffff;
         }
+
 
         body {
             font-family: 'Heebo', sans-serif;
@@ -28,35 +29,70 @@
         }
 
         /* --- Sidebar --- */
-        .sidebar {
-            position: fixed; top: 0; right: 0; height: 100vh; width: var(--sidebar-width);
-            background-color: var(--sidebar-bg); color: #94a3b8; padding: 24px 0;
-            display: flex; flex-direction: column; z-index: 1000; border-left: 1px solid #1e293b;
-            transition: all 0.3s ease;
+        .sidebar{
+          position: fixed;
+          top: 0;
+          right: 0;
+          height: 100vh;
+          width: var(--sidebar-width);
+          background: #ffffff;
+          color: #1e293b;
+          padding: 16px 0;
+          display: flex;
+          flex-direction: column;
+          z-index: 1000;
+          border-left: 1px solid #e2e8f0;
         }
 
-        .brand-area {
-            padding: 0 24px 30px 24px; font-size: 1.4rem; font-weight: 800;
-            color: #f8fafc; letter-spacing: 0.5px; display: flex; align-items: center; gap: 12px;
-            text-decoration: none;
-        }
-        .brand-area i { color: var(--primary-accent); }
 
-        .nav-category {
-            font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px;
-            padding: 0 24px; margin-top: 24px; margin-bottom: 12px; font-weight: 600; color: #475569;
+
+        .brand-area{
+          padding: 0 24px 8px 24px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          font-size: 1.4rem;
+          font-weight: 800;
+          color: #1e293b;
+          text-decoration: none;
         }
 
-        .nav-link {
-            color: #cbd5e1; padding: 12px 24px; display: flex; align-items: center; gap: 12px;
-            font-size: 0.95rem; text-decoration: none; transition: all 0.2s ease;
-            border-right: 3px solid transparent;
+                .brand-area i { color: var(--primary-accent); }
+
+        .nav-category{
+          margin-top: 6px;
+          margin-bottom: 12px;
         }
-        .nav-link:hover { color: #fff; background-color: rgba(255,255,255,0.03); }
-        .nav-link.active {
-            color: #fff; background-color: rgba(99, 102, 241, 0.1);
-            border-right-color: var(--primary-accent); font-weight: 600;
+        .nav-link{
+                  color: #cbd5e1;
+                  padding: 12px 24px;
+                  border-right: 3px solid transparent;
         }
+
+        .nav-link{
+          color: #334155;
+        }
+
+        .nav-link:hover{
+          background-color: #f1f5f9;
+          color: #1e293b;
+        }
+
+        .nav-link.active{
+          background-color: #e0f2fe;
+          border-right: 3px solid #0ea5e9;
+          color: #0369a1;
+          font-weight: 700;
+        }
+
+        .nav-category{
+          color: #64748b;
+        }
+
+        .brand-area{
+          color: #1e293b;
+        }
+
 
         /* --- Main Content --- */
         .main-wrapper {
@@ -132,6 +168,11 @@
         @keyframes fadeOut {
             0% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; display: none; }
         }
+        .brand-logo{
+          width:80px;
+          height:100px;
+          object-fit:contain;
+        }
 
         /* --- Mobile Responsiveness --- */
         @media (max-width: 992px) {
@@ -152,9 +193,10 @@
     </button>
 
     <aside class="sidebar">
-        <a href="/manager" class="brand-area">
-            <i class="bi bi-airplane-engines-fill"></i> FLYTAU
-        </a>
+       <a href="/manager" class="brand-area">
+           <span class="brand-text">FLYTAU</span>
+           <img src="{{ url_for('static', filename='LOGO.png') }}" alt="FLYTAU Logo" class="brand-logo">
+       </a>
 
         <div class="nav-category">ניהול שוטף</div>
         <nav class="nav flex-column">
@@ -199,20 +241,7 @@
             </div>
         </header>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-label">הכנסה חודשית משוערת</div>
-                <div class="stat-value" dir="ltr">₪450K</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">שיעור תפוסה ממוצע</div>
-                <div class="stat-value" dir="ltr">82%</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">טיסות פעילות</div>
-                <div class="stat-value">{{ flights|length if flights else 0 }}</div>
-            </div>
-        </div>
+
 
         <div class="table-container">
             <div class="table-toolbar">
