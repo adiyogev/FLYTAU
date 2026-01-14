@@ -30,7 +30,6 @@
             justify-content: center;
             align-items: center;
 
-            /* --- תיקון: שינוי הסיומת ל-PNG --- */
             background-color: #f1f5f9;
             background-image: url("{{ url_for('static', filename='addstaff.png') }}");
 
@@ -172,7 +171,7 @@
                         <i class="fas fa-user-tag"></i>
                         <select name="staff_type" required>
                             <option value="" disabled selected>בחר סוג עובד</option>
-                            <option value="pilot">טייס</option>
+                            <option value="pilot">טייס/ת</option>
                             <option value="flight_attendant">דייל/ת</option>
                         </select>
                     </div>
@@ -183,7 +182,7 @@
                         <label class="label">מספר עובד (ID)</label>
                         <div class="input-box">
                             <i class="fas fa-id-badge"></i>
-                            <input type="text" name="staff_id" placeholder="למשל: 123456" required>
+                            <input type="text" name="staff_id" placeholder="למשל: 123456789" required>
                         </div>
                     </div>
                     <div class="input-group">
@@ -194,14 +193,14 @@
                         </div>
                     </div>
                     <div class="input-group">
-                        <label class="label">שם פרטי</label>
+                        <label class="label">שם פרטי (באנגלית)</label>
                         <div class="input-box">
                             <i class="fas fa-user"></i>
                             <input type="text" name="first_name" required>
                         </div>
                     </div>
                     <div class="input-group">
-                        <label class="label">שם משפחה</label>
+                        <label class="label">שם משפחה (באנגלית)</label>
                         <div class="input-box">
                             <i class="fas fa-user"></i>
                             <input type="text" name="last_name" required>
@@ -211,7 +210,7 @@
                         <label class="label">טלפון</label>
                         <div class="input-box">
                             <i class="fas fa-phone"></i>
-                            <input type="tel" name="phone" placeholder="050-0000000" required>
+                            <input type="tel" name="phone" placeholder="0500000000" required>
                         </div>
                     </div>
                     <div class="input-group">

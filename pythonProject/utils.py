@@ -116,19 +116,6 @@ class Manager:
         self.st_num = st_num
         self.password = password
 
-    def cancel_flight(self, flight):
-        flight.status = 'cancelled'
-        return
-
-    def cancel_order(self, order):
-        order.status = 'cancelled by system'
-        # ייכנס בתוך כפתור ביטול טיסה של מנהל עבור כל ההזמנות שבטיסה הזאת (שאילתה מתאימה)
-        return
-
-    def can_cancel_flight(self, departure_time):
-        from datetime import datetime, timedelta
-        return (departure_time - datetime.now()) >= timedelta(hours=72)
-
     def calculate_refund(self, original_price, is_manager_cancel=True):
         if is_manager_cancel:
             return 0  #full refund
