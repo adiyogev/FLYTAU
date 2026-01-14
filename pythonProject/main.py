@@ -444,15 +444,23 @@ def track_order():
 
         # Search for order in DB
         query = """
-            SELECT o.code, o.status, o.total_price, f.origin_airport, f.destination_airport, f.departure, f.flight_id
-            FROM Orders o
-            JOIN Flight f ON o.flight_id = f.flight_id
-            WHERE o.code = %s AND o.guest_email = %s
-        """
+                    SELECT o.code, o.status, o.total_price, f.origin_airport, f.destination_airport, f.departure, f.flight_id, r.duration
+                    FROM Orders o JOIN Flight f ON o.flight_id = f.flight_id
+                        JOIN Route r ON f.origin_airport = r.origin_airport AND f.destination_airport = r.destination_airport
+                    WHERE o.code = %s AND o.guest_email = %s
+                """
         cursor.execute(query, (order_code, email))
-        order_data = cursor.fetchone()
+        result = cursor.fetchone()
 
-        if not order_data:
+        if result:
+            order_list = list(result)
+            # temp Flight object for arrival time
+            temp_flight = Flight(flight_id=order_list[6], origin=order_list[3], destination=order_list[4], duration=order_list[7], departure=order_list[5],
+                                plane_id=None, business_seat_price=0, economy_seat_price=0)
+            order_list.append(temp_flight.arrival_time)
+            order_data = order_list
+
+        else:
             message = "לא נמצאה הזמנה פעילה עבור פרטים אלו. וודא שהקוד והמייל נכונים."
 
     return render_template('track_order.html', order=order_data, message=message)
