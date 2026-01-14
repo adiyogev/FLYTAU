@@ -6,7 +6,6 @@
     <title>FLYTAU - העולם מחכה לך</title>
 
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 
     <style>
@@ -30,13 +29,7 @@
             min-height: 100vh;
         }
 
-        /* הבטחת פונט אחיד לכל רכיבי הטופס */
-        button,
-        input,
-        select,
-        textarea {
-            font-family: inherit;
-        }
+        button, input, select, textarea { font-family: inherit; }
 
         header {
             width: 100%;
@@ -51,55 +44,16 @@
             z-index: 1000;
         }
 
-        .header-right {
-            display: flex;
-            align-items: center;
-            margin-right: 40px;
-        }
+        .header-right { display: flex; align-items: center; margin-right: 40px; }
+        .logo-img { height: 60px; margin-left: 20px; object-fit: contain; }
+        .main-nav a { text-decoration: none; color: var(--text-main); font-weight: 700; margin-left: 20px; }
 
-        .logo-img {
-            height: 60px;
-            margin-left: 20px;
-            object-fit: contain;
-        }
+        .header-left { margin-left: 40px; display: flex; align-items: center; gap: 20px; }
+        .auth-link { text-decoration: none; color: var(--text-main); font-weight: 600; font-size: 15px; }
+        .btn-register { background: var(--flytau-navy); color: white; padding: 8px 22px; border-radius: 20px; text-decoration: none; font-weight: 700; transition: 0.3s; }
+        .btn-register:hover { opacity: 0.9; transform: translateY(-1px); }
 
-        .main-nav a {
-            text-decoration: none;
-            color: var(--text-main);
-            font-weight: 700;
-            margin-left: 20px;
-        }
-
-        .header-left {
-            margin-left: 40px;
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .auth-link {
-            text-decoration: none;
-            color: var(--text-main);
-            font-weight: 600;
-            font-size: 15px;
-        }
-
-        .btn-register {
-            background: var(--flytau-navy);
-            color: white;
-            padding: 8px 22px;
-            border-radius: 20px;
-            text-decoration: none;
-            font-weight: 700;
-        }
-
-        .my-orders-link {
-            color: var(--flytau-teal);
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
+        .my-orders-link { color: var(--flytau-teal); font-weight: 800; display: flex; align-items: center; gap: 5px; }
 
         .hero-section {
             background: linear-gradient(rgba(0, 27, 51, 0.4), rgba(0, 27, 51, 0.4)),
@@ -111,32 +65,12 @@
             text-align: center;
         }
 
-        .hero-title {
-            font-size: 52px;
-            font-weight: 900;
-            margin-bottom: 10px;
-        }
+        .hero-title { font-size: 52px; font-weight: 900; margin-bottom: 10px; }
+        .hero-subtitle { font-size: 22px; opacity: 0.9; }
 
-        .hero-subtitle {
-            font-size: 22px;
-            opacity: 0.9;
-        }
+        .search-container { max-width: 1100px; margin: -70px auto 40px; padding: 0 20px; width: 100%; }
+        .search-card { background: var(--bg-card); border-radius: 24px; padding: 35px; box-shadow: var(--card-shadow); }
 
-        .search-container {
-            max-width: 1100px; /* הגדלה קלה כדי להכיל את השדה החדש */
-            margin: -70px auto 40px;
-            padding: 0 20px;
-            width: 100%;
-        }
-
-        .search-card {
-            background: var(--bg-card);
-            border-radius: 24px;
-            padding: 35px;
-            box-shadow: var(--card-shadow);
-        }
-
-        /* עדכון ה-Grid ל-5 עמודות כדי להכיל את שדה הנוסעים */
         .search-form-grid {
             display: grid;
             grid-template-columns: 1.2fr 1.2fr 1fr 0.6fr 0.8fr;
@@ -144,83 +78,15 @@
             align-items: end;
         }
 
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
+        .input-group { display: flex; flex-direction: column; gap: 8px; }
+        .input-label { font-size: 14px; font-weight: 800; color: var(--text-secondary); }
+        .input-field-wrapper { background: #f8fafc; border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; display: flex; align-items: center; gap: 10px; }
+        .input-field-wrapper input { border: none; background: transparent; width: 100%; outline: none; font-size: 16px; }
 
-        .input-label {
-            font-size: 14px;
-            font-weight: 800;
-            color: var(--text-secondary);
-        }
+        .search-btn { background: var(--flytau-teal); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: 800; font-size: 17px; cursor: pointer; transition: 0.3s; }
+        .search-btn:hover { background: #006b72; }
 
-        .input-field-wrapper {
-            background: #f8fafc;
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 14px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .input-field-wrapper input {
-            border: none;
-            background: transparent;
-            width: 100%;
-            outline: none;
-            font-size: 16px;
-        }
-
-        .search-btn {
-            background: var(--flytau-teal);
-            color: white;
-            border: none;
-            padding: 16px;
-            border-radius: 12px;
-            font-weight: 800;
-            font-size: 17px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        .search-btn:hover {
-            background: #006b72;
-        }
-
-        footer {
-            margin-top: auto;
-            background: var(--flytau-navy);
-            color: rgba(255,255,255,0.7);
-            padding: 30px;
-            text-align: center;
-            font-size: 14px;
-        }
-
-
-        input[type="date"] {
-            position: relative;
-        }
-
-        input[type="date"]::-webkit-calendar-picker-indicator {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
-            z-index: 10;
-        }
-
-
-        .bi-calendar, .bi-calendar-event, i.bi {
-            pointer-events: none;
-        }
+        footer { margin-top: auto; background: var(--flytau-navy); color: rgba(255,255,255,0.7); padding: 30px; text-align: center; font-size: 14px; }
     </style>
 </head>
 
@@ -235,22 +101,23 @@
     </div>
 
    <div class="header-left">
-        {% if is_logged_in %}
+        {% if session.get('role') == 'registered' %}
+            {# תצוגה למשתמש רשום ומחובר #}
             <span style="font-size: 15px;">שלום, <b>{{ user_name }}</b></span>
             <a href="/my_orders" class="auth-link my-orders-link">
                 <i class="fas fa-ticket-alt"></i> ההזמנות שלי
             </a>
             <a href="/logout" style="color:#ef4444;font-weight:700;text-decoration:none;">התנתק</a>
         {% else %}
+            {# תצוגה לאורח או משתמש לא מחובר #}
             <a href="/login" class="auth-link">התחברות</a>
-
             <a href="/register" class="btn-register">הירשם</a>
 
-            <a href="/my_orders" class="auth-link my-orders-link">
-                <i class="fas fa-ticket-alt"></i> ההזמנות שלי
+            <a href="/track_order" class="auth-link my-orders-link">
+                <i class="fas fa-search-location"></i> איתור הזמנה
             </a>
 
-            <a href="/login_manager" class="auth-link" style="color: #001b33;">
+            <a href="/login_manager" class="auth-link" style="color: var(--flytau-navy); margin-right: 10px;">
                 <i class="fas fa-user-tie"></i> כניסת מנהל
             </a>
         {% endif %}
@@ -294,7 +161,7 @@
                 <span class="input-label">נוסעים</span>
                 <div class="input-field-wrapper">
                     <i class="fas fa-users" style="color: var(--flytau-teal);"></i>
-                    <input type="number" name="num_passengers" min="1" max="9" value="1" required>
+                    <input type="number" name="num_passengers" min="1" max="100" value="1" required>
                 </div>
             </div>
 

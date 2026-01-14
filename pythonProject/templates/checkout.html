@@ -98,7 +98,11 @@
             <div class="user-greeting">
                 <i class="fas fa-user-circle"></i> שלום, <span>{{ user_name }}</span>
             </div>
-            <a href="/my_orders" class="auth-link">ניהול הזמנות</a>
+            {% if session.get('role') == 'registered' %}
+                <a href="/my_orders">ההזמנות שלי</a>
+            {% else %}
+                <a href="/track_order">צפייה בהזמנה</a>
+            {% endif %}
             <a href="/logout" class="auth-link">התנתק</a>
             {% else %}
             <a href="/login" class="auth-link">התחברות</a>
@@ -153,7 +157,6 @@
                        <label class="label">מספרי טלפון</label>
                         <div id="phone-container">
                             {% if user and user.phones %}
-                                {# לקוח רשום - מציג את כל הטלפונים שלו #}
                                 {% for phone in user.phones %}
                                 <div class="input-wrapper readonly" style="margin-bottom: 10px;">
                                     <i class="fas fa-phone"></i>
@@ -161,7 +164,6 @@
                                 </div>
                                 {% endfor %}
                             {% else %}
-                                {# אורח - שדה ראשון חובה + כפתור הוספה #}
                                 <div class="input-wrapper" style="margin-bottom: 10px;">
                                     <i class="fas fa-phone"></i>
                                     <input type="tel" name="phone" class="form-input" placeholder="מספר טלפון (10 ספרות)" required>
