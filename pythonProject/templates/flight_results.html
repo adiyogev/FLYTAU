@@ -235,7 +235,11 @@
         <div class="header-left">
             {% if is_logged_in and user_name %}
                 <div class="user-greeting">שלום, <span>{{ user_name }}</span></div>
-                <a href="/my_orders" class="auth-link">ניהול הזמנות</a>
+                {% if session.get('role') == 'registered' %}
+                    <a href="/my_orders">ההזמנות שלי</a>
+                {% else %}
+                    <a href="/track_order">צפייה בהזמנה</a>
+                {% endif %}
                 <a href="/logout" class="auth-link logout">התנתק</a>
             {% else %}
                 <a href="/login" class="auth-link">התחברות</a>

@@ -27,15 +27,13 @@
     .panel{
       flex:1; background:white; 
       display:flex; flex-direction:column;
-      align-items:center; 
-      /* הקטנתי את הריווח החיצוני כדי שהתוכן יתחיל גבוה יותר */
+      align-items:center;
       padding: 20px; 
       overflow-y:auto; 
     }
 
     .wrapper{ 
-        width:100%; max-width:460px; animation:fadeIn .8s ease-out; 
-        /* ביטול המרכוז האנכי - עכשיו זה צמוד למעלה */
+        width:100%; max-width:460px; animation:fadeIn .8s ease-out;
         margin-top: 10px; 
         margin-bottom: 40px;
         padding-top: 0;
@@ -79,7 +77,6 @@
     }
     .hint{ margin-top:7px; font-size:12px; color:var(--text-light); line-height:1.4; }
 
-    /* סגנונות לשדות הטלפון הדינמיים */
     .phone-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; animation: slideDown 0.3s ease-out; }
     .phone-row .input-box { flex: 1; }
     .btn-remove-phone {
@@ -160,11 +157,11 @@
         <div class="grid">
           <div class="input-group">
             <label class="label">שם פרטי (באנגלית)</label>
-            <div class="input-box"><i class="fas fa-user icon-start"></i><input id="first_name" name="first_name" type="text" placeholder="דנה" required></div>
+            <div class="input-box"><i class="fas fa-user icon-start"></i><input id="first_name" name="first_name" type="text" placeholder="Dana" required></div>
           </div>
           <div class="input-group">
             <label class="label">שם משפחה (באנגלית)</label>
-            <div class="input-box"><i class="fas fa-user icon-start"></i><input id="last_name" name="last_name" type="text" placeholder="כהן" required></div>
+            <div class="input-box"><i class="fas fa-user icon-start"></i><input id="last_name" name="last_name" type="text" placeholder="Cohen" required></div>
           </div>
         </div>
 
@@ -191,7 +188,7 @@
                 <div class="phone-row">
                     <div class="input-box">
                         <i class="fas fa-phone icon-start"></i>
-                        <input type="tel" name="phone_numbers" placeholder="050-1234567" required class="phone-input">
+                        <input type="tel" name="phone_numbers" placeholder="0501234567" required class="phone-input">
                     </div>
                 </div>
             </div>

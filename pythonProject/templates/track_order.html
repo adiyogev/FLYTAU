@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>FLYTAU - איתור הזמנה</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* סגנון כללי ברוח האתר שלך */
+        body { font-family: 'Heebo', sans-serif; background: #f1f5f9; text-align: center; padding: 50px; }
+        .card { background: white; max-width: 500px; margin: 0 auto; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .input-group { margin-bottom: 20px; text-align: right; }
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+        .btn { background: #00818a; color: white; border: none; padding: 12px 30px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; }
+        .login-link { margin-top: 20px; display: block; color: #64748b; text-decoration: none; font-size: 14px; }
+        .login-link a { color: #00818a; font-weight: bold; text-decoration: none; }
+        .order-result { margin-top: 30px; padding: 20px; border: 2px solid #00818a; border-radius: 15px; background: #f0fdfa; text-align: right; }
+        .error { color: #dc2626; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2><i class="fas fa-search"></i> איתור הזמנה לאורחים</h2>
+
+        {% if message %}
+            <p class="error">{{ message }}</p>
+        {% endif %}
+
+        <form method="POST">
+            <div class="input-group">
+                <label>קוד הזמנה (6 תווים):</label>
+                <input type="text" name="order_code" required maxlength="6" placeholder="למשל: AB1234">
+            </div>
+            <div class="input-group">
+                <label>אימייל איתו בוצעה ההזמנה:</label>
+                <input type="email" name="email" required placeholder="email@example.com">
+            </div>
+            <button type="submit" class="btn">חפש הזמנה</button>
+        </form>
+
+        <span class="login-link">
+            לקוח רשום? <a href="/login?next=/my_orders">התחבר כאן</a> ותוכל לצפות בכל ההזמנות שלך.
+        </span>
+
+        {% if order %}
+        <div class="order-result">
+            <h3>פרטי ההזמנה שנמצאה:</h3>
+            <p><strong>סטטוס:</strong> {{ order[1] }}</p>
+            <p><strong>מסלול:</strong> {{ order[3] }} <i class="fas fa-arrow-left"></i> {{ order[4] }}</p>
+            <p><strong>מועד המראה:</strong> {{ order[5].strftime('%d/%m/%Y %H:%M') }}</p>
+            <p><strong>סה"כ שולם:</strong> ₪{{ order[2] }}</p>
+
+            {% if order[1] == 'active' %}
+                <form action="/cancel_order/{{ order[0] }}" method="POST" onsubmit="return confirm('האם אתה בטוח שברצונך לבטל את ההזמנה?');">
+                    <button type="submit" style="background: #dc2626; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">
+                        <i class="fas fa-trash"></i> ביטול הזמנה
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

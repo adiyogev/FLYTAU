@@ -225,13 +225,7 @@ def checkout():
                        (session['customer_email'],))
         row = cursor.fetchone()
         if row:
-            user_data = {
-                'first_name': row[0],
-                'last_name': row[1],
-                'passport': row[2],
-                'birth_date': row[3],
-                'phone': ""
-            }
+            user_data = {'first_name': row[0],'last_name': row[1],'passport': row[2],'birth_date': row[3],'phone': ""}
             cursor.execute("SELECT phone_num FROM customer_phone_numbers WHERE phone_customer_email = %s",
                            (session['customer_email'],))
             p_row = cursor.fetchone()
@@ -272,7 +266,7 @@ def checkout():
                 # dont save the email if exists
                 cursor.execute("INSERT IGNORE INTO Guest (guest_email, first_name, last_name) VALUES (%s, %s, %s)",
                                (email, first_name, last_name))
-                cursor.execute("INSERT INTO guest_phone_numbers (phone_guest_email, phone_num) VALUES (%s, %s)",
+                cursor.execute("INSERT IGNORE INTO guest_phone_numbers (phone_guest_email, phone_num) VALUES (%s, %s)",
                                (email, phone))
                 mydb.commit()
                 final_customer_email = None
@@ -325,15 +319,8 @@ def checkout():
 
 
         except Exception as e:
-            # מבטל שינויים ב-DB אם קרתה שגיאה באמצע
             mydb.rollback()
-            # מדפיס את השגיאה המלאה לטרמינל (שורות אדומות ב-VS Code/PyCharm)
-            import traceback
-            print("--- CRITICAL ERROR IN CHECKOUT ---")
-            print(traceback.format_exc())
-            # מחזיר הודעה למסך במקום לרענן את הדף
-            return f"נעצרנו! קרתה שגיאה בתהליך השמירה: {e}"
-            #return f"שגיאה ביצירת הזמנה: {e}"
+            return f"שגיאה ביצירת הזמנה: {e}"
 
     # GET: Render Checkout Page
     # 1. Fetch user details for auto fill (if registered)
@@ -342,11 +329,11 @@ def checkout():
         cursor.execute("""SELECT first_name, last_name, passport, birth_date FROM Customer WHERE customer_email = %s""", (session['customer_email'],))
         cust_data = cursor.fetchone()
         if cust_data:
-            user_details = {'first_name': cust_data[0], 'last_name': cust_data[1], 'passport': cust_data[2], 'birth_date': cust_data[3]}
-            cursor.execute("SELECT phone_num FROM Customer_Phone_Numbers WHERE phone_customer_email = %s LIMIT 1",
+            user_details = {'first_name': cust_data[0], 'last_name': cust_data[1], 'passport': cust_data[2], 'birth_date': cust_data[3], 'phones':[]}
+            cursor.execute("SELECT phone_num FROM Customer_Phone_Numbers WHERE phone_customer_email = %s",
                            (session['customer_email'],))
-            p_data = cursor.fetchone()
-            user_details['phone'] = p_data[0] if p_data else ""
+            p_data = cursor.fetchall()
+            user_details['phones'] = [row[0] for row in p_data]
 
     # 2. Prepare flight object for display
     query = """
@@ -366,92 +353,109 @@ def checkout():
                            flight=flight_display,
                            seats=seat_objects,
                            total_price=total_price,
-                           user=user_data,
+                           user=user_details,
                            is_guest=(not is_logged_in),
                            user_name=session.get('first_name'))
 
 
 @app.route('/my_orders', methods=['GET', 'POST'])
 def my_orders():
-    # check session if user is logged in
-    role = session.get('role')
-    if not role:
-        # login and remember my path
-        return redirect('/login?next=/my_orders')
+    # 1. check session if user is logged in customer
+    if session.get('role') != 'registered' or 'customer_email' not in session:
+        return redirect('/track_order')
 
-    # get email - customer or guest?
-    email = session.get('customer_email') if role == 'registered' else session.get('guest_email')
-    if not email:
-        return redirect('/login?next=/my_orders')
+    email = session['customer_email']
+    status_filter = request.args.get('status', 'active')
+    message = None
 
-    # update flight status
+    # 2. update flight status
     update_flight_statuses()
 
-    # 1. define the filter so it's available for the query
-    status_filter = request.args.get('status', 'active')
-
-    # 2. handle cancellation before fetching data
+    # 3. handle cancellation before fetching data
     message = None
     if request.method == 'POST' and request.form.get('action') == 'cancel':
         order_code = request.form.get('order_code')
         user = User(email, "", "", [])
         success, message = user.cancel_order(cursor, mydb, order_code)
 
-    # 3. fetch the updated data for display
+    # 4. fetch the updated data for display
     query = """
-        SELECT o.code, o.order_date, o.total_price, o.status, 
-               f.origin_airport, f.destination_airport, f.departure, f.flight_id
-        FROM Orders o
-        JOIN Flight f ON o.flight_id = f.flight_id
-        WHERE (o.customer_email = %s OR o.guest_email = %s)
-    """
-    params = [email, email]
+                SELECT o.code, o.order_date, o.total_price, o.status, 
+                       f.origin_airport, f.destination_airport, f.departure, f.flight_id,
+                       r.duration
+                FROM Orders o
+                JOIN Flight f ON o.flight_id = f.flight_id
+                JOIN Route r ON f.origin_airport = r.origin_airport 
+                             AND f.destination_airport = r.destination_airport
+                WHERE o.customer_email = %s
+            """
+    params = [email]
 
-    if role == 'guest':
-        # only future active orders
-        query += " AND o.status = 'active' AND f.departure > NOW()"
-    else:
-        # all orders + status filter option
-        if status_filter == 'cancelled':
-            query += " AND o.status LIKE 'cancelled%'"
-        elif status_filter != 'all':
-            query += " AND o.status = %s"
-            params.append(status_filter)
+    # all orders + status filter option
+    if status_filter == 'cancelled':
+        query += " AND o.status LIKE 'cancelled%'"
+    elif status_filter != 'all':
+        query += " AND o.status = %s"
+        params.append(status_filter)
 
     query += " ORDER BY f.departure DESC"
-
     cursor.execute(query, tuple(params))
-    orders_data = cursor.fetchall()
 
-    # convert to Order objects for template
+    # 5. convert to Order objects for template
     orders_list = []
-    for row in orders_data:
+    for row in cursor.fetchall():
         # Create Order object
-        order_obj = Order(
-            code=row[0],
-            seats=[],  # Seats not needed for display
-            flight_id=row[7],
-            email=email if role == 'registered' else None,
-            guest_email=email if role == 'guest' else None
-        )
-        # Set additional attributes from DB query for display
-        order_obj.order_date = row[1]  # Override default datetime.now()
-        order_obj.status = row[3]  # Override default 'active'
-        # Add flight display attributes
+        order_obj = Order(code=row[0], seats=[], flight_id=row[7], email=email)
+        order_obj.order_date = row[1]
+        order_obj.total_price = row[2]
+        order_obj.status = row[3]
         order_obj.origin = row[4]
         order_obj.dest = row[5]
         order_obj.departure = row[6]
-        order_obj.total_price = row[2]  # From DB, not calculated
-        # Check if order can be canceled using the class method
-        order_obj.can_cancel = order_obj.is_eligible_for_cancel(row[6]) and row[3] == 'active'
+
+        # temp Flight object for arrival time
+        temp_flight = Flight(flight_id=row[7],origin=row[4],destination=row[5],duration=row[8],departure=row[6],plane_id=None,business_seat_price=0,economy_seat_price=0)
+        order_obj.arrival_time = temp_flight.arrival_time
+
+        # calculate cancellation logic
+        order_obj.can_cancel = (order_obj.status == 'active' and
+                                order_obj.is_eligible_for_cancel(row[6]))
         orders_list.append(order_obj)
 
     return render_template('my_orders.html',
                            orders=orders_list,
-                           role=role,
                            current_filter=status_filter,
                            message=message,
                            first_name=session.get("first_name"))
+
+
+@app.route('/track_order', methods=['GET', 'POST'])
+def track_order():
+    # If user is loggen in customer - redirect my_orders
+    if session.get('role') == 'registered':
+        return redirect('/my_orders')
+
+    order_data = None
+    message = None
+
+    if request.method == 'POST':
+        order_code = request.form.get('order_code', '').strip().upper()
+        email = request.form.get('email', '').strip().lower()
+
+        # Search for order in DB
+        query = """
+            SELECT o.code, o.status, o.total_price, f.origin_airport, f.destination_airport, f.departure, f.flight_id
+            FROM Orders o
+            JOIN Flight f ON o.flight_id = f.flight_id
+            WHERE o.code = %s AND o.guest_email = %s
+        """
+        cursor.execute(query, (order_code, email))
+        order_data = cursor.fetchone()
+
+        if not order_data:
+            message = "לא נמצאה הזמנה פעילה עבור פרטים אלו. וודא שהקוד והמייל נכונים."
+
+    return render_template('track_order.html', order=order_data, message=message)
 
 
 # ============================================================================
