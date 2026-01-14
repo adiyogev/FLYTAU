@@ -1,0 +1,6 @@
+
+__pycache__/
+*.pyc
+pythonProject/__pycache__/
+pythonProject/flask_session/
+
