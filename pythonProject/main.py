@@ -534,15 +534,16 @@ def register():
         if cursor.fetchone():
             return render_template('register.html', message="User Already Exists")
         cursor.execute(
-            "INSERT INTO Customer(customer_email, first_name, last_name, passport, birth_date, password, reg_date) VALUES(%s, %s, "
-            "%s, %s, %s, %s, %s)",
-            (customer_email, first_name, last_name, passport, birth_date, password, phone_numbers, reg_date))
+            "INSERT INTO Customer(customer_email, first_name, last_name, passport, birth_date, password, reg_date) VALUES(%s, %s, %s, %s, %s, %s, %s)",
+            (customer_email, first_name, last_name, passport, birth_date, password, reg_date))
         for phone in phone_numbers:
             cursor.execute("INSERT INTO Customer_Phone_Numbers(phone_customer_email, phone_num) VALUES(%s, %s)",
                            (customer_email, phone))
         mydb.commit()
         session['role'] = 'registered'
         session['customer_email'] = customer_email
+        session['first_name'] = first_name
+
         if destination_after_login:
             return redirect(destination_after_login)
         return redirect('/')
