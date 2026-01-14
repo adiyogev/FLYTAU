@@ -591,7 +591,7 @@ def manager_flights():
                 try:
                     cursor.execute("UPDATE Flight SET status = 'cancelled' WHERE flight_id = %s", (flight_id,))
                     cursor.execute("""UPDATE Orders SET total_price = 0, status = 'cancelled by system'
-                        WHERE flight_id = %s AND status = 'active'""", (flight_id,))
+                        WHERE flight_id = %s AND status != 'cancelled' AND status != 'completed'""", (flight_id,))
                     mydb.commit()
                     flash("הטיסה בוטלה בהצלחה.", "success")
                 except Exception as e:
@@ -644,7 +644,7 @@ def manager_flights():
             economy_seat_price=row[7],
             capacity=row[9],
             occupied=row[10],
-            is_cancelled=(row[8] == 'cancelled')  # The important fix (without f.status = ...)
+            is_cancelled=(row[8] == 'cancelled')
         )
         flights_list.append(f)
 
