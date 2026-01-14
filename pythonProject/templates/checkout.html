@@ -150,12 +150,26 @@
                     </div>
 
                     <div class="input-group">
-                        <label class="label">מספר טלפון (10 ספרות)</label>
-                        <div class="input-wrapper {{ 'readonly' if not is_guest else '' }}">
-                            <i class="fas fa-phone"></i>
-                            <input type="tel" name="phone" class="form-input"
-                                   value="{{ user.phone if user else '' }}"
-                                   {{ 'readonly' if not is_guest else '' }} required>
+                       <label class="label">מספרי טלפון</label>
+                        <div id="phone-container">
+                            {% if user and user.phones %}
+                                {# לקוח רשום - מציג את כל הטלפונים שלו #}
+                                {% for phone in user.phones %}
+                                <div class="input-wrapper readonly" style="margin-bottom: 10px;">
+                                    <i class="fas fa-phone"></i>
+                                    <input type="tel" name="phone" class="form-input" value="{{ phone }}" readonly>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                {# אורח - שדה ראשון חובה + כפתור הוספה #}
+                                <div class="input-wrapper" style="margin-bottom: 10px;">
+                                    <i class="fas fa-phone"></i>
+                                    <input type="tel" name="phone" class="form-input" placeholder="מספר טלפון (10 ספרות)" required>
+                                    <button type="button" onclick="addPhoneField()" style="background: none; border: none; color: var(--flytau-teal); cursor: pointer;">
+                                        <i class="fas fa-plus-circle"></i>
+                                    </button>
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
 
@@ -219,6 +233,23 @@
         <i class="fas fa-exclamation-circle"></i> {{ error }}
     </div>
     {% endif %}
+
+    <script>
+    function addPhoneField() {
+        const container = document.getElementById('phone-container');
+        const newField = document.createElement('div');
+        newField.className = 'input-wrapper';
+        newField.style.marginBottom = '10px';
+        newField.innerHTML = `
+            <i class="fas fa-phone"></i>
+            <input type="tel" name="phone" class="form-input" placeholder="מספר נוסף">
+            <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: var(--error-red); cursor: pointer;">
+                <i class="fas fa-minus-circle"></i>
+            </button>
+        `;
+        container.appendChild(newField);
+    }
+    </script>
 
 </body>
 </html>
