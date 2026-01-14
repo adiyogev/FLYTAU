@@ -1,0 +1,125 @@
+/* static/css/index.css */
+
+:root {
+    --flytau-navy: #001b33;
+    --flytau-teal: #00818a;
+    --text-main: #001b33;
+    --text-secondary: #64748b;
+    --bg-body: #f1f5f9;
+    --bg-card: #ffffff;
+    --border: #e2e8f0;
+    --card-shadow: 0 20px 50px rgba(0,0,0,0.15);
+}
+
+body {
+    font-family: 'Heebo', sans-serif;
+    background-color: var(--bg-body);
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+button, input, select, textarea { font-family: inherit; }
+a { text-decoration: none; }
+
+/* --- HEADER --- */
+header {
+    width: 100%;
+    background: var(--bg-card);
+    padding: 10px 0;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.header-right { display: flex; align-items: center; margin-right: 40px; }
+.logo-img { height: 60px; margin-left: 20px; object-fit: contain; }
+.main-nav a { color: var(--text-main); font-weight: 700; margin-left: 20px; }
+
+.header-left { margin-left: 40px; display: flex; align-items: center; gap: 20px; }
+.auth-link { color: var(--text-main); font-weight: 600; font-size: 15px; }
+
+.btn-register {
+    background: var(--flytau-navy);
+    color: white;
+    padding: 8px 22px;
+    border-radius: 20px;
+    font-weight: 700;
+    transition: 0.3s;
+}
+.btn-register:hover { opacity: 0.9; transform: translateY(-1px); }
+
+.my-orders-link { color: var(--flytau-teal); font-weight: 800; display: flex; align-items: center; gap: 5px; }
+
+/* --- HERO SECTION (החלק של התמונה) --- */
+.hero-section {
+    /* הגדרות אלו דואגות שהתמונה לא תיחתך */
+    background-size: cover;
+    background-position: center center; /* ממקם את המטוס באמצע */
+    background-repeat: no-repeat;
+
+    color: white;
+    padding: 110px 20px 160px;
+    text-align: center;
+    position: relative;
+}
+
+.hero-title { font-size: 52px; font-weight: 900; margin-bottom: 10px; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+.hero-subtitle { font-size: 22px; opacity: 0.9; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+
+/* --- SEARCH BOX --- */
+.search-container { max-width: 1100px; margin: -70px auto 40px; padding: 0 20px; width: 100%; position: relative; z-index: 10; }
+.search-card { background: var(--bg-card); border-radius: 24px; padding: 35px; box-shadow: var(--card-shadow); }
+
+.search-form-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1.2fr 1fr 0.6fr 0.8fr;
+    gap: 15px;
+    align-items: end;
+}
+
+.input-group { display: flex; flex-direction: column; gap: 8px; }
+.input-label { font-size: 14px; font-weight: 800; color: var(--text-secondary); }
+.input-field-wrapper {
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.input-field-wrapper input { border: none; background: transparent; width: 100%; outline: none; font-size: 16px; }
+
+.search-btn {
+    background: var(--flytau-teal);
+    color: white;
+    border: none;
+    padding: 16px;
+    border-radius: 12px;
+    font-weight: 800;
+    font-size: 17px;
+    cursor: pointer;
+    width: 100%;
+    transition: 0.3s;
+}
+.search-btn:hover { background: #006b72; }
+
+/* --- FOOTER --- */
+footer {
+    margin-top: auto;
+    background: var(--flytau-navy);
+    color: rgba(255,255,255,0.7);
+    padding: 30px;
+    text-align: center;
+    font-size: 14px;
+}
+
+@media (max-width: 1000px) {
+    .search-form-grid { grid-template-columns: 1fr; }
+}

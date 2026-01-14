@@ -963,6 +963,164 @@ def add_plane():
     # GET Request
     return render_template('add_plane.html')
 
+from flask import render_template
+
+# #@app.route("/manager/reports")@app.route("/manager/reports")
+# def manager_reports():
+#     cursor = mydb.cursor()
+#
+#     # --- KPI: סה"כ הזמנות ---
+#     cursor.execute("SELECT COUNT(*) FROM Orders")
+#     total_orders = cursor.fetchone()[0] or 0
+#
+#     # --- KPI: הכנסות (מומלץ בלי ביטולים) ---
+#     cursor.execute("SELECT SUM(total_price) FROM Orders WHERE status != 'cancelled by user'")
+#     total_revenue = cursor.fetchone()[0] or 0
+#
+#     # --- KPI: ביטולים ---
+#     cursor.execute("SELECT COUNT(*) FROM Orders WHERE status='cancelled by user'")
+#     cancelled_orders = cursor.fetchone()[0] or 0
+#
+#     cancellation_rate = round((cancelled_orders / total_orders) * 100, 2) if total_orders else 0
+#
+#     # --- שליפה 1 (1.sql): תפוסה ממוצעת בטיסות completed ---
+#     cursor.execute("""
+#         SELECT AVG(occupied_seats / total_capacity) * 100 AS avg_occupancy_percentage
+#         FROM (
+#             SELECT f.flight_id,
+#                 (SELECT COUNT(*) FROM Class c WHERE c.plane_id = f.plane_id) AS total_capacity,
+#                 (SELECT COUNT(*)
+#                  FROM Seats_in_Order sio JOIN Orders o ON sio.code = o.code
+#                  WHERE o.flight_id = f.flight_id AND o.status != 'cancelled by user') AS occupied_seats
+#             FROM Flight f
+#             WHERE f.status = 'completed'
+#         ) AS flight_occupancy;
+#     """)
+#     avg_occupancy = cursor.fetchone()[0]
+#     avg_occupancy = round(float(avg_occupancy), 2) if avg_occupancy is not None else 0
+#
+#     # --- שליפה 2 (4.sql): שיעור ביטולים חודשי ---
+#     cursor.execute("""
+#         SELECT
+#             DATE_FORMAT(order_date, '%Y-%m') AS order_month,
+#             (SUM(CASE WHEN o.status = 'cancelled by user' THEN 1 ELSE 0 END) / COUNT(*)) AS cancellation_rate
+#         FROM Orders o
+#         GROUP BY DATE_FORMAT(order_date, '%Y-%m')
+#         ORDER BY order_month DESC;
+#     """)
+#     cancellation_by_month = cursor.fetchall()  # [(YYYY-MM, 0.12), ...]
+#
+#     # --- אופציונלי: 5 נתיבים הכי פופולריים ---
+#     top_routes = []
+#     try:
+#         cursor.execute("""
+#             SELECT origin, destination, COUNT(*) AS c
+#             FROM Orders
+#             GROUP BY origin, destination
+#             ORDER BY c DESC
+#             LIMIT 5
+#         """)
+#         top_routes = cursor.fetchall()
+#     except Exception as e:
+#         print("top_routes error:", e)
+#         top_routes = []
+#
+#     # --- יצירת תמונות גרפים (דרך קובץ חיצוני) ---
+#     # חשוב: ליצור תיקייה אם אין
+#     os.makedirs("pythonProject/static/reports", exist_ok=True)
+#
+#     # יוצרים PNGים ב-static/reports
+#     occupancy_donut(avg_occupancy)                  # -> avg_occupancy.png
+#     cancellation_bar(cancellation_by_month)         # -> cancellation_rate.png
+#
+#     return render_template(
+#         "manager_reports.html",
+#         total_orders=total_orders,
+#         total_revenue=total_revenue,
+#         cancelled_orders=cancelled_orders,
+#         cancellation_rate=cancellation_rate,
+#         avg_occupancy=avg_occupancy,
+#         cancellation_by_month=cancellation_by_month,
+#         top_routes=top_routes
+#     )
+# def manager_reports():
+#     cursor = mydb.cursor()
+#
+#     # --- KPI: סה"כ הזמנות ---
+#     cursor.execute("SELECT COUNT(*) FROM Orders")
+#     total_orders = cursor.fetchone()[0] or 0
+#
+#     # --- KPI: הכנסות (מומלץ בלי ביטולים) ---
+#     cursor.execute("SELECT SUM(total_price) FROM Orders WHERE status != 'cancelled by user'")
+#     total_revenue = cursor.fetchone()[0] or 0
+#
+#     # --- KPI: ביטולים ---
+#     cursor.execute("SELECT COUNT(*) FROM Orders WHERE status='cancelled by user'")
+#     cancelled_orders = cursor.fetchone()[0] or 0
+#
+#     cancellation_rate = round((cancelled_orders / total_orders) * 100, 2) if total_orders else 0
+#
+#     # --- שליפה 1 (1.sql): תפוסה ממוצעת בטיסות completed ---
+#     cursor.execute("""
+#         SELECT AVG(occupied_seats / total_capacity) * 100 AS avg_occupancy_percentage
+#         FROM (
+#             SELECT f.flight_id,
+#                 (SELECT COUNT(*) FROM Class c WHERE c.plane_id = f.plane_id) AS total_capacity,
+#                 (SELECT COUNT(*)
+#                  FROM Seats_in_Order sio JOIN Orders o ON sio.code = o.code
+#                  WHERE o.flight_id = f.flight_id AND o.status != 'cancelled by user') AS occupied_seats
+#             FROM Flight f
+#             WHERE f.status = 'completed'
+#         ) AS flight_occupancy;
+#     """)
+#     avg_occupancy = cursor.fetchone()[0]
+#     avg_occupancy = round(float(avg_occupancy), 2) if avg_occupancy is not None else 0
+#
+#     # --- שליפה 2 (4.sql): שיעור ביטולים חודשי ---
+#     cursor.execute("""
+#         SELECT
+#             DATE_FORMAT(order_date, '%Y-%m') AS order_month,
+#             (SUM(CASE WHEN o.status = 'cancelled by user' THEN 1 ELSE 0 END) / COUNT(*)) AS cancellation_rate
+#         FROM Orders o
+#         GROUP BY DATE_FORMAT(order_date, '%Y-%m')
+#         ORDER BY order_month DESC;
+#     """)
+#     cancellation_by_month = cursor.fetchall()  # [(YYYY-MM, 0.12), ...]
+#
+#     # --- אופציונלי: 5 נתיבים הכי פופולריים ---
+#     top_routes = []
+#     try:
+#         cursor.execute("""
+#             SELECT origin, destination, COUNT(*) AS c
+#             FROM Orders
+#             GROUP BY origin, destination
+#             ORDER BY c DESC
+#             LIMIT 5
+#         """)
+#         top_routes = cursor.fetchall()
+#     except Exception as e:
+#         print("top_routes error:", e)
+#         top_routes = []
+#
+#     # --- יצירת תמונות גרפים (דרך קובץ חיצוני) ---
+#     # חשוב: ליצור תיקייה אם אין
+#     os.makedirs("pythonProject/static/reports", exist_ok=True)
+#
+#     # יוצרים PNGים ב-static/reports
+#     occupancy_donut(avg_occupancy)                  # -> avg_occupancy.png
+#     cancellation_bar(cancellation_by_month)         # -> cancellation_rate.png
+#
+#     return render_template(
+#         "manager_reports.html",
+#         total_orders=total_orders,
+#         total_revenue=total_revenue,
+#         cancelled_orders=cancelled_orders,
+#         cancellation_rate=cancellation_rate,
+#         avg_occupancy=avg_occupancy,
+#         cancellation_by_month=cancellation_by_month,
+#         top_routes=top_routes
+#     )
+#
 
 # ERROR HANDLER
 @app.errorhandler(404)

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlyTau Manager - דוחות ניהוליים</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg-body:#eef6ff;
+      --sidebar-width:260px;
+      --text-dark:#0f172a;
+      --text:#1e293b;
+      --muted:#64748b;
+      --border:rgba(226,232,240,.9);
+      --radius:16px;
+      --shadow: 0 18px 55px rgba(15,23,42,.12);
+    }
+
+    body{
+      font-family:'Heebo',sans-serif;
+      color:var(--text);
+      overflow-x:hidden;
+      background:
+        radial-gradient(900px 260px at 85% 0%, rgba(14,165,233,.14), transparent 60%),
+        radial-gradient(720px 240px at 15% 0%, rgba(20,184,166,.12), transparent 55%),
+        var(--bg-body);
+    }
+
+    /* Sidebar (same vibe as your manager page) */
+    .sidebar{
+      position:fixed; top:0; right:0;
+      height:100vh; width:var(--sidebar-width);
+      padding:16px 0; z-index:1000;
+      background: rgba(255,255,255,.92);
+      backdrop-filter: blur(10px);
+      border-left:1px solid var(--border);
+      box-shadow: 0 20px 60px rgba(15,23,42,.06);
+      display:flex; flex-direction:column;
+    }
+
+    .brand-area{
+      padding: 14px 22px 12px;
+      display:flex; align-items:center; gap:12px;
+      font-size:1.35rem; font-weight:900;
+      color:var(--text-dark); text-decoration:none;
+      border-bottom: 1px solid var(--border);
+    }
+    .brand-area:hover{ color:var(--text-dark); }
+    .brand-logo{ width:78px; height:58px; object-fit:contain; }
+
+    .nav-category{
+      padding: 12px 22px 6px;
+      font-weight:800; font-size:.78rem;
+      letter-spacing:.5px; text-transform:uppercase;
+      color:#94a3b8;
+    }
+
+    .nav-link{
+      margin:2px 12px;
+      border-radius:12px;
+      padding:12px 12px;
+      display:flex; align-items:center; gap:10px;
+      color:#334155;
+      border:1px solid transparent;
+      transition:.18s ease;
+      text-decoration:none;
+    }
+    .nav-link i{ color:#64748b; font-size:1.05rem; }
+    .nav-link:hover{
+      background: rgba(241,245,249,.9);
+      transform: translateX(-2px);
+      border-color: rgba(226,232,240,.9);
+      color: var(--text-dark);
+    }
+    .nav-link.active{
+      background: rgba(224,242,254,.70);
+      color:#075985;
+      font-weight:900;
+      box-shadow: 0 10px 20px rgba(2,132,199,.10);
+      border-color: rgba(2,132,199,.18);
+    }
+    .nav-link.active i{ color:#0284c7; }
+
+    /* Main */
+    .main-wrapper{
+      margin-right: var(--sidebar-width);
+      padding: 40px;
+    }
+
+    .top-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:16px;
+      flex-wrap:wrap;
+      margin-bottom: 22px;
+    }
+
+    .page-heading h1{
+      font-size:1.85rem;
+      font-weight:900;
+      color:var(--text-dark);
+      margin:0 0 6px;
+      letter-spacing:-.8px;
+    }
+    .page-heading p{
+      margin:0;
+      color:var(--muted);
+      max-width:60ch;
+    }
+
+    .surface{
+      background: rgba(255,255,255,.92);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(226,232,240,.85);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+
+    /* KPI cards */
+    .stats-grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+    .kpi{
+      padding: 18px;
+      border-radius: 16px;
+      border: 1px solid rgba(226,232,240,.9);
+      background: linear-gradient(180deg, rgba(248,250,252,1), rgba(255,255,255,1));
+      box-shadow: 0 10px 20px rgba(15,23,42,.06);
+    }
+    .kpi .label{ color:var(--muted); font-weight:800; font-size:.85rem; }
+    .kpi .value{ font-size:2rem; font-weight:900; color:var(--text-dark); line-height:1; margin-top:8px; }
+    .kpi .sub{ color:var(--muted); font-size:.85rem; margin-top:10px; }
+.kpi-box{
+  background: white;
+  border-radius: 14px;
+  padding: 18px;
+  text-align: center;
+  border: 1px solid rgba(226,232,240,.9);
+  box-shadow: 0 8px 20px rgba(15,23,42,.08);
+}
+
+.kpi-label{
+  color:#64748b;
+  font-weight:700;
+  font-size:.85rem;
+}
+
+.kpi-value{
+  font-size:2rem;
+  font-weight:900;
+  color:#0f172a;
+  margin-top:6px;
+}
+
+
+    /* Table card */
+    .card-head{
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(226,232,240,.85);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      background: linear-gradient(180deg, rgba(248,250,252,1), rgba(255,255,255,1));
+    }
+
+    .table th{
+      background: rgba(248,250,252,.95) !important;
+      font-weight:900;
+      font-size:.78rem;
+      text-transform:uppercase;
+      color:#475569;
+      border-bottom: 1px solid rgba(226,232,240,.9) !important;
+      white-space: nowrap;
+    }
+    .table td{
+      border-bottom: 1px solid rgba(226,232,240,.75) !important;
+      vertical-align: middle;
+    }
+
+    .pill{
+      display:inline-flex; align-items:center;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: .82rem;
+      font-weight: 800;
+      border: 1px solid rgba(15,23,42,.06);
+      background:#f1f5f9;
+      color:#334155;
+    }
+
+    /* Mobile */
+    @media(max-width: 992px){
+      .main-wrapper{ margin-right: 0; padding: 20px; }
+      .sidebar{ display:none; } /* keep simple */
+    }
+  </style>
+</head>
+
+<body>
+
+  <aside class="sidebar">
+    <a href="/manager" class="brand-area">
+      <span>FLYTAU</span>
+      <img src="{{ url_for('static', filename='LOGO.png') }}" alt="FLYTAU Logo" class="brand-logo">
+    </a>
+
+    <div class="nav-category">ניהול שוטף</div>
+    <nav class="nav flex-column">
+      <a href="/manager" class="nav-link"><i class="bi bi-grid-1x2"></i> לוח טיסות</a>
+      <a href="/manager/add_flight/step1" class="nav-link"><i class="bi bi-plus-lg"></i> הוספת טיסה</a>
+      <a href="/manager/add_plane" class="nav-link"><i class="bi bi-airplane"></i> הוספת מטוס</a>
+      <a href="/manager/add_staff" class="nav-link"><i class="bi bi-people"></i> ניהול צוות</a>
+    </nav>
+
+    <div class="nav-category">מערכת</div>
+    <nav class="nav flex-column">
+      <a href="/manager/reports" class="nav-link active"><i class="bi bi-bar-chart"></i> דוחות ניהוליים</a>
+      <a href="/logout" class="nav-link text-danger mt-4"><i class="bi bi-box-arrow-right"></i> יציאה</a>
+    </nav>
+  </aside>
+
+  <main class="main-wrapper">
+    <header class="top-header">
+      <div class="page-heading">
+        <h1>דוחות ניהוליים</h1>
+        <p>סקירה מהירה של ביצועי המערכת (ללא גרפים בשלב זה)</p>
+      </div>
+
+      <a href="/manager" class="btn btn-outline-primary rounded-pill px-3">
+        <i class="bi bi-arrow-right"></i> חזרה ללוח טיסות
+      </a>
+    </header>
+
+    <section class="stats-grid">
+      <div class="row g-3 mb-4">
+
+  <div class="col">
+    <div class="kpi-box">
+          <div class="kpi-label">סה״כ הזמנות</div>
+          <div class="kpi-value">{{ total_orders }}</div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="kpi-box">
+          <div class="kpi-label">הכנסות</div>
+          <div class="kpi-value">₪{{ total_revenue }}</div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="kpi-box">
+          <div class="kpi-label">ביטולים</div>
+          <div class="kpi-value">{{ cancelled_orders }}</div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="kpi-box">
+          <div class="kpi-label">שיעור ביטול</div>
+          <div class="kpi-value">{{ cancellation_rate }}%</div>
+        </div>
+      </div>
+
+    </div>
+
+    </section>
+
+    <section class="surface">
+      <div class="card-head">
+        <div class="fw-bold text-dark">נתונים מובילים</div>
+        <span class="pill"><i class="bi bi-info-circle ms-1"></i> Top 5 Routes</span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead>
+            <tr>
+              <th>מקור</th>
+              <th>יעד</th>
+              <th class="text-end">כמות</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if top_routes and top_routes|length > 0 %}
+              {% for r in top_routes %}
+                <tr>
+                  <td><strong>{{ r[0] }}</strong></td>
+                  <td><strong>{{ r[1] }}</strong></td>
+                  <td class="text-end">{{ r[2] }}</td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="3" class="text-center py-5 text-muted">
+                  <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                </td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

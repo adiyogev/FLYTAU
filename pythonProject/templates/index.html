@@ -8,93 +8,14 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 
-    <style>
-        :root {
-            --bg-body: #f1f5f9;
-            --bg-card: #ffffff;
-            --text-main: #001b33;
-            --text-secondary: #64748b;
-            --flytau-navy: #001b33;
-            --flytau-teal: #00818a;
-            --border-color: #cbd5e1;
-            --card-shadow: 0 20px 50px rgba(0,0,0,0.15);
-        }
-
-        body {
-            font-family: 'Heebo', sans-serif;
-            background-color: var(--bg-body);
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        button, input, select, textarea { font-family: inherit; }
-
-        header {
-            width: 100%;
-            background: var(--bg-card);
-            padding: 10px 0;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-
-        .header-right { display: flex; align-items: center; margin-right: 40px; }
-        .logo-img { height: 60px; margin-left: 20px; object-fit: contain; }
-        .main-nav a { text-decoration: none; color: var(--text-main); font-weight: 700; margin-left: 20px; }
-
-        .header-left { margin-left: 40px; display: flex; align-items: center; gap: 20px; }
-        .auth-link { text-decoration: none; color: var(--text-main); font-weight: 600; font-size: 15px; }
-        .btn-register { background: var(--flytau-navy); color: white; padding: 8px 22px; border-radius: 20px; text-decoration: none; font-weight: 700; transition: 0.3s; }
-        .btn-register:hover { opacity: 0.9; transform: translateY(-1px); }
-
-        .my-orders-link { color: var(--flytau-teal); font-weight: 800; display: flex; align-items: center; gap: 5px; }
-
-        .hero-section {
-            background: linear-gradient(rgba(0, 27, 51, 0.4), rgba(0, 27, 51, 0.4)),
-            url("{{ url_for('static', filename='FLYTAU_airplane.png') }}");
-            background-size: cover;
-            background-position: center;
-            color: white;
-            padding: 110px 20px 160px;
-            text-align: center;
-        }
-
-        .hero-title { font-size: 52px; font-weight: 900; margin-bottom: 10px; }
-        .hero-subtitle { font-size: 22px; opacity: 0.9; }
-
-        .search-container { max-width: 1100px; margin: -70px auto 40px; padding: 0 20px; width: 100%; }
-        .search-card { background: var(--bg-card); border-radius: 24px; padding: 35px; box-shadow: var(--card-shadow); }
-
-        .search-form-grid {
-            display: grid;
-            grid-template-columns: 1.2fr 1.2fr 1fr 0.6fr 0.8fr;
-            gap: 15px;
-            align-items: end;
-        }
-
-        .input-group { display: flex; flex-direction: column; gap: 8px; }
-        .input-label { font-size: 14px; font-weight: 800; color: var(--text-secondary); }
-        .input-field-wrapper { background: #f8fafc; border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; display: flex; align-items: center; gap: 10px; }
-        .input-field-wrapper input { border: none; background: transparent; width: 100%; outline: none; font-size: 16px; }
-
-        .search-btn { background: var(--flytau-teal); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: 800; font-size: 17px; cursor: pointer; transition: 0.3s; }
-        .search-btn:hover { background: #006b72; }
-
-        footer { margin-top: auto; background: var(--flytau-navy); color: rgba(255,255,255,0.7); padding: 30px; text-align: center; font-size: 14px; }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
 </head>
 
 <body>
 
 <header>
     <div class="header-right">
-        <img src="{{ url_for('static', filename='LOGO.jpeg') }}" alt="FLYTAU" class="logo-img">
+        <img src="{{ url_for('static', filename='img/LOGO.jpeg') }}" alt="FLYTAU" class="logo-img">
         <nav class="main-nav">
             <a href="/">חיפוש טיסות</a>
         </nav>
@@ -102,21 +23,17 @@
 
    <div class="header-left">
         {% if session.get('role') == 'registered' %}
-            {# תצוגה למשתמש רשום ומחובר #}
             <span style="font-size: 15px;">שלום, <b>{{ user_name }}</b></span>
             <a href="/my_orders" class="auth-link my-orders-link">
                 <i class="fas fa-ticket-alt"></i> ההזמנות שלי
             </a>
             <a href="/logout" style="color:#ef4444;font-weight:700;text-decoration:none;">התנתק</a>
         {% else %}
-            {# תצוגה לאורח או משתמש לא מחובר #}
             <a href="/login" class="auth-link">התחברות</a>
             <a href="/register" class="btn-register">הירשם</a>
-
             <a href="/track_order" class="auth-link my-orders-link">
                 <i class="fas fa-search-location"></i> איתור הזמנה
             </a>
-
             <a href="/login_manager" class="auth-link" style="color: var(--flytau-navy); margin-right: 10px;">
                 <i class="fas fa-user-tie"></i> כניסת מנהל
             </a>
@@ -124,7 +41,7 @@
     </div>
 </header>
 
-<div class="hero-section">
+<div class="hero-section" style="background-image: linear-gradient(rgba(0, 27, 51, 0.4), rgba(0, 27, 51, 0.4)), url('{{ url_for('static', filename='img/FLYTAU_airplane.png') }}');">
     <div class="hero-title">העולם מחכה לך</div>
     <div class="hero-subtitle">הזמינו טיסה בקלות ותיהנו מחוויה בלתי נשכחת</div>
 </div>
@@ -132,7 +49,6 @@
 <div class="search-container">
     <div class="search-card">
         <form action="/search_flights" method="GET" class="search-form-grid">
-
             <div class="input-group">
                 <span class="input-label">מוצא</span>
                 <div class="input-field-wrapper">
@@ -174,7 +90,6 @@
                     <option value="{{ city }}">
                 {% endfor %}
             </datalist>
-
         </form>
     </div>
 </div>
