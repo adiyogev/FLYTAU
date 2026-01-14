@@ -568,9 +568,9 @@ def manager_flights():
     if session.get("role") != 'manager':
         return redirect('/login_manager')
 
-    # Retrieve the manager's first name for the dashboard header
+    # Retrieve the manager's first name
     manager_id = session.get('manager_id')
-    current_manager_name = "Admin"  # Default fallback value
+    current_manager_name = "Admin"
 
     try:
         cursor.execute("SELECT first_name FROM Manager WHERE manager_id = %s", (manager_id,))
@@ -580,32 +580,32 @@ def manager_flights():
     except Exception as e:
         print(f"Error fetching manager name: {e}")
 
-    # POST - request for flight cancelling
+    # --- POST: Flight Cancellation ---
     if request.method == 'POST':
         flight_id = request.form.get('flight_id')
-
-        # verifying at least 72 hours in advance
         cursor.execute("SELECT departure FROM Flight WHERE flight_id = %s", (flight_id,))
         flight_dep = cursor.fetchone()
         if flight_dep:
             departure_time = flight_dep[0]
-            # verifying at least 72 hours in advance
             if departure_time - datetime.now() >= timedelta(hours=72):
                 try:
-                    # update flight status to 'cancelled'
                     cursor.execute("UPDATE Flight SET status = 'cancelled' WHERE flight_id = %s", (flight_id,))
-                    # full refund for all customers
                     cursor.execute("""UPDATE Orders SET total_price = 0, status = 'cancelled by system'
                         WHERE flight_id = %s AND status = 'active'""", (flight_id,))
                     mydb.commit()
-                    message = "הטיסה בוטלה בהצלחה וכל הלקוחות זוכו."
+                    flash("הטיסה בוטלה בהצלחה.", "success")
                 except Exception as e:
                     mydb.rollback()
-                    message = f"error while updating data in DB {e}"
+                    flash(f"Error: {e}", "danger")
             else:
-                message = "לא ניתן לבטל טיסה פחות מ-72 שעות לפני מועד קיומה."
+                flash("לא ניתן לבטל פחות מ-72 שעות.", "warning")
 
-    # GET - presenting all flights with important details for the manager to review
+    # --- GET: Display Flights with FILTER ---
+
+    # 1. Get filter from URL (default is 'all' if nothing selected)
+    status_filter = request.args.get('status', 'all')
+
+    # 2. Base query
     query = """
             SELECT f.flight_id, f.origin_airport, f.destination_airport, 
                    f.departure, r.duration, f.plane_id, 
@@ -616,36 +616,46 @@ def manager_flights():
             FROM Flight as f 
             JOIN Route as r ON f.origin_airport = r.origin_airport 
                 AND f.destination_airport = r.destination_airport
-            ORDER BY f.departure DESC
         """
-    cursor.execute(query)
+
+    params = []
+
+    # 3. Add filter condition (if filter is not 'all')
+    if status_filter != 'all':
+        query += " WHERE f.status = %s"
+        params.append(status_filter)
+
+    # 4. Sorting
+    query += " ORDER BY f.departure DESC"
+
+    cursor.execute(query, tuple(params))
     flights_data = cursor.fetchall()
 
     flights_list = []
     for row in flights_data:
-        # כאן אנחנו שולחים את כל 8 הפרמטרים ש-Flight.__init__ דורש
         f = Flight(
             flight_id=row[0],
             origin=row[1],
             destination=row[2],
-            duration=str(row[4]),  # duration מה-DB
-            departure=row[3],  # departure מה-DB
-            plane_id=row[5],  # plane_id
-            business_seat_price=row[6],  # מחיר עסקים מה-DB
-            economy_seat_price=row[7],  # מחיר תיירים מה-DB
-            capacity=row[9],  # קיבולת שחושבה בשאילתה
-            occupied=row[10],  # תפוסה שחושבה בשאילתה
-            is_cancelled=(row[8] == 'cancelled')  # בדיקת סטטוס ביטול
+            duration=str(row[4]),
+            departure=row[3],
+            plane_id=row[5],
+            business_seat_price=row[6],
+            economy_seat_price=row[7],
+            capacity=row[9],
+            occupied=row[10],
+            is_cancelled=(row[8] == 'cancelled')  # The important fix (without f.status = ...)
         )
         flights_list.append(f)
 
-    # Data for representation
+    # Statistics
     cursor.execute("SELECT COUNT(*) FROM Pilot")
     p_count = cursor.fetchone()[0]
     cursor.execute("SELECT COUNT(*) FROM Flight_Attendant")
     fa_count = cursor.fetchone()[0]
     cursor.execute("SELECT SUM(total_price) FROM Orders WHERE status != 'cancelled'")
-    total_income = cursor.fetchone()[0] or 0
+    total_income_res = cursor.fetchone()
+    total_income = total_income_res[0] if total_income_res and total_income_res[0] else 0
 
     return render_template('manager_flights.html',
                            manager_name=current_manager_name,
@@ -653,9 +663,12 @@ def manager_flights():
                            total_staff=(p_count + fa_count),
                            total_income=total_income,
                            total_orders=len(flights_list),
+                           # Must pass the filter so HTML knows what to mark as selected
+                           current_filter=status_filter,
                            status_dict={'Active': 5, 'Cancelled': 1},
                            dest_labels=['TLV', 'JFK'],
                            dest_values=[100, 200])
+
 
 
 @app.route('/manager/add_flight/step1', methods=['GET', 'POST'])
