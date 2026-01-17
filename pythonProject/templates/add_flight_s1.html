@@ -16,7 +16,6 @@
             --border: #e2e8f0;
         }
 
-        /* הגדרת הפונט באופן גורף לכל האלמנטים כולל כפתורים ושדות */
         body, input, button, select, textarea {
             font-family: 'Heebo', sans-serif;
         }
@@ -27,25 +26,23 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            /* --- שינוי: הגדרת תמונת רקע --- */
             background-image: url("{{ url_for('static', filename='addflight1.jpg') }}");
-            background-size: cover; /* מכסה את כל המסך */
-            background-position: center; /* מרכוז התמונה */
+            background-size: cover;
+            background-position: center;
             background-repeat: no-repeat;
-            background-attachment: fixed; /* שהתמונה תישאר קבועה בגלילה */
+            background-attachment: fixed;
         }
 
         .panel {
-            /* --- שינוי: הפיכת הפאנל ללבן חצי-שקוף (90% אטימות) --- */
             background: rgba(255, 255, 255, 0.9);
             width: 100%;
             max-width: 600px;
             padding: 40px;
             border-radius: 24px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.15); /* צל קצת יותר כהה להדגשה על רקע */
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
             animation: fadeIn 0.8s ease-out;
             position: relative;
-            backdrop-filter: blur(5px); /* אפקט טשטוש קל לרקע מאחורי הפאנל (לא חובה) */
+            backdrop-filter: blur(5px);
         }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -81,7 +78,6 @@
 
         .readonly-box { background: #f1f5f9; cursor: not-allowed; opacity: 0.8; }
 
-        /* --- אזור כפתורים מעודכן (הקטנת פונט) --- */
         .btn-action-container {
             margin-top: 30px;
             text-align: center;

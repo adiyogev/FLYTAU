@@ -121,7 +121,6 @@
       overflow:hidden;
     }
 
-    /* KPI grid - always 4 in a row on desktop */
     .stats-grid{
       display:grid;
       grid-template-columns: repeat(4, 1fr);
@@ -159,10 +158,9 @@
       margin-bottom: 18px;
     }
 
-    /* ✅ שינוי עיקרי: כרטיס גרף עם גובה קבוע */
     .chart-wrap{
       padding: 22px;
-      height: 560px;              /* פריסה מלאה בכרטיס */
+      height: 560px;
       display:flex;
       flex-direction:column;
     }
@@ -182,7 +180,6 @@
       margin: 0 0 14px;
     }
 
-    /* ✅ אזור שמחזיק את התמונה ונותן לה להימתח */
     .chart-area{
       flex: 1;
       display: flex;
@@ -190,7 +187,6 @@
       justify-content: center;
     }
 
-    /* ✅ התמונה ממלאת את הגובה בלי max-height שמקטין */
     .chart-img{
       width: 100%;
       height: 100%;
@@ -228,7 +224,7 @@
       .sidebar{ display:none; }
       .stats-grid{ grid-template-columns: repeat(2, 1fr); }
       .charts-grid{ grid-template-columns: 1fr; }
-      .chart-wrap{ height: 520px; } /* קצת קטן יותר במובייל */
+      .chart-wrap{ height: 520px; }
     }
   </style>
 </head>
@@ -238,7 +234,6 @@
   <aside class="sidebar">
     <a href="/manager" class="brand-area">
       <span>FLYTAU</span>
-      <!-- ✅ לוגו לפי התיקיות -->
       <img src="{{ url_for('static', filename='img/LOGO.png') }}" alt="FLYTAU Logo" class="brand-logo">
     </a>
 
@@ -291,13 +286,11 @@
       </div>
     </section>
 
-    <!-- CHARTS -->
     <section class="charts-grid">
       <div class="surface chart-wrap">
         <div class="chart-title">שיעור ביטולים חודשי</div>
         <div class="chart-subtitle">( 12 חודשים אחרונים)</div>
 
-        <!-- ✅ עטיפה שמאפשרת לתמונה להימתח לאורך הכרטיס -->
         <div class="chart-area">
           <img
             class="chart-img"
@@ -318,7 +311,6 @@
       </div>
     </section>
 
-    <!-- TOP ROUTES TABLE -->
     <section class="surface">
       <div class="card-head">
         <div class="fw-bold text-dark">Top 5 Routes</div>

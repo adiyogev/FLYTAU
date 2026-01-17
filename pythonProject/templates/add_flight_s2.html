@@ -104,7 +104,7 @@
         let requiredPilots = 0;
         let requiredFas = 0;
 
-        // עדכון דרישות דינמי לפי בחירת מטוס
+        // dynamic requirements after plane selection
         document.querySelectorAll('input[name="plane_id"]').forEach(radio => {
             radio.addEventListener('change', function() {
                 const size = this.getAttribute('data-size');
@@ -120,21 +120,19 @@
                 document.getElementById('pilot-req-text').innerText = `יש לבחור בדיוק ${requiredPilots} טייסים`;
                 document.getElementById('fa-req-text').innerText = `יש לבחור בדיוק ${requiredFas} דיילים`;
 
-                // עדכון עיצוב ויזואלי
                 document.querySelectorAll('input[name="plane_id"]').forEach(r =>
                     r.closest('.resource-item').classList.remove('selected'));
                 this.closest('.resource-item').classList.add('selected');
             });
         });
 
-        // עיצוב צ'קבוקסים של צוות
         document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
             cb.addEventListener('change', function() {
                 this.closest('.resource-item').classList.toggle('selected', this.checked);
             });
         });
 
-        // ולידציה לפני שליחה
+        // validation before sending
         document.getElementById('step2-form').addEventListener('submit', function(e) {
             const selectedPilots = document.querySelectorAll('input[name="pilots"]:checked').length;
             const selectedFas = document.querySelectorAll('input[name="fas"]:checked').length;

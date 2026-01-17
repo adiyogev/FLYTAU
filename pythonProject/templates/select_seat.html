@@ -9,26 +9,20 @@
 
     <style>
         :root {
-            /* מותג */
             --flytau-navy: #001b33;
             --flytau-teal: #00818a;
             --flytau-bg: #f8fafc;
             --text-main: #001b33;
             --text-muted: #64748b;
 
-            /* --- צבעים מעודכנים --- */
-
-            /* BUSINESS = תכלת */
             --seat-biz-bg: #bae6fd;
             --seat-biz-border: #7dd3fc;
             --seat-biz-text: #001b33;
 
-            /* ECONOMY = כחול כהה */
             --seat-eco-bg: #001b33;
             --seat-eco-border: #000c18;
             --seat-eco-text: #ffffff;
 
-            /* מצבים נוספים */
             --seat-occupied-bg: #cbd5e1;
             --seat-selected-bg: #00818a;
             --seat-selected-border: #006b72;
@@ -48,7 +42,6 @@
             background-attachment: scroll;
         }
 
-        /* --- Header --- */
         header {
             background: rgba(255,255,255,0.95);
             backdrop-filter: blur(10px);
@@ -70,7 +63,6 @@
         .flight-route i { color: var(--flytau-teal); transform: rotate(180deg); }
         .flight-tag { background: var(--flytau-navy); padding: 2px 8px; border-radius: 6px; font-size: 12px; color: white; margin-right: 8px; }
 
-        /* --- Plane Container --- */
         .plane-container {
             position: relative;
             width: 100%;
@@ -83,7 +75,7 @@
             position: absolute;
             top: 0;
             left: 50%;
-            width: 4200px; /* מטוס רחב */
+            width: 4200px;
             height: 100%;
             transform: translateX(-50%);
             z-index: 1;
@@ -96,10 +88,9 @@
             filter: drop-shadow(0 20px 40px rgba(0,0,0,0.1));
         }
 
-        /* --- Seat Layout Overlay --- */
         .cabin-layout {
             position: absolute;
-            top: 250px; /* אף קצר */
+            top: 250px;
             left: 50%;
             transform: translateX(-50%);
             width: 380px;
@@ -141,8 +132,6 @@
         .seat:hover:not(.occupied) { transform: translateY(-4px); box-shadow: 0 8px 15px rgba(0,0,0,0.15); }
         .seat i { font-size: 20px; pointer-events: none; }
 
-        /* --- Business Seat (תכלת) - התיקון כאן --- */
-        /* שיניתי מ- .seat-biz ל- .seat.biz כדי שיתאים ל-HTML */
         .seat.biz {
             background-color: var(--seat-biz-bg);
             color: var(--seat-biz-text);
@@ -155,8 +144,6 @@
             box-shadow: 0 0 20px rgba(0, 27, 51, 0.5);
         }
 
-        /* --- Economy Seat (כחול כהה) - התיקון כאן --- */
-        /* שיניתי מ- .seat-eco ל- .seat.eco כדי שיתאים ל-HTML */
         .seat.eco {
             background-color: var(--seat-eco-bg);
             color: var(--seat-eco-text);
@@ -169,14 +156,12 @@
             box-shadow: 0 0 20px rgba(0, 129, 138, 0.5);
         }
 
-        /* Occupied */
         .seat.occupied {
             background-color: var(--seat-occupied-bg);
             color: #94a3b8;
             cursor: not-allowed; border-bottom: none; box-shadow: none;
         }
 
-        /* Selected - General Override */
         .seat.selected {
             background-color: var(--seat-selected-bg) !important;
             color: white !important;
@@ -197,7 +182,6 @@
         }
         .exit-row span { background: #fdfdfd; padding: 0 15px; }
 
-        /* --- Legend Panel (המקרא) --- */
         .legend-panel {
             position: fixed; top: 100px; left: 30px;
             background: white; padding: 25px; border-radius: 20px;
@@ -213,7 +197,6 @@
             display: inline-block;
         }
 
-        /* התאמת המקרא */
         .dot-biz {
             background: var(--seat-biz-bg);
             border-bottom: 4px solid var(--seat-biz-border);
