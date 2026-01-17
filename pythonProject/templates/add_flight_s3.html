@@ -6,30 +6,12 @@
     <title>FLYTAU - הוספת טיסה - שלב 3</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
-    <style>
-        :root { --flytau-navy: #001b33; --flytau-teal: #00818a; --bg-body: #f1f5f9; --bg-card: #ffffff; --text-main: #001b33; --text-secondary: #64748b; --border-color: #e2e8f0; }
-        body { font-family: 'Heebo', sans-serif; background-color: var(--bg-body); color: var(--text-main); margin: 0; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; }
-        .card { background: var(--bg-card); border-radius: 20px; padding: 40px; box-shadow: 0 10px 40px rgba(0,0,0,0.08); }
-        .page-title { font-size: 28px; font-weight: 800; color: var(--flytau-navy); margin-bottom: 10px; }
-        .step-indicator { display: flex; gap: 10px; margin-bottom: 30px; }
-        .step { flex: 1; padding: 10px; background: var(--bg-body); border-radius: 8px; text-align: center; font-weight: 700; font-size: 14px; }
-        .step.active { background: var(--flytau-teal); color: white; }
-        .input-group { margin-bottom: 20px; }
-        .label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 8px; color: var(--text-main); }
-        .input-box { display: flex; align-items: center; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 12px; padding: 14px 15px; }
-        .input-box input { border: none; background: transparent; width: 100%; font-size: 16px; outline: none; }
-        .input-box.disabled { background: #e2e8f0; cursor: not-allowed; }
-        .error-message { background: #fee2e2; color: #991b1b; padding: 12px; border-radius: 12px; margin-bottom: 20px; font-weight: 600; }
-        .info-box { background: #e0f2f1; border: 1px solid var(--flytau-teal); border-radius: 12px; padding: 15px; margin-bottom: 20px; }
-        .btn { background: var(--flytau-teal); color: white; border: none; padding: 14px 30px; border-radius: 12px; font-weight: 700; cursor: pointer; }
-        .btn-secondary { background: var(--text-secondary); color: white; text-decoration: none; padding: 14px 30px; border-radius: 12px; font-weight: 700; }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
-<body>
-    <div class="container">
-        <div class="card">
+<body class="flight-steps-bg">
+    <div class="flight-container narrow">
+        <div class="flight-card">
             <h1 class="page-title">הוספת טיסה חדשה - שלב 3</h1>
             <div class="step-indicator">
                 <div class="step">1. פרטים בסיסיים</div>
@@ -66,9 +48,9 @@
                     </div>
                 </div>
 
-                <div style="display: flex; justify-content: space-between; margin-top: 30px;">
+                <div class="actions">
                     <a href="/manager/add_flight/step2" class="btn-secondary">חזור</a>
-                    <button type="submit" class="btn">סיום והוספת טיסה <i class="fas fa-check"></i></button>
+                    <button type="submit" class="btn-primary">סיום והוספת טיסה <i class="fas fa-check"></i></button>
                 </div>
             </form>
         </div>

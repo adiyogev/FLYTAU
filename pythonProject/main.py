@@ -1035,7 +1035,6 @@ def manager_reports():
     except Exception as e:
         print("top_routes error:", e)
 
-    # Create reports to 'static' from presentation
     reports_dir = os.path.join(app.root_path, "static", "reports")
     os.makedirs(reports_dir, exist_ok=True)
 

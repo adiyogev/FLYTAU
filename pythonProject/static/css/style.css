@@ -1,0 +1,544 @@
+/* ==========================================================================
+   1. GLOBAL VARIABLES & RESET (הגדרות כלליות)
+   ========================================================================== */
+:root {
+    /* צבעי מותג - FlyTau */
+    --flytau-navy: #001b33;
+    --flytau-teal: #00818a;
+
+    /* צבעי רקע וטקסט כלליים */
+    --bg-body: #eef6ff;
+    --bg-input: #f8fafc;
+    --bg-card: rgba(255, 255, 255, 0.95);
+
+    /* טקסט */
+    --text-dark: #0f172a;
+    --text-main: #001b33;
+    --text: #1e293b;
+    --text-secondary: #64748b;
+    --muted: #64748b;
+
+    /* גבולות ואפקטים */
+    --border: rgba(226, 232, 240, .9);
+    --border-color: #cbd5e1; /* תואם לטפסים */
+    --radius: 16px;
+    --shadow: 0 18px 55px rgba(15, 23, 42, .12);
+    --sidebar-width: 260px;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Heebo', sans-serif;
+    color: var(--text);
+    margin: 0;
+    min-height: 100vh;
+}
+
+/* אנימציה כללית להופעה */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================================================
+   2. MANAGER REPORTS (דף דוחות ניהוליים)
+   ========================================================================== */
+
+/* רקע מיוחד לדף הדוחות */
+body.reports-page {
+    overflow-x: hidden;
+    background:
+        radial-gradient(900px 260px at 85% 0%, rgba(14, 165, 233, .14), transparent 60%),
+        radial-gradient(720px 240px at 15% 0%, rgba(20, 184, 166, .12), transparent 55%),
+        var(--bg-body);
+}
+
+/* Sidebar */
+.sidebar {
+    position: fixed; top: 0; right: 0;
+    height: 100vh; width: var(--sidebar-width);
+    padding: 16px 0; z-index: 1000;
+    background: rgba(255, 255, 255, .92);
+    backdrop-filter: blur(10px);
+    border-left: 1px solid var(--border);
+    box-shadow: 0 20px 60px rgba(15, 23, 42, .06);
+    display: flex; flex-direction: column;
+}
+
+.brand-area {
+    padding: 14px 22px 12px;
+    display: flex; align-items: center; gap: 12px;
+    font-size: 1.35rem; font-weight: 900;
+    color: var(--text-dark); text-decoration: none;
+    border-bottom: 1px solid var(--border);
+}
+.brand-logo { width: 78px; height: 58px; object-fit: contain; }
+
+.nav-category {
+    padding: 12px 22px 6px;
+    font-weight: 800; font-size: .78rem;
+    letter-spacing: .5px; text-transform: uppercase;
+    color: #94a3b8;
+}
+
+.nav-link {
+    margin: 2px 12px;
+    border-radius: 12px;
+    padding: 12px 12px;
+    display: flex; align-items: center; gap: 10px;
+    color: #334155;
+    border: 1px solid transparent;
+    transition: .18s ease;
+    text-decoration: none;
+}
+.nav-link:hover {
+    background: rgba(241, 245, 249, .9);
+    transform: translateX(-2px);
+    border-color: rgba(226, 232, 240, .9);
+    color: var(--text-dark);
+}
+.nav-link.active {
+    background: rgba(224, 242, 254, .70);
+    color: #075985;
+    font-weight: 900;
+    box-shadow: 0 10px 20px rgba(2, 132, 199, .10);
+    border-color: rgba(2, 132, 199, .18);
+}
+
+/* Layout Content */
+.main-wrapper {
+    margin-right: var(--sidebar-width);
+    padding: 40px;
+}
+
+.top-header {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    gap: 16px; flex-wrap: wrap; margin-bottom: 22px;
+}
+.page-heading h1 {
+    font-size: 1.85rem; font-weight: 900; color: var(--text-dark);
+    margin: 0 0 6px; letter-spacing: -.8px;
+}
+.page-heading p { margin: 0; color: var(--muted); max-width: 60ch; }
+
+/* KPI Boxes */
+.stats-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 18px; margin-bottom: 26px;
+}
+.kpi-box {
+    background: white; border-radius: 14px; padding: 18px;
+    text-align: center; border: 1px solid rgba(226, 232, 240, .9);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, .08);
+}
+.kpi-label { color: #64748b; font-weight: 700; font-size: .85rem; }
+.kpi-value { font-size: 2rem; font-weight: 900; color: #0f172a; margin-top: 6px; }
+
+/* Charts */
+.charts-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 18px; margin-bottom: 18px;
+}
+.surface {
+    background: rgba(255, 255, 255, .92);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(226, 232, 240, .85);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+.chart-wrap {
+    padding: 22px; height: 560px;
+    display: flex; flex-direction: column;
+}
+.chart-title {
+    font-size: 1.55rem; font-weight: 900; color: var(--text-dark);
+    text-align: center; margin: 4px 0 6px; letter-spacing: -0.6px;
+}
+.chart-subtitle { text-align: center; color: var(--muted); margin: 0 0 14px; }
+.chart-area { flex: 1; display: flex; align-items: center; justify-content: center; }
+.chart-img { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+/* Table */
+.card-head {
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(226, 232, 240, .85);
+    background: linear-gradient(180deg, rgba(248, 250, 252, 1), rgba(255, 255, 255, 1));
+}
+.table th {
+    background: rgba(248, 250, 252, .95) !important;
+    font-weight: 900; font-size: .78rem; text-transform: uppercase;
+    color: #475569; border-bottom: 1px solid rgba(226, 232, 240, .9) !important;
+}
+.table td { border-bottom: 1px solid rgba(226, 232, 240, .75) !important; vertical-align: middle; }
+
+/* Media Queries for Reports */
+@media(max-width: 992px) {
+    .main-wrapper { margin-right: 0; padding: 20px; }
+    .sidebar { display: none; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .charts-grid { grid-template-columns: 1fr; }
+}
+
+/* ==========================================================================
+   3. ADD PLANE PAGE (דף הוספת מטוס)
+   ========================================================================== */
+
+/* עיצוב גוף הדף הספציפי למטוס */
+body.add-plane-body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    /* תמונת הרקע מוגדרת ב-HTML */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+.form-container {
+    background: white;
+    padding: 40px;
+    border-radius: 24px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+    width: 100%;
+    max-width: 700px;
+    text-align: center;
+    animation: fadeInUp 0.8s ease-out forwards;
+}
+
+.header .logo-img { height: 70px; margin-bottom: 15px; }
+.form-container h2 { color: var(--flytau-navy); font-weight: 900; font-size: 32px; margin: 0 0 10px 0; }
+.subtitle { color: var(--text-secondary); font-size: 18px; font-weight: 500; }
+
+.form-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    margin-bottom: 25px; text-align: right;
+}
+
+/* Input Fields for Plane Form */
+.input-group { display: flex; flex-direction: column; gap: 8px; text-align: right; margin-bottom: 20px; }
+.input-label { font-size: 15px; font-weight: 800; color: var(--text-secondary); }
+
+.input-field-wrapper {
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: 12px; padding: 14px;
+    display: flex; align-items: center; gap: 12px;
+    transition: border-color 0.3s;
+}
+.input-field-wrapper:focus-within { border-color: var(--flytau-teal); }
+.input-field-wrapper i { color: var(--flytau-teal); font-size: 18px; width: 20px; text-align: center; }
+.input-field-wrapper input, .input-field-wrapper select {
+    border: none; background: transparent; width: 100%; outline: none;
+    font-size: 16px; font-family: 'Heebo', sans-serif;
+    color: var(--flytau-navy); font-weight: 500;
+}
+
+/* Custom Checkboxes */
+.column-selector { display: flex; gap: 8px; justify-content: flex-start; flex-wrap: wrap; }
+.col-checkbox { display: none; }
+.col-label {
+    width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;
+    background: var(--bg-input); border: 1px solid var(--border-color);
+    border-radius: 8px; color: var(--text-secondary); font-weight: 700;
+    cursor: pointer; transition: all 0.2s; user-select: none;
+}
+.col-checkbox:checked + .col-label {
+    background: var(--flytau-teal); color: white; border-color: var(--flytau-teal);
+    transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0, 129, 138, 0.2);
+}
+
+.section-divider {
+    margin: 20px 0 15px 0; border-top: 2px dashed #e2e8f0; padding-top: 15px;
+    text-align: right; color: var(--flytau-navy); font-weight: 800; font-size: 18px;
+    display: flex; align-items: center; gap: 10px;
+}
+.hidden { display: none; }
+
+.btn-submit {
+    background: var(--flytau-navy); color: white; border: none; padding: 16px;
+    border-radius: 12px; font-weight: 800; font-size: 18px; cursor: pointer;
+    width: 100%; transition: background 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px;
+    margin-top: 20px; font-family: 'Heebo', sans-serif;
+}
+.btn-submit:hover { background: #002b52; }
+
+/* ==========================================================================
+   4. ADD STAFF PAGE (דף הוספת עובד)
+   ========================================================================== */
+
+body.add-staff-body {
+    display: flex; justify-content: center; align-items: center;
+    padding: 20px;
+    /* תמונת הרקע מוגדרת ב-HTML */
+    background-size: cover; background-position: center;
+    background-repeat: no-repeat; background-attachment: fixed;
+}
+
+.staff-container { width: 100%; max-width: 800px; margin: 0 auto; position: relative; }
+
+.staff-card {
+    background: var(--bg-card);
+    border-radius: 20px; padding: 40px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    backdrop-filter: blur(5px);
+    animation: fadeInUp 0.8s ease-out forwards;
+}
+
+.page-title {
+    font-size: 28px; font-weight: 800; color: var(--flytau-navy);
+    margin-bottom: 30px; text-align: center;
+}
+
+/* שדות קלט בסגנון Staff */
+.label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 8px; color: var(--flytau-navy); }
+
+.input-box {
+    display: flex; align-items: center; background: #f8fafc;
+    border: 1px solid var(--border-color); border-radius: 12px; padding: 14px 15px;
+    transition: 0.3s;
+}
+.input-box:focus-within {
+    border-color: var(--flytau-teal); background: white;
+    box-shadow: 0 0 0 4px rgba(0,129,138,.1);
+}
+.input-box i { color: var(--text-secondary); margin-left: 10px; font-size: 16px; }
+.input-box input, .input-box select {
+    border: none; background: transparent; width: 100%;
+    font-size: 16px; outline: none; color: var(--flytau-navy);
+    font-weight: 500; font-family: 'Heebo', sans-serif;
+    -webkit-appearance: none; -moz-appearance: none; appearance: none;
+}
+
+/* חץ מותאם אישית ל-Select */
+.input-box select {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat; background-position: left 10px center; background-size: 16px;
+}
+
+.checkbox-group {
+    display: flex; align-items: center; gap: 10px; padding: 15px;
+    background: #f8fafc; border-radius: 12px;
+    border: 1px solid transparent; cursor: pointer;
+}
+.checkbox-group:hover { border-color: var(--border-color); }
+.checkbox-group input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; accent-color: var(--flytau-teal); }
+
+.actions { display: flex; justify-content: space-between; margin-top: 30px; gap: 20px; }
+
+/* כפתורים */
+.btn-primary {
+    flex: 1; background: var(--flytau-navy); color: white; border: none; padding: 16px;
+    border-radius: 8px; font-weight: 700; font-size: 18px; cursor: pointer; transition: 0.3s;
+    display: flex; justify-content: center; align-items: center; gap: 10px;
+    box-shadow: 0 4px 15px rgba(0, 27, 51, 0.2); font-family: 'Heebo', sans-serif;
+}
+.btn-primary:hover { background: #002d54; transform: translateY(-2px); }
+
+.btn-secondary, .back-link {
+    flex: 1; background: transparent; color: var(--text-secondary);
+    border: 2px solid var(--border-color); text-decoration: none;
+    display: flex; justify-content: center; align-items: center; gap: 10px;
+    border-radius: 8px; font-weight: 700; font-size: 18px; padding: 16px;
+    font-family: 'Heebo', sans-serif; cursor: pointer;
+}
+.btn-secondary:hover, .back-link:hover {
+    background: #f1f5f9; color: var(--flytau-navy); border-color: var(--border-color);
+    transform: translateY(-2px);
+}
+
+.error-message {
+    background: #fee2e2; color: #ef4444; padding: 15px; border-radius: 12px;
+    margin-bottom: 25px; font-weight: 700; display: flex; align-items: center; gap: 10px; text-align: right;
+}
+
+
+@media (max-width: 768px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .actions { flex-direction: column-reverse; }
+    .staff-card, .form-container { padding: 25px; }
+}
+
+/* ==========================================================================
+   5. ADD FLIGHT PROCESS (תהליך הוספת טיסה - שלבים 1-3)
+   ========================================================================== */
+
+/* --- Step 1 Specific Styles --- */
+body.add-flight-step1 {
+    display: flex; justify-content: center; align-items: center;
+    background-size: cover; background-position: center;
+    background-repeat: no-repeat; background-attachment: fixed;
+    /* תמונת הרקע מוגדרת ב-HTML */
+}
+
+.flight-panel {
+    background: rgba(255, 255, 255, 0.9);
+    width: 100%; max-width: 600px; padding: 40px;
+    border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+    animation: fadeIn 0.8s ease-out; position: relative;
+    backdrop-filter: blur(5px);
+}
+
+.title-row { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 10px; }
+.inline-logo { height: 50px; width: auto; }
+.flight-panel h1 { font-size: 28px; color: var(--flytau-navy); margin: 0; font-weight: 800; text-align: center; }
+.subtitle { color: var(--text-secondary); font-size: 16px; margin-bottom: 30px; text-align: center; font-weight: 400; }
+
+.readonly-box { background: #f1f5f9; cursor: not-allowed; opacity: 0.8; }
+
+.btn-action-container { margin-top: 30px; text-align: center; }
+.cancel-link {
+    margin-top: 15px; display: block; color: #64748b;
+    text-decoration: none; font-size: 16px; font-weight: 600; transition: 0.3s;
+}
+.cancel-link:hover { color: var(--flytau-navy); }
+
+/* --- Step 2 & 3 Shared Styles --- */
+body.flight-steps-bg {
+    background-color: #f1f5f9; /* bg-body */
+    color: var(--text-main); padding: 20px;
+}
+
+.flight-container { max-width: 1000px; margin: 0 auto; }
+.flight-container.narrow { max-width: 800px; } /* For step 3 */
+
+.flight-card {
+    background: white; border-radius: 20px; padding: 40px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.08); margin-bottom: 20px;
+}
+
+.step-indicator { display: flex; gap: 10px; margin-bottom: 30px; }
+.step {
+    flex: 1; padding: 10px; background: #f1f5f9;
+    border-radius: 8px; text-align: center; font-weight: 700; font-size: 14px;
+}
+.step.active { background: var(--flytau-teal); color: white; }
+
+.section-title {
+    font-size: 20px; font-weight: 800; margin-bottom: 20px;
+    padding-bottom: 10px; border-bottom: 2px solid #f1f5f9;
+}
+
+/* Resource Grid (Step 2) */
+.resource-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px; margin-bottom: 30px;
+}
+.resource-item {
+    background: #f1f5f9; border: 2px solid var(--border-color);
+    border-radius: 12px; padding: 15px; cursor: pointer;
+    transition: 0.3s; position: relative;
+}
+.resource-item:hover { border-color: var(--flytau-teal); transform: translateY(-3px); }
+.resource-item.selected { border-color: var(--flytau-teal); background: rgba(0, 129, 138, 0.1); }
+
+.resource-id { font-weight: 800; color: var(--flytau-navy); margin-bottom: 5px; }
+.resource-details { font-size: 12px; color: var(--text-secondary); }
+
+.req-badge {
+    background: #e0f2f1; color: var(--flytau-teal);
+    padding: 2px 8px; border-radius: 10px;
+    font-size: 13px; font-weight: bold;
+}
+
+/* Pricing (Step 3) */
+.info-box {
+    background: #e0f2f1; border: 1px solid var(--flytau-teal);
+    border-radius: 12px; padding: 15px; margin-bottom: 20px;
+}
+.input-box.disabled { background: #e2e8f0; cursor: not-allowed; }
+
+/* ==========================================================================
+   6. LOGIN MANAGER PAGE
+   ========================================================================== */
+
+
+body.login-body {
+    margin: 0; padding: 0;
+    font-family: 'Heebo', sans-serif;
+    height: 100vh;
+    display: flex; overflow: hidden;
+    background: white;
+}
+
+.login-section {
+    flex: 1; background: white;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    padding: 40px; overflow-y: auto;
+}
+
+.login-wrapper {
+    width: 100%; max-width: 420px;
+    animation: fadeIn .8s ease-out;
+    padding-top: 20px;
+}
+
+.title-row {
+    display: flex; align-items: center; justify-content: center;
+    gap: 12px; margin-top: 10px; margin-bottom: 10px;
+}
+.inline-logo {
+    height: 46px; width: auto; object-fit: contain;
+    background: transparent; display: block;
+}
+
+.login-wrapper h1 {
+    font-size: 32px; color: var(--flytau-navy);
+    margin: 0; font-weight: 800; line-height: 1.2; padding-top: 3px;
+}
+
+
+.btn-submit-login {
+    width: 100%; background: var(--flytau-navy); color: white; border: none;
+    padding: 18px; border-radius: 12px; font-size: 16px; font-weight: 700;
+    cursor: pointer; transition: .3s; margin-top: 10px;
+    display: flex; justify-content: center; align-items: center; gap: 10px;
+    box-shadow: 0 10px 20px rgba(0,27,51,.15); font-family: inherit;
+}
+.btn-submit-login:hover {
+    background: #002d54; transform: translateY(-2px);
+    box-shadow: 0 15px 30px rgba(0,27,51,.25);
+}
+
+.links { margin-top: 30px; text-align: center; font-size: 14px; color: var(--text-secondary); }
+.links a { color: var(--flytau-teal); text-decoration: none; font-weight: 700; transition: .2s; }
+.links a:hover { color: var(--flytau-navy); text-decoration: underline; }
+
+
+.image-section {
+    flex: 1.3;
+    background-image: url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?q=80&w=2074&auto=format&fit=crop');
+    background-size: cover; background-position: center; position: relative;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 80px; color: white;
+}
+
+.overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(0,27,51,0.95) 0%, rgba(0,27,51,0.4) 60%, rgba(0,27,51,0.1) 100%);
+}
+
+.promo-content { position: relative; z-index: 2; max-width: 600px; animation: slideUp 1s ease-out; }
+@keyframes slideUp { from{opacity:0; transform:translateY(40px);} to{opacity:1; transform:translateY(0);} }
+
+.promo-tag {
+    display: inline-block; background: var(--flytau-teal); color: white;
+    padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 800;
+    margin-bottom: 25px; text-transform: uppercase; letter-spacing: 1px;
+}
+.promo-title { font-size: 64px; font-weight: 800; margin-bottom: 20px; line-height: 1.1; }
+.promo-desc { font-size: 20px; opacity: .9; line-height: 1.6; max-width: 90%; font-weight: 300; }
+
+
+@media (max-width: 1000px){
+    .image-section { display: none; }
+    .login-section { width: 100%; flex: none; background: #f8fafc; }
+    .login-wrapper { background: white; padding: 40px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+}
