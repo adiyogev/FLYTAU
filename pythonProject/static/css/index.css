@@ -23,7 +23,7 @@ body {
 button, input, select, textarea { font-family: inherit; }
 a { text-decoration: none; }
 
-/* --- HEADER --- */
+/* HEADER */
 header {
     width: 100%;
     background: var(--bg-card);
@@ -56,11 +56,10 @@ header {
 
 .my-orders-link { color: var(--flytau-teal); font-weight: 800; display: flex; align-items: center; gap: 5px; }
 
-/* --- HERO SECTION (החלק של התמונה) --- */
+/* HERO SECTION */
 .hero-section {
-    /* הגדרות אלו דואגות שהתמונה לא תיחתך */
     background-size: cover;
-    background-position: center center; /* ממקם את המטוס באמצע */
+    background-position: center center;
     background-repeat: no-repeat;
 
     color: white;
@@ -72,7 +71,7 @@ header {
 .hero-title { font-size: 52px; font-weight: 900; margin-bottom: 10px; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
 .hero-subtitle { font-size: 22px; opacity: 0.9; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
 
-/* --- SEARCH BOX --- */
+/* SEARCH BOX */
 .search-container { max-width: 1100px; margin: -70px auto 40px; padding: 0 20px; width: 100%; position: relative; z-index: 10; }
 .search-card { background: var(--bg-card); border-radius: 24px; padding: 35px; box-shadow: var(--card-shadow); }
 
@@ -110,7 +109,7 @@ header {
 }
 .search-btn:hover { background: #006b72; }
 
-/* --- FOOTER --- */
+/* FOOTER */
 footer {
     margin-top: auto;
     background: var(--flytau-navy);

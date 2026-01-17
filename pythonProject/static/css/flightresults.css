@@ -18,7 +18,7 @@ body {
     padding-bottom: 50px;
 }
 
-/* --- Header Styles --- */
+/* Header Styles */
 header {
     background: #ffffff; padding: 5px 40px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.05);
@@ -41,7 +41,7 @@ header {
 .auth-link.logout { color: #ef4444; font-weight: 700; margin-right: 5px; }
 .btn-register { background: var(--flytau-navy); color: white; padding: 8px 18px; border-radius: 20px; text-decoration: none; font-weight: 700; font-size: 14px; }
 
-/* --- Hero Banner --- */
+/* Hero Banner */
 .hero-banner {
     background-size: cover;
     background-position: center center;
@@ -65,7 +65,7 @@ header {
     text-transform: uppercase;
 }
 
-/* --- Stepper --- */
+/* Stepper */
 .stepper-container {
     max-width: 900px;
     margin: -40px auto 40px;
@@ -83,7 +83,7 @@ header {
 .step.active .dot { background: var(--flytau-teal); box-shadow: 0 0 15px var(--flytau-teal); }
 .step-label { font-size: 14px; font-weight: 700; color: var(--text-secondary); }
 
-/* --- Flight Card Modern Design --- */
+/* Flight Card */
 .results-list { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
 
 .flight-card-modern {
@@ -151,7 +151,7 @@ header {
 .flight-date { font-size: 15px; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 4px; font-weight: 500; }
 .flight-time-big { font-size: 20px; font-weight: 800; color: var(--flytau-teal); display: flex; align-items: center; justify-content: center; gap: 6px; }
 
-/* Timeline Column (Middle) */
+/* Timeline */
 .timeline-col { text-align: center; position: relative; width: 100%; }
 .duration-text { font-size: 22px; font-weight: 800; color: var(--flytau-teal); margin-bottom: 10px; }
 .timeline-graphic {
