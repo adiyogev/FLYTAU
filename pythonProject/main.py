@@ -864,7 +864,7 @@ def add_plane():
         return redirect('/login_manager')
 
     if request.method == 'POST':
-        # --- Data Retrieval ---
+        # Data from form
         plane_id = request.form.get('plane_id').strip().upper()
         size = request.form.get('size')
         manufacturer = request.form.get('manufacturer')
@@ -874,7 +874,7 @@ def add_plane():
         eco_cols = request.form.getlist('eco_cols')
         eco_rows = request.form.get('eco_rows')
 
-        # --- Validation ---
+        # Validation
         if not eco_rows or not eco_cols:
             return render_template('add_plane.html',
                                    error="חובה להזין מספר שורות ולבחור לפחות עמודה אחת במחלקת תיירים",
@@ -905,53 +905,42 @@ def add_plane():
                                        error="מספר שורות עסקים חייב להיות מספר תקין",
                                        prev_data=request.form)
 
-        # --- Database Operations ---
         try:
             cursor = mydb.cursor()
-
             # 2. Duplicate Check
             cursor.execute("SELECT plane_id FROM Plane WHERE plane_id = %s", (plane_id,))
             if cursor.fetchone():
                 return render_template('add_plane.html',
                                        error=f"שגיאה: המטוס {plane_id} כבר קיים במערכת.",
                                        prev_data=request.form)
-
             # 3. Transaction: Insert Plane -> Generate Seats -> Insert Class
-
             # Step A: Insert Plane
             query_plane = """
                 INSERT INTO Plane (plane_id, size, purchase_date, manufacturer)
                 VALUES (%s, %s, %s, %s)
             """
             cursor.execute(query_plane, (plane_id, size, purchase_date, manufacturer))
-
             # Step B: Generate Seats Data
             seats_data = []
             current_row = 1
-
             # Business Class Logic
             if size == 'large':
                 for r in range(1, biz_rows + 1):
                     for col in biz_cols:
                         seats_data.append((plane_id, r, col, 'business'))
                 current_row = biz_rows + 1
-
             # Economy Class Logic
             for r in range(current_row, current_row + eco_rows):
                 for col in eco_cols:
                     seats_data.append((plane_id, r, col, 'economy'))
-
             # Step C: Insert into 'Class' table
             query_seats = """
                 INSERT INTO `Class` (plane_id, seat_row, seat_position, class_type)
                 VALUES (%s, %s, %s, %s)
             """
             cursor.executemany(query_seats, seats_data)
-
             # Commit only if all steps succeeded
             mydb.commit()
-
-            # --- REDIRECT HAPPENS HERE ---
             return redirect('/manager')
 
         except Exception as e:
@@ -959,7 +948,6 @@ def add_plane():
             return render_template('add_plane.html',
                                    error=f"שגיאה בשמירה במסד הנתונים: {e}",
                                    prev_data=request.form)
-
         finally:
             cursor.close()
 
@@ -973,19 +961,19 @@ def manager_reports():
 
     cursor = mydb.cursor(buffered=True)
 
-    # --- KPI 1: סה"כ הזמנות ---
+    # Total orders
     cursor.execute("SELECT COUNT(*) FROM Orders")
     total_orders = cursor.fetchone()[0] or 0
 
-    # --- KPI 2: הכנסות (בלי ביטולי משתמש) ---
-    cursor.execute("SELECT SUM(total_price) FROM Orders WHERE status != 'cancelled by user'")
+    # Total income
+    cursor.execute("SELECT SUM(total_price) FROM Orders WHERE status != 'cancelled by system'")
     total_revenue = cursor.fetchone()[0] or 0
 
-    # --- KPI 3: כמות ביטולים ---
+    # Cancellations
     cursor.execute("SELECT COUNT(*) FROM Orders WHERE status = 'cancelled by user'")
     cancelled_orders = cursor.fetchone()[0] or 0
 
-    # --- KPI 4 (חדש): תפוסה ממוצעת כללית בטיסות completed ---
+    # Occupancy
     cursor.execute("""
         SELECT 
             ROUND(SUM(occupied_seats) / NULLIF(SUM(total_capacity), 0) * 100, 2) AS avg_total_occupancy
@@ -1003,7 +991,7 @@ def manager_reports():
     avg_total_occupancy = cursor.fetchone()[0]
     avg_total_occupancy = float(avg_total_occupancy) if avg_total_occupancy is not None else 0
 
-    # --- גרף 1: תפוסה ממוצעת (דונאט) ---
+    # Average occupancy rate
     cursor.execute("""
         SELECT AVG(occupied_seats / NULLIF(total_capacity, 0)) * 100 AS avg_occupancy_percentage
         FROM (
@@ -1020,7 +1008,7 @@ def manager_reports():
     avg_occupancy = cursor.fetchone()[0]
     avg_occupancy = round(float(avg_occupancy), 2) if avg_occupancy is not None else 0
 
-    # --- גרף 2: שיעור ביטולים חודשי (עד 12 חודשים) ---
+    # Monthly cancellation rate
     cursor.execute("""
         SELECT
             DATE_FORMAT(order_date, '%Y-%m') AS order_month,
@@ -1032,7 +1020,7 @@ def manager_reports():
     """)
     cancellation_by_month = cursor.fetchall()
 
-    # --- Top Routes ---
+    # Top Routes
     top_routes = []
     try:
         cursor.execute("""
@@ -1047,7 +1035,7 @@ def manager_reports():
     except Exception as e:
         print("top_routes error:", e)
 
-    # --- יצירת תמונות גרפים לתוך static/reports ---
+    # Create reports to 'static' from presentation
     reports_dir = os.path.join(app.root_path, "static", "reports")
     os.makedirs(reports_dir, exist_ok=True)
 
@@ -1086,7 +1074,6 @@ def update_flight_statuses():
             WHERE f.departure < %s AND o.status = 'active'
         """
         cursor.execute(query_orders, (now,))
-
         mydb.commit()
     except Exception as e:
         return f"שגיאה בעדכון סטטוס טיסות: {e}"
