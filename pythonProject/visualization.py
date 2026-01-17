@@ -1,105 +1,112 @@
+import os
 import matplotlib.pyplot as plt
 
 
-def test_occupancy_matplotlib_final(avg_occupancy):
+def occupancy_donut(avg_occupancy, out_dir, filename="avg_occupancy.png"):
     """
-    גרף דונאט ב-Matplotlib: קומפקטי, נקי, עם כותרת מתוקנת
+    יוצר גרף דונאט תפוסה ושומר לקובץ בתוך out_dir
     """
-    if not avg_occupancy:
+    if avg_occupancy is None:
         avg_occupancy = 0
+
+    try:
+        avg_occupancy = float(avg_occupancy)
+    except (TypeError, ValueError):
+        avg_occupancy = 0
+
+    avg_occupancy = max(0, min(100, avg_occupancy))
 
     vacant = 100 - avg_occupancy
     sizes = [avg_occupancy, vacant]
-
-    # הצבעים שלך: טורקיז וטורקיז-אפרפר בהיר
     colors = ['#00818a', '#e2e8f0']
 
-    # --- הקטנת הגודל ---
-    # figsize=(5, 5) יוצר תמונה בגודל בינוני ונוח (לא ענק)
-    fig, ax = plt.subplots(figsize=(5, 5))
+    fig, ax = plt.subplots(figsize=(6, 6), dpi=160)
 
-    # יצירת הדונאט
-    wedges, texts = ax.pie(sizes,
-                           colors=colors,
-                           startangle=90,
-                           counterclock=False,
-                           # width=0.35 יוצר את הטבעת, edgecolor לבן יוצר את ההפרדה הנקייה
-                           wedgeprops={'width': 0.35, 'edgecolor': 'white', 'linewidth': 3})
+    ax.pie(
+        sizes,
+        colors=colors,
+        startangle=90,
+        counterclock=False,
+        wedgeprops={'width': 0.35, 'edgecolor': 'white', 'linewidth': 3}
+    )
 
-    # --- המספר במרכז ---
-    ax.text(0, 0, f"{avg_occupancy:.1f}%",
-            ha='center', va='center',
-            fontsize=28, fontweight='bold', color='#001b33')
+    ax.text(
+        0, 0, f"{avg_occupancy:.1f}%",
+        ha='center', va='center',
+        fontsize=32, fontweight='bold', color='#001b33'
+    )
 
-    # --- הכותרת החדשה (היפוך טקסט לעברית) ---
-    title_text = "ממוצע תפוסת טיסות שהתקיימו"[::-1]
+    ax.set(aspect="equal")
 
-    # מיקום הכותרת מעט מעל הגרף
-    plt.title(title_text, fontsize=16, weight='bold', color='#64748b', pad=15)
+    os.makedirs(out_dir, exist_ok=True)
+    out_path = os.path.join(out_dir, filename)
 
-    # הסרת שוליים מיותרים כדי שהגרף לא יחתך
-    plt.tight_layout()
+    plt.savefig(out_path, bbox_inches="tight", pad_inches=0.02, transparent=True)
+    plt.close(fig)
 
-    # הצגה בחלון
-    plt.show()
+    return out_path
 
 
-# הרצת בדיקה עם נתונים לדוגמה
-test_occupancy_matplotlib_final(78.5)
-
-
-def show_cancellation_bar_test_fixed_scale():
+def cancellation_bar(data, out_dir, filename="cancellation_rate.png"):
     """
-    יוצר ומציג גרף עמודות לשיעור ביטולים עם ציר Y קבוע (0-100%)
+    data: [(YYYY-MM, rate_as_fraction), ...]
+    rate_as_fraction למשל 0.12 = 12%
     """
-    # נתונים לדוגמה
-    data = [
-        ('2025-01', 0.04),  # 4%
-        ('2024-12', 0.12),  # 12%
-        ('2024-11', 0.08),  # 8%
-        ('2024-10', 0.15),  # 15%
-        ('2024-09', 0.06)  # 6%
-    ]
+    if not data:
+        data = []
 
-    # היפוך סדר הנתונים (מהישן לחדש)
     data = list(reversed(data))
     months = [row[0] for row in data]
-    rates = [float(row[1]) * 100 for row in data]
+    rates = [float(row[1]) * 100 for row in data]  # לאחוזים
 
-    plt.figure(figsize=(10, 6))
+    if len(months) == 0:
+        months = ["-"]
+        rates = [0]
 
-    # יצירת העמודות
-    bars = plt.bar(months, rates, color='#00818a', width=0.5, zorder=3)
+    fig, ax = plt.subplots(figsize=(12, 6), dpi=170)
 
-    # --- התיקון: קיבוע ציר ה-Y מ-0 עד 100 ---
-    plt.ylim(0, 100)
+    bars = ax.bar(months, rates, width=0.55)
 
-    # רשת רקע
-    plt.grid(axis='y', linestyle='--', alpha=0.3, zorder=0)
+    max_rate = max(rates) if rates else 0
 
-    plt.title("שיעור ביטולים חודשי"[::-1], fontsize=18, weight='bold', color='#001b33', pad=20)
+    if len(rates) == 1:
+        # אם חודש אחד (במיוחד אם 0) — לא נרים ל-100, אלא נעשה סקאלה קטנה
+        y_top = 10 if max_rate <= 1 else max(15, max_rate * 2)
+    else:
+        # אם יש כמה חודשים: סקאלה לפי המקסימום, אבל לא מוגזמת
+        y_top = max(10, min(100, max_rate * 1.35 + 2))
+
+    ax.set_ylim(0, y_top)
 
     # עיצוב נקי
-    ax = plt.gca()
+    ax.grid(axis='y', linestyle='--', alpha=0.25)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.spines['left'].set_visible(False)
     ax.spines['bottom'].set_color('#cbd5e1')
+    ax.tick_params(axis='both', which='both', length=0)
 
-    plt.tick_params(axis='both', which='both', length=0, labelcolor='#64748b')
 
-    # הוספת התוויות מעל העמודות
-    for bar in bars:
-        height = bar.get_height()
-        plt.text(bar.get_x() + bar.get_width() / 2., height + 2,  # הרחקתי קצת את הטקסט למעלה (+2)
-                 f'{height:.1f}%',
-                 ha='center', va='bottom', fontsize=12, weight='bold', color='#001b33')
+    for i, bar in enumerate(bars):
+        h = rates[i]
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            bar.get_height() + (y_top * 0.03),
+            f"{h:.1f}%",
+            ha="center",
+            va="bottom",
+            fontsize=12,
+            fontweight="bold"
+        )
+
+    if len(months) > 8:
+        plt.xticks(rotation=25, ha='right')
 
     plt.tight_layout()
 
-    # הצגה
-    plt.show()
+    os.makedirs(out_dir, exist_ok=True)
+    out_path = os.path.join(out_dir, filename)
+    plt.savefig(out_path, bbox_inches="tight", pad_inches=0.02, transparent=True)
+    plt.close(fig)
 
-
-# הרצת הבדיקה
-show_cancellation_bar_test_fixed_scale()
+    return out_path
