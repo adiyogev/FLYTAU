@@ -602,7 +602,7 @@ def manager_flights():
                 try:
                     cursor.execute("UPDATE Flight SET status = 'cancelled' WHERE flight_id = %s", (flight_id,))
                     cursor.execute("""UPDATE Orders SET total_price = 0, status = 'cancelled by system'
-                        WHERE flight_id = %s AND status != 'cancelled' AND status != 'completed'""", (flight_id,))
+                        WHERE flight_id = %s AND status = 'active'""", (flight_id,))
                     mydb.commit()
                     flash("הטיסה בוטלה בהצלחה.", "success")
                 except Exception as e:
