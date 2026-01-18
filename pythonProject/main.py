@@ -81,7 +81,7 @@ def search_flights():
                 SELECT o.flight_id, COUNT(sio.seat_row) as booked_count
                 FROM Orders as o
                 JOIN Seats_in_Order sio ON o.code = sio.code
-                WHERE o.status != 'cancelled'
+                WHERE o.status IN ('active','completed')
                 GROUP BY o.flight_id
             ) occupied_counts ON f.flight_id = occupied_counts.flight_id
             WHERE f.origin_airport = %s AND f.destination_airport = %s 
@@ -161,7 +161,7 @@ def select_seats(flight_id):
         SELECT sio.seat_row, sio.seat_position 
         FROM Seats_in_Order sio
         JOIN Orders o ON sio.code = o.code
-        WHERE o.flight_id = %s AND o.status != 'cancelled'
+        WHERE o.flight_id = %s AND o.status IN ('active','completed')
     """, (flight_id,))
     occupied_set = {(r, p) for r, p in cursor.fetchall()}
     # 4. Build Logic Maps for Jinja Template (Separating Business/Economy)
@@ -623,7 +623,8 @@ def manager_flights():
                    f.business_seat_price, f.economy_seat_price, f.status,
                    (SELECT COUNT(*) FROM Class WHERE plane_id = f.plane_id) as capacity,
                    (SELECT COUNT(*) FROM Seats_in_Order WHERE code IN 
-                        (SELECT code FROM Orders WHERE flight_id = f.flight_id AND status != 'cancelled')) as occupied
+                        (SELECT code FROM Orders WHERE flight_id = f.flight_id AND status IN ('active','completed'))
+                   ) as occupied            
             FROM Flight as f 
             JOIN Route as r ON f.origin_airport = r.origin_airport 
                 AND f.destination_airport = r.destination_airport
@@ -664,7 +665,7 @@ def manager_flights():
     p_count = cursor.fetchone()[0]
     cursor.execute("SELECT COUNT(*) FROM Flight_Attendant")
     fa_count = cursor.fetchone()[0]
-    cursor.execute("SELECT SUM(total_price) FROM Orders WHERE status != 'cancelled'")
+    cursor.execute("SELECT SUM(total_price) FROM Orders WHERE status IN ('active','completed')")
     total_income_res = cursor.fetchone()
     total_income = total_income_res[0] if total_income_res and total_income_res[0] else 0
 
