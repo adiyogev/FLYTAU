@@ -484,7 +484,7 @@
 
                   <td class="text-end">
                     {% if flight.status | lower != 'cancelled' and flight.status | lower != 'completed'  %}
-                      <form method="POST" action="/manager/delete_flight" style="display:inline;">
+                      <form method="POST" action="/manager" style="display:inline;">
                         <input type="hidden" name="flight_id" value="{{ flight.flight_id }}">
                         <button
                           type="submit"

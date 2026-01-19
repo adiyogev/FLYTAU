@@ -612,7 +612,6 @@ def manager_flights():
                 flash("לא ניתן לבטל פחות מ-72 שעות.", "warning")
 
     # --- GET: Display Flights with FILTER ---
-
     # 1. Get filter from URL (default is 'all' if nothing selected)
     status_filter = request.args.get('status', 'all')
 
@@ -645,6 +644,7 @@ def manager_flights():
 
     flights_list = []
     for row in flights_data:
+        is_flight_cancelled = (row[8] == 'cancelled')
         f = Flight(
             flight_id=row[0],
             origin=row[1],
@@ -656,7 +656,7 @@ def manager_flights():
             economy_seat_price=row[7],
             capacity=row[9],
             occupied=row[10],
-            is_cancelled=(row[8] == 'cancelled')
+            is_cancelled=is_flight_cancelled
         )
         flights_list.append(f)
 
