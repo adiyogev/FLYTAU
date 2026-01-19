@@ -15,16 +15,40 @@ app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 # COOKIES define - 30 minutes since last activity
 app.permanent_session_lifetime = timedelta(minutes=30)
+
+
+mydb = mysql.connector.connect(host="localhost", user="root", password="root", database="FLYTAU")
+cursor = mydb.cursor(buffered=True)
+
+# When running the website, check for completed flights and update in DB
+# Must be defined before before_request decorators call it
+
+def update_flight_statuses():
+    try:
+        now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        query = "UPDATE Flight SET status = 'completed' WHERE departure < %s AND status = 'active'"
+        cursor.execute(query, (now,))
+        query_orders = """
+            UPDATE Orders o
+            JOIN Flight f ON o.flight_id = f.flight_id
+            SET o.status = 'completed'
+            WHERE f.departure < %s AND o.status = 'active'
+        """
+        cursor.execute(query_orders, (now,))
+        mydb.commit()
+    except Exception as e:
+        return f"שגיאה בעדכון סטטוס טיסות: {e}"
 @app.before_request
 def make_session_permanent():
     # permanent session - make sure
     session.permanent = True
     # update session with every activity
     session.modified = True
-
-mydb = mysql.connector.connect(host="localhost", user="root", password="root", database="FLYTAU")
-cursor = mydb.cursor(buffered=True)
-
+@app.before_request
+def update_flights_each_request():
+    if request.endpoint and request.endpoint.startswith('static'):
+        return
+    update_flight_statuses()
 
 # ============================================================================
 #                                 MAIN ROUTES
@@ -333,7 +357,7 @@ def checkout():
         cust_data = cursor.fetchone()
         if cust_data:
             user_details = {'first_name': cust_data[0], 'last_name': cust_data[1], 'passport': cust_data[2], 'birth_date': cust_data[3], 'phones':[]}
-            cursor.execute("SELECT phone_num FROM Customer_Phone_Numbers WHERE phone_customer_email = %s",
+            cursor.execute("SELECT phone_num FROM customer_phone_numbers WHERE phone_customer_email = %s",
                            (session['customer_email'],))
             p_data = cursor.fetchall()
             user_details['phones'] = [row[0] for row in p_data]
@@ -464,7 +488,7 @@ def track_order():
             order_data = order_list
 
         else:
-            message = "לא נמצאה הזמנה פעילה עבור פרטים אלו. וודא שהקוד והמייל נכונים."
+            message = "לא נמצאה הזמנה עבור פרטים אלו. וודא שהקוד והמייל נכונים."
 
     return render_template('track_order.html', order=order_data, message=message)
 
@@ -552,7 +576,7 @@ def register():
             "INSERT INTO Customer(customer_email, first_name, last_name, passport, birth_date, password, reg_date) VALUES(%s, %s, %s, %s, %s, %s, %s)",
             (customer_email, first_name, last_name, passport, birth_date, password, reg_date))
         for phone in phone_numbers:
-            cursor.execute("INSERT INTO Customer_Phone_Numbers(phone_customer_email, phone_num) VALUES(%s, %s)",
+            cursor.execute("INSERT INTO customer_phone_numbers(phone_customer_email, phone_num) VALUES(%s, %s)",
                            (customer_email, phone))
         mydb.commit()
         session['role'] = 'registered'
@@ -1061,26 +1085,11 @@ def manager_reports():
 def error(e):
     return redirect('/')
 
-# When running the website, check for completed flights and update in DB
-def update_flight_statuses():
-    try:
-        now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        query = "UPDATE Flight SET status = 'completed' WHERE departure < %s AND status = 'active'"
-        cursor.execute(query, (now,))
-        query_orders = """
-            UPDATE Orders o
-            JOIN Flight f ON o.flight_id = f.flight_id
-            SET o.status = 'completed'
-            WHERE f.departure < %s AND o.status = 'active'
-        """
-        cursor.execute(query_orders, (now,))
-        mydb.commit()
-    except Exception as e:
-        return f"שגיאה בעדכון סטטוס טיסות: {e}"
 
 if __name__ == "__main__":
-    update_flight_statuses()
-    app.run(debug=True)
-
-cursor.close()
-mydb.close()
+    try:
+        update_flight_statuses()
+        app.run(debug=True)
+    finally:
+        cursor.close()
+        mydb.close()
