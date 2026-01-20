@@ -26,17 +26,66 @@ cursor = mydb.cursor(buffered=True)
 def update_flight_statuses():
     try:
         now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        query = "UPDATE Flight SET status = 'completed' WHERE departure < %s AND status = 'active'"
-        cursor.execute(query, (now,))
-        query_orders = """
-            UPDATE Orders o
-            JOIN Flight f ON o.flight_id = f.flight_id
-            SET o.status = 'completed'
-            WHERE f.departure < %s AND o.status = 'active'
-        """
-        cursor.execute(query_orders, (now,))
+
+        # 1) Past flights become completed (active/full only)
+        cursor.execute("""
+                UPDATE Flight
+                SET status = 'completed'
+                WHERE departure < %s
+                  AND status IN ('active','full')
+            """, (now,))
+
+        # 2) Past active orders become completed
+        cursor.execute("""
+                UPDATE Orders o
+                JOIN Flight f ON o.flight_id = f.flight_id
+                SET o.status = 'completed'
+                WHERE f.departure < %s
+                  AND o.status = 'active'
+            """, (now,))
+
+        # 3) Mark flights as full when booked seats >= capacity
+        cursor.execute("""
+                UPDATE Flight f
+                SET f.status = 'full'
+                WHERE f.status = 'active'
+                  AND f.departure >= %s
+                  AND (
+                    SELECT COUNT(*)
+                    FROM Seats_in_Order sio
+                    JOIN Orders o ON o.code = sio.code
+                    WHERE o.flight_id = f.flight_id
+                      AND o.status IN ('active','completed')
+                  ) >= (
+                    SELECT COUNT(*)
+                    FROM Class c
+                    WHERE c.plane_id = f.plane_id
+                  )
+            """, (now,))
+
+        # 4) Return full -> active if seats freed (e.g., cancellation)
+        cursor.execute("""
+                UPDATE Flight f
+                SET f.status = 'active'
+                WHERE f.status = 'full'
+                  AND f.departure >= %s
+                  AND (
+                    SELECT COUNT(*)
+                    FROM Seats_in_Order sio
+                    JOIN Orders o ON o.code = sio.code
+                    WHERE o.flight_id = f.flight_id
+                      AND o.status IN ('active','completed')
+                  ) < (
+                    SELECT COUNT(*)
+                    FROM Class c
+                    WHERE c.plane_id = f.plane_id
+                  )
+            """, (now,))
+
         mydb.commit()
+
     except Exception as e:
+        mydb.rollback()
         return f"שגיאה בעדכון סטטוס טיסות: {e}"
 
 @app.before_request

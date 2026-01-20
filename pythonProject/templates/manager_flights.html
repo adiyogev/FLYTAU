@@ -74,6 +74,7 @@
           <select name="status" id="statusFilter" class="filter-select" onchange="this.form.submit()">
             <option value="all" {% if current_filter == 'all' %}selected{% endif %}>הצג הכל</option>
             <option value="active" {% if current_filter == 'active' %}selected{% endif %}>Active (פעילות)</option>
+            <option value="full" {% if current_filter == 'full' %}selected{% endif %}>Full (תפוסה מלאה)</option>
             <option value="completed" {% if current_filter == 'completed' %}selected{% endif %}>Completed (הושלמו)</option>
             <option value="cancelled" {% if current_filter == 'cancelled' %}selected{% endif %}>Cancelled (מבוטלות)</option>
           </select>
@@ -119,7 +120,11 @@
                   <td>
                     <div class="d-flex align-items-center gap-2">
                       <span>{{ flight.occupied }} / {{ flight.capacity }}</span>
-                      {% set percent = (flight.occupied / flight.capacity * 100) | round | int %}
+                      {% if flight.capacity and flight.capacity > 0 %}
+                        {% set percent = (flight.occupied / flight.capacity * 100) | round | int %}
+                      {% else %}
+                        {% set percent = 0 %}
+                      {% endif %}
                       <div class="progress" style="width: 60px; height: 6px;">
                         <div
                           class="progress-bar bg-{{ 'success' if percent < 80 else 'warning' }}"
