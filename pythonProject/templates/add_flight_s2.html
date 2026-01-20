@@ -9,10 +9,10 @@
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body class="flight-steps-bg">
+<body class="flight-steps-bg" style="background-image: url('{{ url_for('static', filename='img/addflight1.jpg') }}');">
     <div class="flight-container">
         <div class="flight-card">
-            <h1 class="page-title">הוספת טיסה חדשה - שלב 2</h1>
+            <h1 class="page-title">הוספת טיסה חדשה</h1>
 
             <div class="step-indicator">
                 <div class="step">1. פרטים בסיסיים</div>
@@ -66,8 +66,8 @@
                 </div>
 
                 <div class="actions">
-                    <a href="/manager/add_flight/step1" class="btn-secondary">חזור</a>
                     <button type="submit" class="btn-primary">המשך לתמחור <i class="fas fa-arrow-left"></i></button>
+                    <a href="/manager/add_flight/step1" class="btn-secondary">חזור</a>
                 </div>
             </form>
         </div>
@@ -78,21 +78,17 @@
             let requiredPilots = 0;
             let requiredFas = 0;
 
-            // --- 1. טיפול בבחירת מטוס (Radio Buttons) ---
             const planeRadios = document.querySelectorAll('input[name="plane_id"]');
 
             planeRadios.forEach(radio => {
                 radio.addEventListener('change', function() {
-                    // הסרת סימון מכל המטוסים
                     document.querySelectorAll('input[name="plane_id"]').forEach(r => {
                         r.closest('.resource-item').classList.remove('selected');
                     });
 
-                    // סימון המטוס שנבחר
                     if(this.checked) {
                         this.closest('.resource-item').classList.add('selected');
 
-                        // עדכון דרישות לפי הגודל
                         const size = this.getAttribute('data-size');
                         if (size === 'large') {
                             requiredPilots = 3;
@@ -102,21 +98,16 @@
                             requiredFas = 3;
                         }
 
-                        // עדכון הטקסט למשתמש
                         document.getElementById('pilot-req-text').innerText = `יש לבחור בדיוק ${requiredPilots} טייסים`;
                         document.getElementById('fa-req-text').innerText = `יש לבחור בדיוק ${requiredFas} דיילים`;
                     }
                 });
             });
 
-            // --- 2. טיפול בבחירת צוות (Checkboxes) ---
-            // פונקציה שמאזינה לשינוי בתיבת הסימון עצמה
             const crewCheckboxes = document.querySelectorAll('input[type="checkbox"]');
-
             crewCheckboxes.forEach(checkbox => {
                 checkbox.addEventListener('change', function() {
                     const card = this.closest('.resource-item');
-
                     if (this.checked) {
                         card.classList.add('selected');
                     } else {
@@ -125,13 +116,9 @@
                 });
             });
 
-            // --- 3. בדיקות תקינות לפני שליחה (Validation) ---
             document.getElementById('step2-form').addEventListener('submit', function(e) {
-                // ספירה בזמן אמת של מה שנבחר
                 const selectedPilots = document.querySelectorAll('input[name="pilots"]:checked').length;
                 const selectedFas = document.querySelectorAll('input[name="fas"]:checked').length;
-
-                // בדיקה אם נבחר מטוס בכלל
                 const isPlaneSelected = document.querySelector('input[name="plane_id"]:checked');
 
                 if (!isPlaneSelected) {

@@ -15,7 +15,13 @@
 
     <div class="staff-container">
         <div class="staff-card">
-            <h1 class="page-title">הוספת עובד חדש</h1>
+
+            <div class="header">
+                <img src="{{ url_for('static', filename='img/LOGO.png') }}" alt="FLYTAU" class="logo-img">
+                <h1 class="page-title">הוספת עובד חדש</h1>
+            </div>
+
+            <p class="subtitle">הזן את פרטי העובד החדש למערכת</p>
 
             <form method="POST" action="/manager/add_staff">
                 <div class="input-group">
@@ -97,12 +103,12 @@
                 </div>
 
                 <div class="actions">
-                    <a href="/manager" class="btn-secondary">
-                        <i class="fas fa-times"></i> ביטול
-                    </a>
                     <button type="submit" class="btn-primary">
                          הוסף עובד <i class="fas fa-check"></i>
                     </button>
+                    <a href="/manager" class="btn-secondary">
+                        <i class="fas fa-times"></i> ביטול
+                    </a>
                 </div>
             </form>
         </div>

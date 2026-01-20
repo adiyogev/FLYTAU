@@ -12,11 +12,11 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
-<body>
+<body class="manager-reports">
 
   <aside class="sidebar">
     <a href="/manager" class="brand-area">
-      <span>FLYTAU</span>
+      <span class="brand-text">FLYTAU</span>
       <img src="{{ url_for('static', filename='img/LOGO.png') }}" alt="FLYTAU Logo" class="brand-logo">
     </a>
 
@@ -42,7 +42,7 @@
         <p>סקירה מהירה של ביצועי המערכת והצגת גרפים מתוך נתוני ההזמנות</p>
       </div>
 
-      <a href="/manager" class="btn btn-outline-primary rounded-pill px-3">
+      <a href="/manager" class="btn-back-custom">
         <i class="bi bi-arrow-right"></i> חזרה ללוח טיסות
       </a>
     </header>
@@ -73,32 +73,23 @@
       <div class="surface chart-wrap">
         <div class="chart-title">שיעור ביטולים חודשי</div>
         <div class="chart-subtitle">(12 חודשים אחרונים)</div>
-
         <div class="chart-area">
-          <img
-            class="chart-img"
-            src="{{ url_for('static', filename='reports/cancellation_rate.png') }}?v={{ total_orders }}"
-            alt="Monthly Cancellation Rate Bar Chart">
+          <img class="chart-img" src="{{ url_for('static', filename='reports/cancellation_rate.png') }}?v={{ total_orders }}" alt="Monthly Cancellation Rate">
         </div>
       </div>
 
       <div class="surface chart-wrap">
         <div class="chart-title">תפוסה ממוצעת</div>
-
         <div class="chart-area">
-          <img
-            class="chart-img"
-            src="{{ url_for('static', filename='reports/avg_occupancy.png') }}?v={{ total_orders }}"
-            alt="Average Occupancy Donut Chart">
+          <img class="chart-img" src="{{ url_for('static', filename='reports/avg_occupancy.png') }}?v={{ total_orders }}" alt="Average Occupancy">
         </div>
       </div>
     </section>
 
     <section class="surface">
       <div class="card-head">
-        <div class="fw-bold text-dark">Top 5 Routes</div>
+        <div class="fw-bold text-dark">חמשת הנתיבים הדומיננטיים ביותר</div>
       </div>
-
       <div class="table-responsive">
         <table class="table mb-0">
           <thead>
@@ -109,7 +100,7 @@
             </tr>
           </thead>
           <tbody>
-            {% if top_routes and top_routes|length > 0 %}
+            {% if top_routes %}
               {% for r in top_routes %}
                 <tr>
                   <td><strong>{{ r[0] }}</strong></td>
@@ -118,12 +109,7 @@
                 </tr>
               {% endfor %}
             {% else %}
-              <tr>
-                <td colspan="3" class="text-center py-5 text-muted">
-                  <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-                  אין נתונים להצגה כרגע
-                </td>
-              </tr>
+              <tr><td colspan="3" class="text-center py-4 text-muted">אין נתונים</td></tr>
             {% endif %}
           </tbody>
         </table>

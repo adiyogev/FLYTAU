@@ -4,34 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FLYTAU - הוספת מטוס</title>
-
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
-
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
-<body class="add-plane-body" style="background: linear-gradient(rgba(0, 27, 51, 0.6), rgba(0, 27, 51, 0.6)), url('{{ url_for('static', filename='img/ADDPLANE.png') }}') no-repeat center center fixed; background-size: cover;">
+<body class="add-plane-body" style="background-image: url('{{ url_for('static', filename='img/ADDPLANE.png') }}');">
 
 <div class="form-container">
     <div class="header">
         <img src="{{ url_for('static', filename='img/LOGO.png') }}" alt="FLYTAU" class="logo-img">
         <h2>הוספת מטוס חדש</h2>
-        <div class="subtitle">הזן את פרטי המטוס ותצורת המושבים</div>
+        <div class="subtitle">הזן את פרטי המטוס ותצורת המושבים לצי המטוסים</div>
     </div>
 
     {% if error %}
         <div class="error-message">
-            <i class="fas fa-exclamation-circle"></i>
-            {{ error }}
+            <i class="fas fa-exclamation-circle"></i> {{ error }}
         </div>
     {% endif %}
 
     <form action="/manager/add_plane" method="POST">
         <div class="form-grid">
             <div class="input-group" style="grid-column: span 2;">
-                <label class="input-label" for="plane_id">מזהה מטוס (Plane ID)</label>
-                <div class="input-field-wrapper">
+                <label class="label">מזהה מטוס (Plane ID)</label>
+                <div class="input-box">
                     <i class="fas fa-plane-tail"></i>
                     <input type="text" id="plane_id" name="plane_id" required placeholder="לדוגמה: 4X-ABC"
                            value="{{ prev_data.plane_id if prev_data else '' }}">
@@ -39,8 +36,8 @@
             </div>
 
             <div class="input-group">
-                <label class="input-label" for="manufacturer">יצרן</label>
-                <div class="input-field-wrapper">
+                <label class="label">יצרן</label>
+                <div class="input-box">
                     <i class="fas fa-industry"></i>
                     <select id="manufacturer" name="manufacturer" required>
                         <option value="" disabled selected>בחר יצרן</option>
@@ -52,8 +49,8 @@
             </div>
 
             <div class="input-group">
-                <label class="input-label" for="size">גודל מטוס</label>
-                <div class="input-field-wrapper">
+                <label class="label">גודל מטוס</label>
+                <div class="input-box">
                     <i class="fas fa-expand-arrows-alt"></i>
                     <select id="size" name="size" required onchange="toggleBusinessFields()">
                         <option value="" disabled selected>בחר גודל</option>
@@ -64,8 +61,8 @@
             </div>
 
             <div class="input-group" style="grid-column: span 2;">
-                <label class="input-label" for="purchase_date">תאריך רכישה</label>
-                <div class="input-field-wrapper" onclick="document.getElementById('purchase_date').showPicker()">
+                <label class="label">תאריך רכישה</label>
+                <div class="input-box" onclick="document.getElementById('purchase_date').showPicker()">
                     <i class="far fa-calendar-alt"></i>
                     <input type="date" id="purchase_date" name="purchase_date" required
                            value="{{ prev_data.purchase_date if prev_data else '' }}">
@@ -80,8 +77,8 @@
 
             <div class="form-grid">
                 <div class="input-group">
-                    <label class="input-label">מספר שורות</label>
-                    <div class="input-field-wrapper">
+                    <label class="label">מספר שורות</label>
+                    <div class="input-box">
                         <i class="fas fa-list-ol"></i>
                         <input type="number" name="biz_rows" id="bizRows" min="1" placeholder="למשל: 4"
                                value="{{ prev_data.biz_rows if prev_data else '' }}">
@@ -89,12 +86,12 @@
                 </div>
 
                 <div class="input-group">
-                    <label class="input-label">אותיות מושב (עמודות)</label>
+                    <label class="label">אותיות מושב (עמודות)</label>
                     <div class="column-selector">
                         {% for letter in ['A', 'B', 'C', 'D', 'E', 'F'] %}
                         <label>
                             <input type="checkbox" name="biz_cols" value="{{ letter }}" class="col-checkbox">
-                            <span class="col-label">{{ letter }}</span>
+                            <span>{{ letter }}</span>
                         </label>
                         {% endfor %}
                     </div>
@@ -108,8 +105,8 @@
 
         <div class="form-grid">
             <div class="input-group">
-                <label class="input-label">מספר שורות</label>
-                <div class="input-field-wrapper">
+                <label class="label">מספר שורות</label>
+                <div class="input-box">
                     <i class="fas fa-list-ol"></i>
                     <input type="number" name="eco_rows" required min="1" placeholder="למשל: 30"
                            value="{{ prev_data.eco_rows if prev_data else '' }}">
@@ -117,26 +114,27 @@
             </div>
 
             <div class="input-group">
-                <label class="input-label">אותיות מושב (עמודות)</label>
+                <label class="label">אותיות מושב (עמודות)</label>
                 <div class="column-selector">
                     {% for letter in ['A', 'B', 'C', 'D', 'E', 'F'] %}
                     <label>
                         <input type="checkbox" name="eco_cols" value="{{ letter }}" class="col-checkbox">
-                        <span class="col-label">{{ letter }}</span>
+                        <span>{{ letter }}</span>
                     </label>
                     {% endfor %}
                 </div>
             </div>
         </div>
 
-        <button type="submit" class="btn-submit">
-            הוסף מטוס לצי <i class="fas fa-plus"></i>
-        </button>
+        <div class="actions">
+            <button type="submit" class="btn-submit">
+                הוסף מטוס לצי <i class="fas fa-plus"></i>
+            </button>
+            <a href="/manager" class="back-link">
+                <i class="fas fa-times"></i> ביטול וחזרה
+            </a>
+        </div>
     </form>
-
-    <a href="/manager" class="back-link">
-        <i class="fas fa-times"></i> ביטול וחזרה ללוח הבקרה
-    </a>
 </div>
 
 <script>

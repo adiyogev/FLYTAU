@@ -13,10 +13,12 @@
 <body class="add-flight-step1" style="background-image: url('{{ url_for('static', filename='img/addflight1.jpg') }}');">
 
     <div class="flight-panel">
-        <div class="title-row">
-            <img class="inline-logo" src="{{ url_for('static', filename='img/LOGO.png') }}" alt="FLYTAU">
-            <h1>הוספת טיסה חדשה</h1>
+
+        <div class="header">
+            <img src="{{ url_for('static', filename='img/LOGO.png') }}" alt="FLYTAU" class="logo-img">
+            <h1 class="page-title">הוספת טיסה חדשה</h1>
         </div>
+
         <p class="subtitle">שלב 1: פרטי מסלול וזיהוי הטיסה</p>
 
         {% if message %}
@@ -69,13 +71,12 @@
                 </div>
             </div>
 
-            <div class="btn-action-container">
-                <button class="btn-primary" type="submit" style="width: 100%;">
-                    <i class="fas fa-arrow-left"></i> המשך לבחירת מטוס
+            <div class="actions">
+                <button class="btn-primary" type="submit">
+                    המשך לבחירת מטוס <i class="fas fa-arrow-left"></i>
                 </button>
-
                 <a href="/manager" class="cancel-link">
-                    <i class="fas fa-times"></i> ביטול וחזרה לתפריט
+                    <i class="fas fa-times"></i> ביטול
                 </a>
             </div>
 

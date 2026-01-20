@@ -9,10 +9,10 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
-<body class="flight-steps-bg">
+<body class="flight-steps-bg" style="background-image: url('{{ url_for('static', filename='img/addflight1.jpg') }}');">
     <div class="flight-container narrow">
         <div class="flight-card">
-            <h1 class="page-title">הוספת טיסה חדשה - שלב 3</h1>
+            <h1 class="page-title">הוספת טיסה חדשה</h1>
             <div class="step-indicator">
                 <div class="step">1. פרטים בסיסיים</div>
                 <div class="step">2. משאבים</div>
@@ -49,8 +49,8 @@
                 </div>
 
                 <div class="actions">
-                    <a href="/manager/add_flight/step2" class="btn-secondary">חזור</a>
                     <button type="submit" class="btn-primary">סיום והוספת טיסה <i class="fas fa-check"></i></button>
+                    <a href="/manager/add_flight/step2" class="btn-secondary">חזור</a>
                 </div>
             </form>
         </div>
