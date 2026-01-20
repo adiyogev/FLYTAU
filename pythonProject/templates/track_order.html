@@ -6,235 +6,100 @@
     <title>FLYTAU - איתור הזמנה</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --flytau-navy: #001b33;
-            --flytau-teal: #00818a;
-            --flytau-teal-hover: #006b72;
-            --flytau-light: #e0f2fe;
-            --text-secondary: #64748b;
-            --white: #ffffff;
-            --danger: #ef4444;
-            --danger-hover: #dc2626;
-        }
-
-        body {
-            font-family: 'Heebo', sans-serif;
-            background: #f8fafc;
-            color: var(--flytau-navy);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        .hero-banner {
-            background: linear-gradient(rgba(0, 27, 51, 0.4), rgba(0, 27, 51, 0.4)),
-                        url("{{ url_for('static', filename='myorders.png') }}");
-            background-size: cover;
-            background-position: center;
-            height: 250px;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            margin-bottom: -50px;
-        }
-
-        .hero-banner h1 {
-            font-size: 36px;
-            font-weight: 800;
-            text-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            margin: 0;
-        }
-
-        .search-card {
-            background: white;
-            width: 90%;
-            max-width: 500px;
-            padding: 35px;
-            border-radius: 24px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-            z-index: 10;
-            margin-bottom: 40px;
-        }
-
-        .input-group { margin-bottom: 20px; text-align: right; }
-        .input-group label { display: block; margin-bottom: 8px; font-weight: 700; color: var(--flytau-navy); font-size: 14px; }
-
-        input {
-            width: 100%;
-            padding: 14px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            box-sizing: border-box;
-            font-family: 'Heebo';
-            transition: 0.3s;
-        }
-
-        input:focus { outline: none; border-color: var(--flytau-teal); box-shadow: 0 0 0 3px rgba(0, 129, 138, 0.1); }
-
-        .btn-search {
-            background: var(--flytau-teal);
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: 800;
-            width: 100%;
-            font-size: 16px;
-            transition: 0.3s;
-            box-shadow: 0 4px 12px rgba(0, 129, 138, 0.2);
-        }
-
-        .btn-search:hover { background: var(--flytau-teal-hover); transform: translateY(-2px); }
-
-        .login-link { margin-top: 20px; display: block; color: var(--text-secondary); font-size: 14px; font-weight: 500; }
-        .login-link a { color: var(--flytau-teal); font-weight: 800; text-decoration: none; }
-
-        .flight-card-modern {
-            background: white;
-            width: 90%;
-            max-width: 800px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-            margin-bottom: 50px;
-            overflow: hidden;
-            border: 1px solid #e2e8f0;
-            text-align: right;
-        }
-
-        .card-header-row {
-            padding: 16px 30px;
-            background-color: var(--flytau-teal);
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .status-badge {
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 700;
-            background: rgba(255,255,255,0.2);
-        }
-
-        .card-body-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            padding: 30px;
-            align-items: center;
-            text-align: center;
-        }
-
-        .city-code { font-size: 28px; font-weight: 900; color: var(--flytau-navy); }
-        .city-name { font-size: 14px; color: var(--text-secondary); font-weight: 600; }
-        .flight-time { font-size: 20px; font-weight: 800; color: var(--flytau-teal); margin: 5px 0; }
-
-        .timeline-col { position: relative; }
-        .plane-icon { font-size: 20px; color: #cbd5e1; transform: rotate(180deg); }
-        .timeline-line { height: 2px; background: #f1f5f9; width: 80%; margin: 10px auto; }
-
-        .card-footer-row {
-            padding: 20px 30px;
-            background: #f8fafc;
-            border-top: 1px solid #f1f5f9;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .price-value { font-size: 24px; font-weight: 900; color: var(--flytau-navy); }
-
-        .btn-cancel {
-            background: #fff1f2; color: var(--danger);
-            padding: 8px 20px; border-radius: 50px; border: 1px solid #fecaca;
-            font-weight: 700; cursor: pointer; transition: 0.2s;
-        }
-        .btn-cancel:hover { background: var(--danger); color: white; }
-
-        .error { color: var(--danger); background: #fef2f2; padding: 12px; border-radius: 10px; margin-bottom: 20px; font-weight: 600; font-size: 14px; border: 1px solid #fecaca; }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body>
+<body class="track-order-page">
 
-    <div class="hero-banner">
+    <header>
+        <div class="header-right">
+            <img src="{{ url_for('static', filename='img/LOGO.png') }}"
+                 onerror="this.src='{{ url_for('static', filename='img/LOGO.png') }}';"
+                 alt="FLYTAU" class="logo-img">
+            <a href="/" class="nav-link">חיפוש טיסות</a>
+        </div>
+        <div class="header-left">
+             <a href="/login" class="nav-link">התחברות</a>
+        </div>
+    </header>
+
+    <div class="hero-banner" style="background-image: linear-gradient(rgba(0, 27, 51, 0.5), rgba(0, 27, 51, 0.5)), url('{{ url_for('static', filename='img/myorders.png') }}');">
         <h1>איתור הזמנה</h1>
     </div>
 
     <div class="search-card">
         {% if message %}
-            <p class="error"><i class="fas fa-exclamation-circle"></i> {{ message }}</p>
+            <p class="error-msg-box">
+                <i class="fas fa-exclamation-circle"></i> {{ message }}
+            </p>
         {% endif %}
 
         <form method="POST">
             <div class="input-group">
                 <label><i class="fas fa-hashtag"></i> קוד הזמנה (6 תווים):</label>
-                <input type="text" name="order_code" required maxlength="6" placeholder="למשל: AB1234">
+                <input type="text" name="order_code" class="form-input" required maxlength="6" placeholder="למשל: AB1234">
             </div>
             <div class="input-group">
-                <label><i class="fas fa-envelope"></i> אימייל להזמנה:</label>
-                <input type="email" name="email" required placeholder="email@example.com">
+                <label><i class="fas fa-envelope"></i> אימייל בהזמנה:</label>
+                <input type="email" name="email" class="form-input" required placeholder="email@example.com">
             </div>
-            <button type="submit" class="btn-search">חפש הזמנה</button>
+            <button type="submit" class="btn-search">חפש הזמנה <i class="fas fa-search"></i></button>
         </form>
 
         <span class="login-link">
-            לקוח רשום? <a href="/login?next=/my_orders">התחבר כאן</a>
+            לקוח רשום? <a href="/login?next=/my_orders">התחבר כאן</a> לצפייה בכל ההזמנות.
         </span>
     </div>
 
     {% if order %}
-    <div class="flight-card-modern">
+    <div class="flight-card-modern track-result-card">
         <div class="card-header-row">
             <div>
-                <div style="font-weight: 800; font-size: 18px;">הזמנה #{{ order[0] }}</div>
+                <div class="order-code">הזמנה #{{ order[0] }}</div>
+                <div class="order-date">נמצאה במערכת</div>
             </div>
-            <div class="status-badge">
+
+            <div class="status-badge {% if order[1] == 'active' %}status-active{% else %}status-completed{% endif %}">
                 {% if order[1] == 'active' %}פעילה{% else %}{{ order[1] }}{% endif %}
             </div>
         </div>
 
-    <div class="card-body-grid">
-        <div class="location-col">
-            <div class="city-name">מוצא</div>
-            <div class="city-code">{{ order[3] }}</div>
-            <div class="flight-time">{{ order[5].strftime('%H:%M') }}</div>
-            <div class="city-name" style="margin-top: 5px;">{{ order[5].strftime('%d/%m/%Y') }}</div>
-        </div>
-
-        <div class="timeline-col">
-            <div class="plane-icon-divider">
-                <i class="fas fa-plane"></i>
+        <div class="card-body-grid">
+            <div class="location-col">
+                <div class="city-name">מוצא</div>
+                <div class="city-code">{{ order[3] }}</div>
+                <div class="flight-time-big">
+                    <span>{{ order[5].strftime('%H:%M') }}</span>
+                </div>
+                <div class="city-name" style="margin-top: 5px;">{{ order[5].strftime('%d/%m/%Y') }}</div>
             </div>
-            <div class="timeline-line"></div>
-        </div>
 
-        <div class="location-col">
-            <div class="city-name">יעד</div>
-            <div class="city-code">{{ order[4] }}</div>
-            <div class="flight-time">{{ order[8].strftime('%H:%M') }}</div>
-            <div class="city-name" style="margin-top: 5px;">{{ order[8].strftime('%d/%m/%Y') }}</div>
+            <div class="timeline-col">
+                <div class="plane-icon-divider">
+                    <i class="fas fa-plane"></i>
+                </div>
+                <div class="timeline-line"></div>
+            </div>
+
+            <div class="location-col">
+                <div class="city-name">יעד</div>
+                <div class="city-code">{{ order[4] }}</div>
+                <div class="flight-time-big">
+                    <span>{{ order[8].strftime('%H:%M') }}</span>
+                </div>
+                <div class="city-name" style="margin-top: 5px;">{{ order[8].strftime('%d/%m/%Y') }}</div>
+            </div>
         </div>
-    </div>
 
         <div class="card-footer-row">
-            <div>
-                <span style="font-size: 12px; color: var(--text-secondary); font-weight: 700; display: block;">סה"כ שולם:</span>
+            <div class="price-area">
+                <span class="price-label">סה"כ שולם:</span>
                 <span class="price-value">₪{{ order[2] }}</span>
             </div>
 
-
             {% if order[1] == 'active' %}
-                <form action="/cancel_order/{{ order[0] }}" method="POST" onsubmit="return confirm('האם אתה בטוח שברצונך לבטל את ההזמנה?');">
+                <form action="/cancel_order/{{ order[0] }}" method="POST" onsubmit="return confirm('האם את בטוחה שברצונך לבטל את ההזמנה?');" style="margin:0;">
                     <button type="submit" class="btn-cancel">
-                        <i class="fas fa-trash"></i> ביטול הזמנה
+                        <i class="fas fa-trash-alt"></i> ביטול הזמנה
                     </button>
                 </form>
             {% endif %}
