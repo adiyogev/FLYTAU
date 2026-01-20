@@ -49,6 +49,16 @@ def update_flights_each_request():
     if request.endpoint and request.endpoint.startswith('static'):
         return
     update_flight_statuses()
+from functools import wraps
+
+def block_manager_from_booking(view_func):
+    @wraps(view_func)
+    def wrapper(*args, **kwargs):
+        if session.get("role") == "manager":
+            flash("למנהל אין הרשאה לבצע הזמנת טיסה. אנא התחבר כמשתמש רגיל.", "warning")
+            return redirect("/manager")  # או redirect(url_for("manager_flights"))
+        return view_func(*args, **kwargs)
+    return wrapper
 
 # ============================================================================
 #                                 MAIN ROUTES
@@ -73,6 +83,7 @@ def index():
 
 # USER PAGES
 @app.route('/search_flights', methods=['GET'])
+@block_manager_from_booking
 def search_flights():
     """
     Fetches flights matching criteria, creates Flight objects, and renders results.
@@ -135,6 +146,7 @@ def search_flights():
 
 
 @app.route('/select_seats/<flight_id>', methods=['GET', 'POST'])
+@block_manager_from_booking
 def select_seats(flight_id):
     """
     Displays the plane layout (GET) and processes seat selection (POST).
@@ -221,10 +233,16 @@ def select_seats(flight_id):
 
 
 @app.route('/checkout', methods=['GET', 'POST'])
+@block_manager_from_booking
 def checkout():
     """
     Handles passenger details (Guest/Registered) and order creation.
     """
+    # Block managers from booking flights
+    if session.get("role") == "manager":
+        flash("למנהל אין הרשאה לבצע הזמנת טיסה.", "warning")
+        return redirect("/manager")
+
     # 1. Session Data
     flight_id = session.get('selected_flight_id')
     selected_seats_data = session.get('selected_seats_data')
