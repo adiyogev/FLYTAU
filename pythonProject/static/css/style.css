@@ -54,127 +54,1007 @@ a { text-decoration: none; }
 /* ==========================================================================
    1. INDEX
    ========================================================================== */
-body.index-page { background-color: var(--bg-body); display: flex; flex-direction: column; }
 
-/* Header (Shared for public pages) */
+body.index-page {
+    background-color: var(--bg-body);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
 .public-header {
-    background: var(--bg-card); padding: 10px 0; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000;
+    background: var(--bg-card);
+    padding: 15px 40px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    height: 90px;
 }
-.header-right { display: flex; align-items: center; margin-right: 40px; }
-.logo-img { height: 60px; margin-left: 20px; object-fit: contain; }
-.header-left { margin-left: 40px; display: flex; align-items: center; gap: 20px; }
-.auth-link { color: var(--text-main); font-weight: 600; font-size: 15px; }
 
-.index-page .hero-section {
-    background-size: cover; background-position: center; color: white;
-    padding: 110px 20px 160px; text-align: center;
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 30px;
 }
-.index-page .hero-title { font-size: 52px; font-weight: 900; margin-bottom: 10px; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
 
-.index-page .search-container { max-width: 1100px; margin: -70px auto 40px; padding: 0 20px; position: relative; z-index: 10; }
-.index-page .search-card { background: var(--bg-card); border-radius: 24px; padding: 35px; box-shadow: var(--card-shadow); }
-.index-page .search-form-grid { display: grid; grid-template-columns: 1.2fr 1.2fr 1fr 0.6fr 0.8fr; gap: 15px; align-items: end; }
-
-.index-page .input-field-wrapper {
-    background: #f8fafc; border: 1px solid var(--border); border-radius: 12px;
-    padding: 14px; display: flex; align-items: center; gap: 10px;
+.public-header .logo-img {
+    height: 60px;
+    width: auto;
+    object-fit: contain;
 }
-.index-page input { border: none; background: transparent; width: 100%; outline: none; }
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+.auth-link {
+    color: var(--text-main);
+    font-weight: 600;
+    font-size: 15px;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.auth-link:hover {
+    color: var(--flytau-teal);
+}
+
+.teal-link, .teal-link i {
+    color: var(--flytau-teal) !important;
+}
+
+.btn-register {
+    background: var(--flytau-navy);
+    color: var(--white);
+    padding: 10px 24px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 14px;
+    transition: 0.3s;
+}
+
+.btn-register:hover {
+    background: var(--flytau-teal);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+}
+
+.manager-link {
+    color: var(--flytau-navy);
+    text-decoration: none;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    transition: 0.3s;
+    border: none;
+}
+
+.manager-link:hover {
+    background: var(--bg-input);
+    color: var(--flytau-teal);
+}
+
+.welcome-text {
+    font-size: 15px;
+    color: var(--text-secondary);
+}
+
+.logout-link {
+    color: var(--danger) !important;
+}
+
+.hero-section {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: var(--white);
+    padding: 140px 20px 180px;
+    text-align: center;
+    position: relative;
+}
+
+.hero-title {
+    font-size: 64px;
+    font-weight: 900;
+    margin-bottom: 15px;
+    text-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    letter-spacing: -2px;
+}
+
+.hero-subtitle {
+    font-size: 20px;
+    font-weight: 300;
+    opacity: 0.9;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.search-container {
+    max-width: 1100px;
+    width: 90%;
+    margin: -80px auto 60px;
+    padding: 0 20px;
+    position: relative;
+    z-index: 10;
+}
+
+.search-card {
+    background: var(--bg-card);
+    border-radius: 24px;
+    padding: 40px;
+    box-shadow: var(--card-shadow);
+}
+
+.search-form-grid {
+    display: grid;
+    grid-template-columns: 1.5fr auto 1.5fr 1.2fr 0.8fr 1fr;
+    gap: 15px;
+    align-items: end;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.input-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--flytau-navy);
+}
+
+.input-label-spacer {
+    font-size: 14px;
+    font-weight: 700;
+    visibility: hidden;
+}
+
+.input-field-wrapper {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: 0.3s;
+    height: 54px;
+    box-sizing: border-box;
+}
+
+.input-field-wrapper:focus-within {
+    background: var(--bg-card);
+    border-color: var(--flytau-teal);
+    box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
+}
+
+.input-field-wrapper input {
+    border: none;
+    background: transparent;
+    width: 100%;
+    outline: none;
+    font-family: 'Heebo', sans-serif;
+    font-size: 16px;
+    color: var(--text-main);
+    font-weight: 500;
+}
+
+.swap-wrapper {
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.swap-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--flytau-teal);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin: 0;
+}
+
+.swap-btn:hover {
+    background: var(--bg-input);
+    border-color: var(--flytau-teal);
+    transform: rotate(180deg);
+}
+
+.icon-teal {
+    color: var(--flytau-teal);
+    font-size: 18px;
+}
+
 .search-btn {
-    background: var(--flytau-teal); color: white; border: none; padding: 16px;
-    border-radius: 12px; font-weight: 800; cursor: pointer; width: 100%; transition: 0.3s;
+    background: var(--flytau-teal);
+    color: var(--white);
+    border: none;
+    padding: 0;
+    height: 54px;
+    border-radius: 12px;
+    font-weight: 800;
+    font-size: 18px;
+    cursor: pointer;
+    width: 100%;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.search-btn:hover {
+    background: var(--flytau-teal-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(20, 184, 166, 0.3);
+}
+
+footer {
+    margin-top: auto;
+    text-align: center;
+    padding: 20px;
+    color: var(--white);
+    font-size: 14px;
+    background: var(--flytau-navy);
+    border-top: none;
+    font-weight: 500;
 }
 
 /* ==========================================================================
    2. REGISTER
    ========================================================================== */
-body.register-page { height: 100vh; display: flex; overflow: hidden; background: white; }
+body.register-page {
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+    background: var(--white);
+    margin: 0;
+}
 
-.register-page .panel { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto; justify-content: center; }
-.register-page .wrapper { width: 100%; max-width: 460px; animation: fadeIn .8s ease-out; margin-top: 10px; }
+.register-page .panel,
+.login-page .panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 20px 40px;
+    overflow-y: auto;
+    background: var(--white);
+}
 
-.register-page h1 { font-size: 32px; color: var(--flytau-navy); text-align: center; margin: 0; padding-top: 8px; font-weight: 800; }
+.register-page .wrapper,
+.login-page .wrapper {
+    width: 100%;
+    max-width: 480px;
+    margin-top: 0;
+    animation: fadeIn 0.8s ease-out;
+}
+
+.register-page .title-row,
+.login-page .title-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.inline-logo {
+    height: 75px;
+    width: auto;
+    display: block;
+    margin: 0 auto;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.register-page .btn-register,
+.login-page .btn-login {
+    background: var(--flytau-navy);
+    color: var(--white);
+    border: none;
+    padding: 16px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.register-page .btn-register:hover,
+.login-page .btn-login:hover {
+    background: var(--flytau-teal);
+    transform: translateY(-2px);
+}
+
+.register-page h1 {
+    font-size: 32px;
+    color: var(--flytau-navy);
+    margin: 0;
+    font-weight: 800;
+    text-align: center;
+}
+
+.register-page .subtitle {
+    color: var(--text-secondary);
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 15px;
+}
+
+.register-page .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.register-page .input-group {
+    margin-bottom: 15px;
+}
+
+.register-page .input-label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--flytau-navy);
+}
+
 .register-page .input-box {
-    display: flex; align-items: center; background: var(--bg-input);
-    border: 1px solid var(--border); border-radius: 12px; margin-bottom: 16px; position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    transition: 0.3s;
+    height: 48px;
 }
-.register-page .input-box:focus-within { border-color: var(--flytau-teal); background: white; box-shadow: 0 0 0 4px rgba(0,129,138,.1); }
-.register-page .input-box i { padding: 0 15px; color: #94a3b8; font-size: 18px; }
-.register-page .input-box input { border: none; background: transparent; width: 100%; padding: 16px 0; outline: none; }
 
-.register-page .btn-register {
-    width: 100%; background: var(--flytau-navy); color: white; border: none;
-    padding: 18px; border-radius: 12px; font-size: 16px; font-weight: 800; cursor: pointer; transition: .3s;
+.register-page .input-box:focus-within {
+    border-color: var(--flytau-teal);
+    background: var(--white);
+    box-shadow: 0 0 0 3px rgba(0, 129, 138, 0.1);
 }
+
+.register-page .input-box i {
+    padding: 0 12px;
+    color: var(--text-muted);
+    font-size: 16px;
+}
+
+.register-page .input-box input {
+    border: none;
+    background: transparent;
+    width: 100%;
+    padding: 12px 0;
+    outline: none;
+    font-family: 'Heebo', sans-serif;
+    font-size: 15px;
+    color: var(--text-main);
+}
+
+.register-page .phone-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.register-page .btn-add-phone {
+    background: transparent;
+    border: none;
+    color: var(--flytau-teal);
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0;
+    margin-bottom: 15px;
+}
+
+.register-page .btn-remove-phone {
+    background: #fee2e2;
+    color: var(--danger);
+    border: none;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.register-page .btn-remove-phone:hover {
+    background: var(--danger);
+    color: var(--white);
+}
+
+
+.register-page .notice {
+    background: #fef2f2;
+    color: var(--danger);
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    display: none;
+    border: 1px solid #fee2e2;
+}
+
+.register-page .notice.ok {
+    background: #f0fdf4;
+    color: var(--success-text);
+    border-color: #dcfce7;
+}
+
+.register-page .auth-footer-links {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.register-page .auth-footer-links a {
+    color: var(--flytau-teal);
+    font-weight: 700;
+    text-decoration: none;
+}
+
 .register-page .image-section {
-    flex: 1.3; background-size: cover; background-position: center; position: relative;
-    display: flex; flex-direction: column; justify-content: flex-end; padding: 80px; color: white;
+    flex: 1.3;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 60px;
+    color: var(--white);
 }
-.register-page .overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,27,51,0.95) 0%, rgba(0,27,51,0.1) 100%); }
+
+.register-page .overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0, 27, 51, 0.9) 0%, rgba(0, 27, 51, 0.2) 100%);
+}
+
+.register-page .promo-content {
+    position: relative;
+    z-index: 2;
+    max-width: 500px;
+}
+
+.register-page .promo-tag {
+    font-weight: 900;
+    letter-spacing: 2px;
+    color: var(--flytau-teal);
+    margin-bottom: 10px;
+}
+
+.register-page .promo-title {
+    font-size: 42px;
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 15px;
+}
+
+.register-page .promo-desc {
+    font-size: 17px;
+    opacity: 0.9;
+    line-height: 1.5;
+}
+
+@media (max-width: 1024px) {
+    .register-page .image-section {
+        display: none;
+    }
+}
 
 /* ==========================================================================
    3. LOGIN
    ========================================================================== */
-body.login-page { height: 100vh; display: flex; overflow: hidden; background: white; }
 
-.login-page .panel { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto; justify-content: center; }
-.login-page .wrapper { width: 100%; max-width: 400px; animation: fadeIn .8s ease-out; }
+body.login-page {
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+    background: var(--white);
+    margin: 0;
+}
 
-.login-page h1 { font-size: 32px; color: var(--flytau-navy); text-align: center; margin: 0; font-weight: 800; }
-.login-page .subtitle { color: var(--text-secondary); text-align: center; margin-bottom: 30px; }
+.login-page .panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px;
+    overflow-y: auto;
+    justify-content: center;
+    background: var(--white);
+}
+
+.login-page .wrapper {
+    width: 100%;
+    max-width: 400px;
+    animation: fadeIn 0.8s ease-out;
+}
+
+.login-page .title-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.login-page .inline-logo {
+    height: 70px;
+    width: auto;
+}
+
+.login-page h1 {
+    font-size: 32px;
+    color: var(--flytau-navy);
+    margin: 0;
+    font-weight: 800;
+}
+
+.login-page .subtitle {
+    color: var(--text-secondary);
+    text-align: center;
+    margin-bottom: 35px;
+    font-size: 16px;
+}
+
+.login-page .input-group {
+    margin-bottom: 20px;
+}
+
+.login-page .input-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--flytau-navy);
+}
 
 .login-page .input-box {
-    display: flex; align-items: center; background: var(--bg-input);
-    border: 1px solid var(--border); border-radius: 12px; margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    transition: 0.3s;
 }
-.login-page .input-box:focus-within { border-color: var(--flytau-teal); background: white; }
-.login-page .input-box i { padding: 0 15px; color: #94a3b8; font-size: 18px; }
-.login-page .input-box input { border: none; background: transparent; width: 100%; padding: 16px 0; outline: none; }
+
+.login-page .input-box:focus-within {
+    border-color: var(--flytau-teal);
+    background: var(--white);
+    box-shadow: 0 0 0 4px rgba(0, 129, 138, 0.1);
+}
+
+.login-page .input-box i {
+    padding: 0 15px;
+    color: var(--text-muted);
+    font-size: 18px;
+}
+
+.login-page .input-box input {
+    border: none;
+    background: transparent;
+    width: 100%;
+    padding: 16px 0;
+    outline: none;
+    font-family: 'Heebo', sans-serif;
+    font-size: 16px;
+    color: var(--text-main);
+}
 
 .login-page .btn-login {
-    width: 100%; background: var(--flytau-navy); color: white; border: none;
-    padding: 18px; border-radius: 12px; font-size: 16px; font-weight: 800; cursor: pointer; transition: .3s;
+    width: 100%;
+    background: var(--flytau-navy);
+    color: var(--white);
+    border: none;
+    padding: 18px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-top: 10px;
 }
+
+.login-page .btn-login:hover {
+    background: var(--flytau-teal);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 27, 51, 0.15);
+}
+
+.login-page .error-message {
+    background: #fef2f2;
+    color: var(--danger);
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid #fee2e2;
+}
+
+.login-page .auth-footer-links {
+    margin-top: 25px;
+    text-align: center;
+    font-size: 15px;
+    color: var(--text-secondary);
+}
+
+.login-page .auth-footer-links a {
+    color: var(--flytau-teal);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.login-page .auth-footer-links a:hover {
+    text-decoration: underline;
+}
+
 .login-page .image-section {
-    flex: 1.3; background-size: cover; background-position: center; position: relative;
-    display: flex; flex-direction: column; justify-content: flex-end; padding: 80px; color: white;
+    flex: 1.3;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 80px;
+    color: var(--white);
 }
-.login-page .overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,27,51,0.95) 0%, rgba(0,27,51,0.1) 100%); }
+
+.login-page .overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0, 27, 51, 0.9) 0%, rgba(0, 27, 51, 0.2) 100%);
+}
+
+.login-page .promo-content {
+    position: relative;
+    z-index: 2;
+    max-width: 500px;
+}
+
+.login-page .promo-title {
+    font-size: 48px;
+    font-weight: 900;
+    margin-bottom: 15px;
+}
+
+.login-page .promo-desc {
+    font-size: 18px;
+    opacity: 0.9;
+    line-height: 1.6;
+}
+
+@media (max-width: 1024px) {
+    .login-page .image-section {
+        display: none;
+    }
+}
 
 /* ==========================================================================
    4. FLIGHT RESULTS
    ========================================================================== */
-body.results-page { background-color: #f8fafc; padding-bottom: 50px; }
+body.results-page {
+    background-color: var(--bg-body);
+    padding-bottom: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
 
 .results-page .hero-banner {
-    background-size: cover; height: 380px; display: flex;
-    align-items: center; justify-content: center; color: white; text-align: center;
+    background-size: cover;
+    background-position: center;
+    height: 320px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--white);
+    text-align: center;
+    position: relative;
 }
-.results-page .hero-banner h1 { font-size: 45px; font-weight: 700; text-transform: uppercase; text-shadow: 0 4px 15px rgba(0,0,0,0.6); }
 
-.results-page .stepper-container {
-    max-width: 900px; margin: -40px auto 40px; background: white;
-    padding: 30px; border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); position: relative; z-index: 10;
+.results-page .hero-banner h1 {
+    font-size: 48px;
+    font-weight: 900;
+    text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    font-family: 'Heebo', sans-serif;
 }
 
-.results-page .flight-card-modern {
-    background: white; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.06);
-    margin-bottom: 24px; overflow: hidden; border: 1px solid #e2e8f0;
-    max-width: 1000px; margin-left: auto; margin-right: auto;
+.stepper-wrapper {
+    margin: -40px auto 50px;
+    display: flex;
+    justify-content: center;
+    position: relative;
+    z-index: 10;
 }
-.results-page .card-header-row { background: var(--flytau-navy); color: white; padding: 16px 24px; display: flex; justify-content: space-between; }
-.results-page .card-body-grid { display: grid; grid-template-columns: 1fr 1.5fr 1fr; padding: 30px 40px; align-items: center; }
-.results-page .city-code { font-size: 36px; font-weight: 900; color: var(--flytau-navy); }
-.results-page .timeline-graphic {
-    height: 6px; background: linear-gradient(270deg, var(--flytau-teal) 0%, #bae6fd 100%);
-    border-radius: 10px; width: 80%; margin: 0 auto;
+
+.stepper-container {
+    background: var(--bg-card);
+    padding: 20px 50px;
+    border-radius: 50px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 600px;
+    position: relative;
 }
-.results-page .card-footer-row {
-    padding: 20px 24px; display: flex; justify-content: flex-end; align-items: center;
-    background-color: #ffffff; border-top: 1px solid #f1f5f9;
+
+.stepper-line {
+    position: absolute;
+    top: 40px;
+    left: 80px;
+    right: 80px;
+    height: 2px;
+    background: #e2e8f0;
+    z-index: 0;
 }
-.results-page .price-value { font-size: 26px; font-weight: 900; color: var(--flytau-navy); }
+
+.step-item {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--bg-card);
+    padding: 0 10px;
+}
+
+.step-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #f1f5f9;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    border: 2px solid #e2e8f0;
+    font-family: 'Heebo', sans-serif;
+}
+
+.step-item.active .step-circle {
+    background: var(--flytau-navy);
+    color: var(--white);
+    border-color: var(--flytau-navy);
+    box-shadow: 0 0 0 4px rgba(0, 27, 51, 0.15);
+}
+
+.step-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-top: 8px;
+    font-family: 'Heebo', sans-serif;
+}
+
+.results-list {
+    width: 90%;
+    max-width: 1100px;
+    margin: 0 auto 50px;
+    padding: 0 20px;
+}
+
+.flight-card-modern {
+    width: 100%;
+    background: var(--bg-card);
+    border-radius: 20px;
+    margin-bottom: 30px;
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+    transition: 0.3s;
+}
+
+.flight-card-modern:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+}
+
+.flight-card-modern::before {
+    content: '\f072';
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    position: absolute;
+    top: 50%;
+    right: -150px;
+    transform: translateY(-50%) rotate(180deg);
+    font-size: 150px;
+    color: rgba(0, 0, 0, 0.03);
+    pointer-events: none;
+}
+
+.flight-card-modern:hover::before {
+    right: 120%;
+    transition: 1.5s linear;
+}
+
+.card-header-row {
+    background: var(--flytau-navy) !important;
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.flight-id-badge {
+    color: var(--white);
+    font-weight: 800;
+    font-size: 18px;
+    font-family: 'Heebo', sans-serif;
+}
+
+.card-body-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr 1fr;
+    padding: 35px 40px;
+    align-items: center;
+    text-align: center;
+}
+
+.col-label {
+    display: block;
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+    font-weight: 700;
+    font-family: 'Heebo', sans-serif;
+}
+
+.city-code {
+    font-size: 42px;
+    font-weight: 900;
+    color: var(--flytau-navy);
+    font-family: 'Heebo', sans-serif;
+}
+
+.flight-time {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-main);
+    font-family: 'Heebo', sans-serif;
+}
+
+.flight-date {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    font-family: 'Heebo', sans-serif;
+}
+
+.timeline-col {
+    position: relative;
+    padding: 0 20px;
+}
+
+.duration-text {
+    font-size: 15px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-family: 'Heebo', sans-serif;
+}
+
+.timeline-graphic {
+    height: 4px;
+    background: #e2e8f0;
+    border-radius: 4px;
+    position: relative;
+    margin: 10px 0;
+}
+
+.plane-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(180deg);
+    background: transparent;
+    padding: 0 10px;
+    color: var(--flytau-teal);
+    font-size: 18px;
+}
+
+.direct-label {
+    font-size: 13px;
+    color: var(--success-text);
+    background: var(--success-bg);
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-family: 'Heebo', sans-serif;
+}
+
+.card-footer-row {
+    padding: 20px 30px;
+    background: #f8fafc;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 30px;
+}
+
+.price-label {
+    font-family: 'Heebo', sans-serif;
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+.price-value {
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--flytau-navy);
+    font-family: 'Heebo', sans-serif;
+}
+
+.btn-select {
+    background: var(--flytau-navy);
+    color: var(--white);
+    padding: 12px 30px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-family: 'Heebo', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: 0.3s;
+    text-decoration: none;
+}
+
+.btn-select:hover {
+    background: var(--flytau-teal);
+    transform: translateY(-2px);
+}
+
+footer {
+    margin-top: auto;
+    text-align: center;
+    padding: 20px;
+    color: var(--white);
+    font-size: 14px;
+    background: var(--flytau-navy);
+    border-top: none;
+    font-weight: 500;
+}
 
 /* ==========================================================================
    5. SELECT SEATS
@@ -1274,6 +2154,12 @@ body.manager-reports {
 .st-cancelled {
     background: var(--danger-bg);
     color: #991b1b;
+}
+
+.st-full {
+    background: #fff7ed;
+    color: #9a3412;
+    border: 1px solid #fed7aa;
 }
 
 .btn-icon {

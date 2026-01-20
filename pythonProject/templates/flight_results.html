@@ -3,53 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FLYTAU - תוצאות</title>
-
+    <title>FLYTAU - תוצאות חיפוש</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
-
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/flightresults.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body>
+<body class="results-page">
 
-    <header>
+    <header class="public-header">
         <div class="header-right">
-            <img src="{{ url_for('static', filename='img/LOGO.png') }}"
-                 onerror="this.src='{{ url_for('static', filename='img/LOGO.jpeg') }}';"
-                 alt="FLYTAU" class="logo-img">
-            <a href="/" class="nav-link">חיפוש טיסות</a>
+            <img src="{{ url_for('static', filename='img/LOGO.png') }}" alt="FLYTAU" class="logo-img">
+            <nav class="main-nav">
+                <a href="/" class="auth-link"><i class="fas fa-search"></i> חיפוש חדש</a>
+            </nav>
         </div>
-
         <div class="header-left">
             {% if is_logged_in and user_name %}
-                <div class="user-greeting">שלום, <span>{{ user_name }}</span></div>
-                {% if session.get('role') == 'registered' %}
-                    <a href="/my_orders" class="auth-link">ההזמנות שלי</a>
-                {% else %}
-                    <a href="/track_order" class="auth-link">צפייה בהזמנה</a>
-                {% endif %}
-                <a href="/logout" class="auth-link logout">התנתק</a>
+                <span class="welcome-text">שלום, <b>{{ user_name }}</b></span>
+                <a href="/track_order" class="auth-link teal-link">
+                    <i class="fas fa-search-location"></i> איתור הזמנה
+                </a>
+                <a href="/logout" class="auth-link logout-link">התנתק</a>
             {% else %}
                 <a href="/login" class="auth-link">התחברות</a>
                 <a href="/register" class="btn-register">הירשם</a>
-                <a href="/login_manager" class="auth-link" style="color: #001b33;">
+                <a href="/track_order" class="auth-link teal-link">
+                    <i class="fas fa-search-location"></i> איתור הזמנה
+                </a>
+                <a href="/login_manager" class="manager-link">
                     <i class="fas fa-user-tie"></i> כניסת מנהל
                 </a>
             {% endif %}
         </div>
     </header>
 
-    <div class="hero-banner" style="background-image: linear-gradient(rgba(0, 27, 51, 0.3), rgba(0, 27, 51, 0.3)), url('{{ url_for('static', filename='img/RESULTSPIC.PNG') }}');">
-        <h1>מרחק נגיעה מהחופשה</h1>
+    <div class="hero-banner" style="background-image: linear-gradient(rgba(0, 27, 51, 0.4), rgba(0, 27, 51, 0.4)), url('{{ url_for('static', filename='img/RESULTSPIC.PNG') }}');">
+        <h1>החופשה שלך מתחילה כאן</h1>
     </div>
 
-    <div class="stepper-container">
-        <div class="flight-path">
-            <div class="path-line"></div>
-            <div class="step"><div class="dot"></div><div class="step-label">חיפוש</div></div>
-            <div class="step active"><div class="dot"></div><div class="step-label">טיסות</div></div>
-            <div class="step"><div class="dot"></div><div class="step-label">מושבים</div></div>
-            <div class="step"><div class="dot"></div><div class="step-label">תשלום</div></div>
+    <div class="stepper-wrapper">
+        <div class="stepper-container">
+            <div class="stepper-line"></div>
+            <div class="step-item active">
+                <div class="step-circle">1</div>
+                <span class="step-text">טיסות</span>
+            </div>
+            <div class="step-item">
+                <div class="step-circle">2</div>
+                <span class="step-text">מושבים</span>
+            </div>
+            <div class="step-item">
+                <div class="step-circle">3</div>
+                <span class="step-text">תשלום</span>
+            </div>
+            <div class="step-item">
+                <div class="step-circle"><i class="fas fa-check"></i></div>
+                <span class="step-text">אישור</span>
+            </div>
         </div>
     </div>
 
@@ -57,80 +67,48 @@
         {% if flights %}
             {% for flight in flights %}
             <div class="flight-card-modern">
-
                 <div class="card-header-row">
-                    <div style="text-align: left;">
-                        <div style="font-size: 24px; font-weight: 800; color: #ffffff;">
-                            {{ flight.flight_id }}
-                        </div>
-                        <div class="status-active">פעילה</div>
-                    </div>
+                    <div class="flight-id-badge">{{ flight.flight_id }}</div>
+                    <div class="status-badge">פעילה</div>
                 </div>
-
                 <div class="card-body-grid">
-
                     <div class="location-col">
-                        <div style="color: #64748b; font-size: 12px; font-weight: 700; margin-bottom: 5px;">המראה</div>
+                        <span class="col-label">המראה</span>
                         <div class="city-code">{{ flight.origin }}</div>
-                        <div class="flight-date">
-                            <span>{{ flight.departure.strftime('%d-%m-%Y') }}</span>
-                            <i class="far fa-calendar"></i>
-                        </div>
-                        <div class="flight-time-big">
-                            <span>{{ flight.departure.strftime('%H:%M') }}</span>
-                            <i class="far fa-clock"></i>
-                        </div>
+                        <div class="flight-time">{{ flight.departure.strftime('%H:%M') }}</div>
+                        <div class="flight-date">{{ flight.departure.strftime('%d/%m/%Y') }}</div>
                     </div>
-
                     <div class="timeline-col">
-                        <div style="color: #64748b; font-size: 12px; font-weight: 700; margin-bottom: 5px;">משך טיסה</div>
-                        <div class="duration-text" dir="ltr">{{ flight.duration }}</div>
-                        <div class="timeline-graphic"></div>
+                        <div class="duration-text">{{ flight.duration }}</div>
+                        <div class="timeline-graphic">
+                            <div class="plane-icon"><i class="fas fa-plane"></i></div>
+                        </div>
                         <div class="direct-label">טיסה ישירה</div>
                     </div>
-
                     <div class="location-col">
-                        <div style="color: #64748b; font-size: 12px; font-weight: 700; margin-bottom: 5px;">נחיתה</div>
+                        <span class="col-label">נחיתה</span>
                         <div class="city-code">{{ flight.destination }}</div>
-                        <div class="flight-date">
-                            <span>{{ flight.arrival_time.strftime('%d-%m-%Y') if flight.arrival_time else flight.departure.strftime('%d-%m-%Y') }}</span>
-                            <i class="far fa-calendar"></i>
-                        </div>
-                        <div class="flight-time-big">
-                            <span>{{ flight.arrival_time.strftime('%H:%M') if flight.arrival_time else '--:--' }}</span>
-                            <i class="far fa-clock"></i>
-                        </div>
+                        <div class="flight-time">{{ flight.arrival_time.strftime('%H:%M') if flight.arrival_time else '--:--' }}</div>
+                        <div class="flight-date">{{ flight.arrival_time.strftime('%d/%m/%Y') if flight.arrival_time else flight.departure.strftime('%d/%m/%Y') }}</div>
                     </div>
                 </div>
-
                 <div class="card-footer-row">
-                    <div style="display: flex; align-items: center; gap: 20px; width: 100%; justify-content: flex-end;">
-                        <div class="price-area">
-                            <span class="price-label">מחיר לנוסע:</span>
-                            <span class="price-value">₪{{ flight.economy_seat_price }}</span>
-                        </div>
-
-                        {% if flight.available_seats > 0 %}
-                        <a href="/select_seats/{{ flight.flight_id }}" class="btn-select">
-                             המשך לבחירה <i class="fas fa-arrow-left"></i>
-                        </a>
-                        {% else %}
-                        <button class="btn-select disabled" disabled>אזל המלאי</button>
-                        {% endif %}
+                    <div class="price-area">
+                        <span class="price-label">מחיר לנוסע</span>
+                        <div class="price-value">₪{{ flight.economy_seat_price }}</div>
                     </div>
+                    <a href="/select_seats/{{ flight.flight_id }}" class="btn-select">
+                        בחירת מושבים <i class="fas fa-arrow-left"></i>
+                    </a>
                 </div>
-
             </div>
             {% endfor %}
-        {% else %}
-            <div class="no-results">
-                <i class="fas fa-search" style="font-size: 64px; color: #64748b; margin-bottom: 20px;"></i>
-                <h2 style="color: #001b33;">לא נמצאו טיסות</h2>
-                <p style="color: #64748b;">נסה לשנות את פרטי החיפוש או לבדוק תאריכים אחרים</p>
-                <a href="/" class="btn-select" style="margin-top: 20px;">חזור לחיפוש</a>
-            </div>
         {% endif %}
     </div>
+
+    <footer>
+        © 2026 FLYTAU - חברת התעופה שלכם. כל הזכויות שמורות.
+    </footer>
 
 </body>
 </html>

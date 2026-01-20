@@ -8,22 +8,26 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/register.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
-<body>
+<body class="register-page">
 
     <div class="panel">
         <div class="wrapper">
             <div class="title-row">
-                <img class="inline-logo" src="{{ url_for('static', filename='img/LOGO.png') }}" alt="FLYTAU">
+                <img class="inline-logo"
+                     src="{{ url_for('static', filename='img/LOGO.png') }}"
+                     onerror="this.src='{{ url_for('static', filename='img/LOGO.jpeg') }}';"
+                     alt="FLYTAU">
                 <h1>הרשמה</h1>
             </div>
 
             <p class="subtitle">ממלאים פרטים פעם אחת — וממשיכים להזמין מהר יותר.</p>
 
             {% if message %}
-            <div class="notice {% if 'Already' not in message and 'אימייל' not in message %}ok{% endif %}" role="alert" style="display: block;">
+            <div class="notice {% if 'Already' not in message and 'אימייל' not in message %}ok{% endif %}" role="alert">
+                <i class="fas {% if 'Already' not in message and 'אימייל' not in message %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
                 {{ message }}
             </div>
             {% else %}
@@ -33,55 +37,55 @@
             <form id="signupForm" action="/register" method="POST" novalidate>
                 <input type="hidden" name="next_url_hidden" value="{{ request.args.get('next', '') }}">
 
-                <div class="grid">
+                <div class="form-grid">
                     <div class="input-group">
-                        <label class="label">שם פרטי (באנגלית)</label>
+                        <label class="input-label">שם פרטי (באנגלית)</label>
                         <div class="input-box">
-                            <i class="fas fa-user icon-start"></i>
-                            <input id="first_name" name="first_name" type="text" placeholder="" required>
+                            <i class="fas fa-user"></i>
+                            <input id="first_name" name="first_name" type="text" required>
                         </div>
                     </div>
                     <div class="input-group">
-                        <label class="label">שם משפחה (באנגלית)</label>
+                        <label class="input-label">שם משפחה (באנגלית)</label>
                         <div class="input-box">
-                            <i class="fas fa-user icon-start"></i>
-                            <input id="last_name" name="last_name" type="text" placeholder="" required>
+                            <i class="fas fa-user"></i>
+                            <input id="last_name" name="last_name" type="text" required>
                         </div>
                     </div>
                 </div>
 
-                <div class="grid">
+                <div class="form-grid">
                     <div class="input-group">
-                        <label class="label">מספר דרכון</label>
+                        <label class="input-label">מספר דרכון</label>
                         <div class="input-box">
-                            <i class="fas fa-passport icon-start"></i>
-                            <input id="passport" name="passport" type="text" placeholder="" required>
+                            <i class="fas fa-passport"></i>
+                            <input id="passport" name="passport" type="text" required>
                         </div>
                     </div>
                     <div class="input-group">
-                        <label class="label">תאריך לידה</label>
+                        <label class="input-label">תאריך לידה</label>
                         <div class="input-box">
-                            <i class="fas fa-cake-candles icon-start"></i>
+                            <i class="fas fa-cake-candles"></i>
                             <input id="dob" name="birth_date" type="date" required>
                         </div>
                     </div>
                 </div>
 
                 <div class="input-group">
-                    <label class="label">אימייל</label>
+                    <label class="input-label">אימייל</label>
                     <div class="input-box">
-                        <i class="far fa-envelope icon-start"></i>
-                        <input id="email" name="customer_email" type="email" placeholder="" autocomplete="email" required>
+                        <i class="far fa-envelope"></i>
+                        <input id="email" name="customer_email" type="email" autocomplete="email" required>
                     </div>
                 </div>
 
                 <div class="input-group">
-                    <label class="label">טלפון נייד</label>
+                    <label class="input-label">טלפון נייד</label>
                     <div id="phones-container">
                         <div class="phone-row">
                             <div class="input-box">
-                                <i class="fas fa-phone icon-start"></i>
-                                <input type="tel" name="phone_numbers" placeholder="" required class="phone-input">
+                                <i class="fas fa-phone"></i>
+                                <input type="tel" name="phone_numbers" required class="phone-input">
                             </div>
                         </div>
                     </div>
@@ -91,23 +95,25 @@
                 </div>
 
                 <div class="input-group">
-                    <label class="label">סיסמה</label>
+                    <label class="input-label">סיסמה</label>
                     <div class="input-box">
-                        <i class="fas fa-lock icon-start"></i>
-                        <input id="password" name="password" type="password" placeholder="" minlength="8" required>
+                        <i class="fas fa-lock"></i>
+                        <input id="password" name="password" type="password" minlength="8" required>
                     </div>
                 </div>
 
-                <button id="submitBtn" class="btn" type="submit">יצירת חשבון <i class="fas fa-arrow-left"></i></button>
+                <button id="submitBtn" class="btn-register" type="submit">
+                    יצירת חשבון <i class="fas fa-arrow-left"></i>
+                </button>
 
-                <div class="links">
+                <div class="auth-footer-links">
                     כבר יש לך חשבון? <a href="/login{% if request.args.get('next') %}?next={{ request.args.get('next') }}{% endif %}">להתחברות</a>
                 </div>
             </form>
         </div>
     </div>
 
-    <div class="image-section">
+    <div class="image-section" style="background-image: url('{{ url_for('static', filename='img/FLYTAU_airplane.png') }}');">
         <div class="overlay"></div>
         <div class="promo-content">
             <div class="promo-tag">JOIN FLYTAU</div>
@@ -120,25 +126,13 @@
         const $ = (id) => document.getElementById(id);
         const phonesContainer = $('phones-container');
 
-        function setNotice(msg, type="error"){
-            const n = $("notice");
-            n.className = "notice" + (type==="ok" ? " ok" : "");
-            n.textContent = msg;
-            n.style.display = "block";
-        }
-
-        function clearNotice(){
-            const n = $("notice");
-            n.style.display = "none";
-        }
-
         function addPhoneField() {
             const div = document.createElement('div');
             div.className = 'phone-row';
             div.innerHTML = `
                 <div class="input-box">
-                    <i class="fas fa-phone icon-start"></i>
-                    <input type="tel" name="phone_numbers" placeholder="" class="phone-input">
+                    <i class="fas fa-phone"></i>
+                    <input type="tel" name="phone_numbers" class="phone-input">
                 </div>
                 <button type="button" class="btn-remove-phone" onclick="removePhone(this)">
                     <i class="fas fa-trash"></i>
@@ -170,7 +164,10 @@
             const passOk = pass.length >= 8;
 
             const allOk = first && last && passportOk && dob && emailOk && passOk && isPhoneValid;
-            $("submitBtn").disabled = !allOk;
+            const btn = $("submitBtn");
+            btn.disabled = !allOk;
+            btn.style.opacity = allOk ? "1" : "0.6";
+            btn.style.cursor = allOk ? "pointer" : "not-allowed";
         }
 
         ["first_name","last_name","passport","dob","email","password"].forEach(id=>{

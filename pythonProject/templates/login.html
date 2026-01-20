@@ -8,29 +8,31 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
-<body>
+<body class="login-page">
 
   <div class="panel">
     <div class="wrapper">
       <div class="title-row">
-        <h1>התחברות</h1>
         <img class="inline-logo" src="{{ url_for('static', filename='img/LOGO.png') }}" alt="FLYTAU">
+        <h1>התחברות</h1>
       </div>
 
       <p class="subtitle">התחברו כדי לצפות בהזמנות שלכם ולבצע רכישות מהירות.</p>
 
       {% if message %}
-      <div class="error-message">{{ message }}</div>
+      <div class="error-message">
+        <i class="fas fa-exclamation-circle"></i> {{ message }}
+      </div>
       {% endif %}
 
       <form action="/login" method="POST">
         <input type="hidden" name="next_url_hidden" value="{{ next_param }}">
 
         <div class="input-group">
-          <label class="label">אימייל</label>
+          <label class="input-label">אימייל</label>
           <div class="input-box">
               <i class="far fa-envelope"></i>
               <input name="customer_email" type="email" placeholder="email@example.com" required>
@@ -38,16 +40,18 @@
         </div>
 
         <div class="input-group">
-          <label class="label">סיסמה</label>
+          <label class="input-label">סיסמה</label>
           <div class="input-box">
               <i class="fas fa-lock"></i>
               <input name="password" type="password" placeholder="••••••••" required>
           </div>
         </div>
 
-        <button class="btn" type="submit">כניסה למערכת</button>
+        <button class="btn-login" type="submit">כניסה למערכת</button>
 
-        <div class="links">אין לך חשבון? <a href="/register?next={{ next_param }}">הירשם עכשיו</a></div>
+        <div class="auth-footer-links">
+            אין לך חשבון? <a href="/register?next={{ next_param }}">הירשם עכשיו</a>
+        </div>
       </form>
     </div>
   </div>
