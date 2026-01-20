@@ -757,18 +757,12 @@ def manager_flights():
     total_income_res = cursor.fetchone()
     total_income = total_income_res[0] if total_income_res and total_income_res[0] else 0
 
-    return render_template('manager_flights.html',
-                           manager_name=current_manager_name,
-                           flights=flights_list,
-                           total_staff=(p_count + fa_count),
-                           total_income=total_income,
-                           total_orders=len(flights_list),
-                           # Must pass the filter so HTML knows what to mark as selected
-                           current_filter=status_filter,
-                           status_dict={'Active': 5, 'Cancelled': 1},
-                           dest_labels=['TLV', 'JFK'],
-                           dest_values=[100, 200])
-
+    return render_template(
+        'manager_flights.html',
+        manager_name=current_manager_name,
+        flights=flights_list,
+        current_filter=status_filter
+    )
 
 
 @app.route('/manager/add_flight/step1', methods=['GET', 'POST'])
