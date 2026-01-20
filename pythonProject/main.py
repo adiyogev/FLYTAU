@@ -38,6 +38,7 @@ def update_flight_statuses():
         mydb.commit()
     except Exception as e:
         return f"שגיאה בעדכון סטטוס טיסות: {e}"
+
 @app.before_request
 def make_session_permanent():
     # permanent session - make sure
@@ -238,10 +239,6 @@ def checkout():
     """
     Handles passenger details (Guest/Registered) and order creation.
     """
-    # Block managers from booking flights
-    if session.get("role") == "manager":
-        flash("למנהל אין הרשאה לבצע הזמנת טיסה.", "warning")
-        return redirect("/manager")
 
     # 1. Session Data
     flight_id = session.get('selected_flight_id')
