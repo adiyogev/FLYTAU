@@ -12,8 +12,8 @@ class User:
         # collect all data from DB
         query = """
             SELECT o.total_price, f.departure, o.status 
-            FROM Orders o 
-            JOIN Flight f ON o.flight_id = f.flight_id 
+            FROM orders o 
+            JOIN flight f ON o.flight_id = f.flight_id 
             WHERE o.code = %s
         """
         cursor.execute(query, (order_code,))
@@ -35,7 +35,7 @@ class User:
         cancellation_fee = int(price * 0.05)
         try:
             cursor.execute("""
-                UPDATE Orders 
+                UPDATE orders 
                 SET status = 'cancelled by user', total_price = %s 
                 WHERE code = %s
             """, (cancellation_fee, order_code))
@@ -126,10 +126,10 @@ class Manager:
         staff_type = staff_data.get('staff_type')
         # determine if pilot or flight attendant and insert to DB
         if staff_type == 'pilot':
-            table_name = 'Pilot'
+            table_name = 'pilot'
             id_column = 'pilot_id'
         else:
-            table_name = 'Flight_Attendant'
+            table_name = 'flight_attendant'
             id_column = 'fa_id'
         query = f"""INSERT INTO {table_name} 
             ({id_column}, first_name, last_name, phone_num, start_date, city, street, st_num, long_flight_qualified)
@@ -245,12 +245,12 @@ def get_available_resources(table, id_col, origin, is_long, cursor):
     # long flight - staff qualification and large plane
     additional_filters = ""
     if is_long:
-        if table in ['Pilot', 'Flight_Attendant']:
+        if table in ['pilot', 'flight_attendant']:
             additional_filters = " AND long_flight_qualified = 1"
         elif table == 'Plane':
             additional_filters = " AND size = 'large'"
 
-    relation_table = f"{table}s_on_Flight" if table != 'Plane' else "Flight"
+    relation_table = f"{table}s_on_flight" if table != 'plane' else "flight"
     query = f"""
             SELECT * FROM {table} 
             WHERE 1=1 {additional_filters}
@@ -261,9 +261,9 @@ def get_available_resources(table, id_col, origin, is_long, cursor):
             -- last arrival is the origin
             (
                 SELECT f.destination_airport 
-                FROM Flight f
-                {"JOIN " + relation_table + " rf ON f.flight_id = rf.flight_id" if table != 'Plane' else ""}
-                WHERE {"rf." if table != 'Plane' else "f."}{id_col} = {table}.{id_col}
+                FROM flight f
+                {"JOIN " + relation_table + " rf ON f.flight_id = rf.flight_id" if table != 'plane' else ""}
+                WHERE {"rf." if table != 'plane' else "f."}{id_col} = {table}.{id_col}
                 ORDER BY f.arrival DESC
                 LIMIT 1
             ) = %s

@@ -21,7 +21,6 @@ mydb = mysql.connector.connect(host="localhost", user="root", password="root", d
 cursor = mydb.cursor(buffered=True)
 
 # When running the website, check for completed flights and update in DB
-# Must be defined before before_request decorators call it
 
 def update_flight_statuses():
     try:
@@ -29,7 +28,7 @@ def update_flight_statuses():
 
         # 1) Past flights become completed (active/full only)
         cursor.execute("""
-                UPDATE Flight
+                UPDATE flight
                 SET status = 'completed'
                 WHERE departure < %s
                   AND status IN ('active','full')
@@ -37,8 +36,8 @@ def update_flight_statuses():
 
         # 2) Past active orders become completed
         cursor.execute("""
-                UPDATE Orders o
-                JOIN Flight f ON o.flight_id = f.flight_id
+                UPDATE orders o
+                JOIN flight f ON o.flight_id = f.flight_id
                 SET o.status = 'completed'
                 WHERE f.departure < %s
                   AND o.status = 'active'
@@ -46,38 +45,38 @@ def update_flight_statuses():
 
         # 3) Mark flights as full when booked seats >= capacity
         cursor.execute("""
-                UPDATE Flight f
+                UPDATE flight f
                 SET f.status = 'full'
                 WHERE f.status = 'active'
                   AND f.departure >= %s
                   AND (
                     SELECT COUNT(*)
-                    FROM Seats_in_Order sio
-                    JOIN Orders o ON o.code = sio.code
+                    FROM seats_in_order sio
+                    JOIN orders o ON o.code = sio.code
                     WHERE o.flight_id = f.flight_id
                       AND o.status IN ('active','completed')
                   ) >= (
                     SELECT COUNT(*)
-                    FROM Class c
+                    FROM class c
                     WHERE c.plane_id = f.plane_id
                   )
             """, (now,))
 
         # 4) Return full -> active if seats freed (e.g., cancellation)
         cursor.execute("""
-                UPDATE Flight f
+                UPDATE flight f
                 SET f.status = 'active'
                 WHERE f.status = 'full'
                   AND f.departure >= %s
                   AND (
                     SELECT COUNT(*)
-                    FROM Seats_in_Order sio
-                    JOIN Orders o ON o.code = sio.code
+                    FROM seats_in_order sio
+                    JOIN orders o ON o.code = sio.code
                     WHERE o.flight_id = f.flight_id
                       AND o.status IN ('active','completed')
                   ) < (
                     SELECT COUNT(*)
-                    FROM Class c
+                    FROM class c
                     WHERE c.plane_id = f.plane_id
                   )
             """, (now,))
@@ -123,9 +122,9 @@ def index():
     is_logged_in = session.get('customer_email') is not None
     # All origin and destination options from Route
     cursor.execute("""
-        SELECT DISTINCT origin_airport FROM Route 
+        SELECT DISTINCT origin_airport FROM route 
         UNION 
-        SELECT DISTINCT destination_airport FROM Route
+        SELECT DISTINCT destination_airport FROM route
     """)
     routes = [row[0] for row in cursor.fetchall()]
     return render_template('index.html', user_name=user_name, is_logged_in=is_logged_in, available_routes=routes)
@@ -157,15 +156,15 @@ def search_flights():
     query = """
             SELECT f.flight_id, f.origin_airport, f.destination_airport, r.duration, f.departure, 
                    f.plane_id, f.business_seat_price, f.economy_seat_price,
-                   (SELECT COUNT(*) FROM Class as c WHERE c.plane_id = f.plane_id) as capacity,
+                   (SELECT COUNT(*) FROM class as c WHERE c.plane_id = f.plane_id) as capacity,
                    COALESCE(occupied_counts.booked_count, 0) as occupied
-            FROM Flight as f
-            JOIN Route as r ON f.origin_airport = r.origin_airport 
+            FROM flight as f
+            JOIN route as r ON f.origin_airport = r.origin_airport 
                            AND f.destination_airport = r.destination_airport
             LEFT JOIN (
                 SELECT o.flight_id, COUNT(sio.seat_row) as booked_count
-                FROM Orders as o
-                JOIN Seats_in_Order sio ON o.code = sio.code
+                FROM orders as o
+                JOIN seats_in_order sio ON o.code = sio.code
                 WHERE o.status IN ('active','completed')
                 GROUP BY o.flight_id
             ) occupied_counts ON f.flight_id = occupied_counts.flight_id
@@ -231,7 +230,7 @@ def select_seats(flight_id):
     # GET: Render Plane Layout
     # 1. Fetch Flight & Price Info
     cursor.execute(
-        "SELECT plane_id, economy_seat_price, business_seat_price, origin_airport, destination_airport FROM Flight WHERE flight_id = %s",
+        "SELECT plane_id, economy_seat_price, business_seat_price, origin_airport, destination_airport FROM flight WHERE flight_id = %s",
         (flight_id,))
     flight_data = cursor.fetchone()
     if not flight_data: return redirect('/')
@@ -239,14 +238,14 @@ def select_seats(flight_id):
     plane_id, eco_price, bus_price, origin, dest = flight_data
 
     cursor.execute(
-        "SELECT seat_row, seat_position, class_type FROM Class WHERE plane_id = %s ORDER BY seat_row, seat_position",
+        "SELECT seat_row, seat_position, class_type FROM class WHERE plane_id = %s ORDER BY seat_row, seat_position",
         (plane_id,))
     all_seats = cursor.fetchall()
     # 3. Fetch Occupied Seats
     cursor.execute("""
         SELECT sio.seat_row, sio.seat_position 
-        FROM Seats_in_Order sio
-        JOIN Orders o ON sio.code = o.code
+        FROM seats_in_order sio
+        JOIN orders o ON sio.code = o.code
         WHERE o.flight_id = %s AND o.status IN ('active','completed')
     """, (flight_id,))
     occupied_set = {(r, p) for r, p in cursor.fetchall()}
@@ -312,7 +311,7 @@ def checkout():
     is_logged_in = 'customer_email' in session
     if is_logged_in:
         # if logged - auto fill details from DB
-        cursor.execute("SELECT first_name, last_name, passport, birth_date FROM Customer WHERE customer_email = %s",
+        cursor.execute("SELECT first_name, last_name, passport, birth_date FROM customer WHERE customer_email = %s",
                        (session['customer_email'],))
         row = cursor.fetchone()
         if row:
@@ -332,7 +331,7 @@ def checkout():
         birth_date = request.form.get('birth_date')
 
         # 1. Check if already registered and validate details
-        cursor.execute("SELECT customer_email FROM Customer WHERE customer_email = %s", (email,))
+        cursor.execute("SELECT customer_email FROM customer WHERE customer_email = %s", (email,))
         is_registered_db = cursor.fetchone()
 
         if is_registered_db:
@@ -342,7 +341,7 @@ def checkout():
             valid, msg = validate_guest_data(first_name, last_name, phone)
             if not valid:
                 cursor.execute(
-                    "SELECT flight_id, origin_airport, destination_airport, departure FROM Flight WHERE flight_id = %s",
+                    "SELECT flight_id, origin_airport, destination_airport, departure FROM flight WHERE flight_id = %s",
                     (flight_id,))
                 f_db = cursor.fetchone()
                 flight_obj = Flight(f_db[0], f_db[1], f_db[2], None, f_db[3], None, 0, 0)
@@ -355,7 +354,7 @@ def checkout():
             # 2. Guest DB insert
             try:
                 # dont save the email if exists
-                cursor.execute("INSERT IGNORE INTO Guest (guest_email, first_name, last_name) VALUES (%s, %s, %s)",
+                cursor.execute("INSERT IGNORE INTO guest (guest_email, first_name, last_name) VALUES (%s, %s, %s)",
                                (email, first_name, last_name))
                 cursor.execute("INSERT IGNORE INTO guest_phone_numbers (phone_guest_email, phone_num) VALUES (%s, %s)",
                                (email, phone))
@@ -370,12 +369,12 @@ def checkout():
         order_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
         try:
             cursor.execute("""
-                    INSERT INTO Orders (code, status, total_price, order_date, flight_id, customer_email, guest_email)
+                    INSERT INTO orders (code, status, total_price, order_date, flight_id, customer_email, guest_email)
                     VALUES (%s, 'active', %s, %s, %s, %s, %s)
                 """, (order_code, total_price, datetime.now(), flight_id, final_customer_email, final_guest_email))
 
             # 4. Insert seats to Seats_in_Order
-            cursor.execute("SELECT plane_id FROM Flight WHERE flight_id=%s", (flight_id,))
+            cursor.execute("SELECT plane_id FROM flight WHERE flight_id=%s", (flight_id,))
             plane_result = cursor.fetchone()
             if not plane_result:
                 raise ValueError("Flight not found")
@@ -383,7 +382,7 @@ def checkout():
 
             for seat in seat_objects:
                 cursor.execute("""
-                        INSERT INTO Seats_in_Order (seat_row, seat_position, code, seats_plane_id)
+                        INSERT INTO seats_in_order (seat_row, seat_position, code, seats_plane_id)
                         VALUES (%s, %s, %s, %s)
                      """, (seat.seat_row, seat.seat_position, order_code, real_plane_id))
 
@@ -394,7 +393,7 @@ def checkout():
             session.pop('selected_flight_id', None)
 
             # route information for confirmation
-            cursor.execute("SELECT origin_airport, destination_airport FROM Flight WHERE flight_id=%s",
+            cursor.execute("SELECT origin_airport, destination_airport FROM flight WHERE flight_id=%s",
                            (flight_id,))
             f_info = cursor.fetchone()
 
@@ -417,7 +416,7 @@ def checkout():
     # 1. Fetch user details for auto fill (if registered)
     user_details = {}
     if is_logged_in:
-        cursor.execute("""SELECT first_name, last_name, passport, birth_date FROM Customer WHERE customer_email = %s""", (session['customer_email'],))
+        cursor.execute("""SELECT first_name, last_name, passport, birth_date FROM customer WHERE customer_email = %s""", (session['customer_email'],))
         cust_data = cursor.fetchone()
         if cust_data:
             user_details = {'first_name': cust_data[0], 'last_name': cust_data[1], 'passport': cust_data[2], 'birth_date': cust_data[3], 'phones':[]}
@@ -429,8 +428,8 @@ def checkout():
     # 2. Prepare flight object for display
     query = """
         SELECT f.flight_id, f.origin_airport, f.destination_airport, r.duration, f.departure 
-        FROM Flight f
-        JOIN Route r ON f.origin_airport = r.origin_airport 
+        FROM flight f
+        JOIN route r ON f.origin_airport = r.origin_airport 
                      AND f.destination_airport = r.destination_airport
         WHERE f.flight_id = %s
     """
@@ -474,9 +473,9 @@ def my_orders():
                 SELECT o.code, o.order_date, o.total_price, o.status, 
                        f.origin_airport, f.destination_airport, f.departure, f.flight_id,
                        r.duration
-                FROM Orders o
-                JOIN Flight f ON o.flight_id = f.flight_id
-                JOIN Route r ON f.origin_airport = r.origin_airport 
+                FROM orders o
+                JOIN flight f ON o.flight_id = f.flight_id
+                JOIN route r ON f.origin_airport = r.origin_airport 
                              AND f.destination_airport = r.destination_airport
                 WHERE o.customer_email = %s
             """
@@ -536,11 +535,11 @@ def track_order():
         # Search for order in DB
         query = """
                     SELECT o.code, o.status, o.total_price, f.origin_airport, f.destination_airport, f.departure, f.flight_id, r.duration
-                    FROM Orders o JOIN Flight f ON o.flight_id = f.flight_id
-                        JOIN Route r ON f.origin_airport = r.origin_airport AND f.destination_airport = r.destination_airport
-                    WHERE o.code = %s AND o.guest_email = %s
+                    FROM orders o JOIN flight f ON o.flight_id = f.flight_id
+                        JOIN route r ON f.origin_airport = r.origin_airport AND f.destination_airport = r.destination_airport
+                    WHERE o.code = %s AND (o.guest_email = %s OR o.customer_email = %s) AND o.status = 'active'
                 """
-        cursor.execute(query, (order_code, email))
+        cursor.execute(query, (order_code, email, email))
         result = cursor.fetchone()
 
         if result:
@@ -552,7 +551,7 @@ def track_order():
             order_data = order_list
 
         else:
-            message = "לא נמצאה הזמנה עבור פרטים אלו. וודא שהקוד והמייל נכונים."
+            message = "לא נמצאה הזמנה פעילה עבור פרטים אלו. וודאו שהקוד והמייל נכונים ושהטיסה שחיפשתם פעילה."
 
     return render_template('track_order.html', order=order_data, message=message)
 
@@ -578,7 +577,7 @@ def login():
         customer_email = customer_email.lower()
         destination_after_login = request.form.get('next_url_hidden')  # from hidden destination in HTML
         cursor.execute(
-            "SELECT customer_email, password, first_name FROM Customer WHERE customer_email = %s AND BINARY password = %s",
+            "SELECT customer_email, password, first_name FROM customer WHERE customer_email = %s AND BINARY password = %s",
             (customer_email, password))
         customer = cursor.fetchone()  # either one result or None
         if customer:  # find if entered email is in Customer DB, and if so - login the user
@@ -602,7 +601,7 @@ def login_manager():
     if request.method == 'POST':
         manager_id = request.form.get('manager_id')
         password = request.form.get('password')
-        cursor.execute("SELECT manager_id, password FROM Manager WHERE manager_id = %s AND BINARY password = %s",
+        cursor.execute("SELECT manager_id, password FROM manager WHERE manager_id = %s AND BINARY password = %s",
                        (manager_id, password))
         manager = cursor.fetchone()  # either one result or None
         if manager:  # Find if entered id is in Manager DB, and if so - login the manager
@@ -632,12 +631,12 @@ def register():
         reg_date = date.today()
 
         destination_after_login = request.form.get('next_url_hidden')
-        cursor.execute("SELECT customer_email FROM Customer WHERE customer_email = %s",
+        cursor.execute("SELECT customer_email FROM customer WHERE customer_email = %s",
                        (customer_email,))  # We won't allow the same email to have 2 different accounts
         if cursor.fetchone():
             return render_template('register.html', message="User Already Exists")
         cursor.execute(
-            "INSERT INTO Customer(customer_email, first_name, last_name, passport, birth_date, password, reg_date) VALUES(%s, %s, %s, %s, %s, %s, %s)",
+            "INSERT INTO customer(customer_email, first_name, last_name, passport, birth_date, password, reg_date) VALUES(%s, %s, %s, %s, %s, %s, %s)",
             (customer_email, first_name, last_name, passport, birth_date, password, reg_date))
         for phone in phone_numbers:
             cursor.execute("INSERT INTO customer_phone_numbers(phone_customer_email, phone_num) VALUES(%s, %s)",
@@ -672,7 +671,7 @@ def manager_flights():
     current_manager_name = "Admin"
 
     try:
-        cursor.execute("SELECT first_name FROM Manager WHERE manager_id = %s", (manager_id,))
+        cursor.execute("SELECT first_name FROM manager WHERE manager_id = %s", (manager_id,))
         result = cursor.fetchone()
         if result:
             current_manager_name = result[0]
@@ -682,14 +681,14 @@ def manager_flights():
     # --- POST: Flight Cancellation ---
     if request.method == 'POST':
         flight_id = request.form.get('flight_id')
-        cursor.execute("SELECT departure FROM Flight WHERE flight_id = %s", (flight_id,))
+        cursor.execute("SELECT departure FROM flight WHERE flight_id = %s", (flight_id,))
         flight_dep = cursor.fetchone()
         if flight_dep:
             departure_time = flight_dep[0]
             if departure_time - datetime.now() >= timedelta(hours=72):
                 try:
-                    cursor.execute("UPDATE Flight SET status = 'cancelled' WHERE flight_id = %s", (flight_id,))
-                    cursor.execute("""UPDATE Orders SET total_price = 0, status = 'cancelled by system'
+                    cursor.execute("UPDATE flight SET status = 'cancelled' WHERE flight_id = %s", (flight_id,))
+                    cursor.execute("""UPDATE orders SET total_price = 0, status = 'cancelled by system'
                         WHERE flight_id = %s AND status = 'active'""", (flight_id,))
                     mydb.commit()
                     flash("הטיסה בוטלה בהצלחה.", "success")
@@ -708,12 +707,12 @@ def manager_flights():
             SELECT f.flight_id, f.origin_airport, f.destination_airport, 
                    f.departure, r.duration, f.plane_id, 
                    f.business_seat_price, f.economy_seat_price, f.status,
-                   (SELECT COUNT(*) FROM Class WHERE plane_id = f.plane_id) as capacity,
-                   (SELECT COUNT(*) FROM Seats_in_Order WHERE code IN 
-                        (SELECT code FROM Orders WHERE flight_id = f.flight_id AND status IN ('active','completed'))
+                   (SELECT COUNT(*) FROM class WHERE plane_id = f.plane_id) as capacity,
+                   (SELECT COUNT(*) FROM seats_in_order WHERE code IN 
+                        (SELECT code FROM orders WHERE flight_id = f.flight_id AND status IN ('active','completed'))
                    ) as occupied            
-            FROM Flight as f 
-            JOIN Route as r ON f.origin_airport = r.origin_airport 
+            FROM flight as f 
+            JOIN route as r ON f.origin_airport = r.origin_airport 
                 AND f.destination_airport = r.destination_airport
         """
 
@@ -749,11 +748,11 @@ def manager_flights():
         flights_list.append(f)
 
     # Statistics
-    cursor.execute("SELECT COUNT(*) FROM Pilot")
+    cursor.execute("SELECT COUNT(*) FROM pilot")
     p_count = cursor.fetchone()[0]
-    cursor.execute("SELECT COUNT(*) FROM Flight_Attendant")
+    cursor.execute("SELECT COUNT(*) FROM flight_attendant")
     fa_count = cursor.fetchone()[0]
-    cursor.execute("SELECT SUM(total_price) FROM Orders WHERE status IN ('active','completed')")
+    cursor.execute("SELECT SUM(total_price) FROM orders WHERE status IN ('active','completed','full')")
     total_income_res = cursor.fetchone()
     total_income = total_income_res[0] if total_income_res and total_income_res[0] else 0
 
@@ -778,14 +777,14 @@ def add_flight_step1():
         departure = request.form.get('departure')
 
         # Validation - flight_id is not in DB and route is in DB. if not - error message
-        cursor.execute("SELECT flight_id FROM Flight WHERE flight_id = %s", (flight_id,))
+        cursor.execute("SELECT flight_id FROM flight WHERE flight_id = %s", (flight_id,))
         if cursor.fetchone():
             message = f"שגיאה: מספר טיסה {flight_id} כבר קיים במערכת."
             return render_template('add_flight_s1.html', message=message)
 
         cursor.execute("""
                     SELECT duration, is_long 
-                    FROM Route 
+                    FROM route 
                     WHERE origin_airport = %s AND destination_airport = %s
                 """, (origin, destination))
         route_data = cursor.fetchone()
@@ -816,9 +815,9 @@ def add_flight_step2():
     if not f_data:
         return redirect('/manager/add_flight/step1')
 
-    planes_data = get_available_resources('Plane', 'plane_id', f_data['origin'], f_data['is_long'], cursor)
-    pilots = get_available_resources('Pilot', 'pilot_id', f_data['origin'], f_data['is_long'], cursor)
-    fas = get_available_resources('Flight_Attendant', 'fa_id', f_data['origin'], f_data['is_long'], cursor)
+    planes_data = get_available_resources('plane', 'plane_id', f_data['origin'], f_data['is_long'], cursor)
+    pilots = get_available_resources('pilot', 'pilot_id', f_data['origin'], f_data['is_long'], cursor)
+    fas = get_available_resources('flight_attendant', 'fa_id', f_data['origin'], f_data['is_long'], cursor)
 
     if request.method == 'POST':
         selected_plane_id = request.form.get('plane_id')
@@ -883,17 +882,17 @@ def add_flight_step3():
             return render_template('add_flight_s3.html', error=f"שגיאה בפורמט תאריך/זמן: {e}", plane_size=plane_size)
 
         try:
-            cursor.execute("""INSERT INTO Flight (flight_id, origin_airport, destination_airport, departure, arrival, plane_id, economy_seat_price, business_seat_price)
+            cursor.execute("""INSERT INTO flight (flight_id, origin_airport, destination_airport, departure, arrival, plane_id, economy_seat_price, business_seat_price)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""", (
             f_data['flight_id'], f_data['origin'], f_data['destination'], f_data['departure'], arrival,
             f_data['plane_id'], p_eco, p_bus))
             # Insert pilots and flight attendants if they exist
             if 'pilots' in f_data:
                 for pid in f_data['pilots']:
-                    cursor.execute("INSERT INTO Pilots_on_Flight VALUES (%s, %s)", (f_data['flight_id'], pid))
+                    cursor.execute("INSERT INTO pilots_on_flight VALUES (%s, %s)", (f_data['flight_id'], pid))
             if 'fas' in f_data:
                 for fid in f_data['fas']:
-                    cursor.execute("INSERT INTO Flight_Attendants_on_Flight VALUES (%s, %s)", (f_data['flight_id'], fid))
+                    cursor.execute("INSERT INTO flight_attendants_on_flight VALUES (%s, %s)", (f_data['flight_id'], fid))
             cursor.execute("""INSERT INTO flight_created_by (flight_id, manager_id) VALUES (%s, %s)""", (f_data['flight_id'], session.get("manager_id")))
             mydb.commit()
             flight_num = f_data['flight_id']
@@ -991,7 +990,7 @@ def add_plane():
         try:
             cursor = mydb.cursor()
             # 2. Duplicate Check
-            cursor.execute("SELECT plane_id FROM Plane WHERE plane_id = %s", (plane_id,))
+            cursor.execute("SELECT plane_id FROM plane WHERE plane_id = %s", (plane_id,))
             if cursor.fetchone():
                 return render_template('add_plane.html',
                                        error=f"שגיאה: המטוס {plane_id} כבר קיים במערכת.",
@@ -999,7 +998,7 @@ def add_plane():
             # 3. Transaction: Insert Plane -> Generate Seats -> Insert Class
             # Step A: Insert Plane
             query_plane = """
-                INSERT INTO Plane (plane_id, size, purchase_date, manufacturer)
+                INSERT INTO plane (plane_id, size, purchase_date, manufacturer)
                 VALUES (%s, %s, %s, %s)
             """
             cursor.execute(query_plane, (plane_id, size, purchase_date, manufacturer))
@@ -1018,7 +1017,7 @@ def add_plane():
                     seats_data.append((plane_id, r, col, 'economy'))
             # Step C: Insert into 'Class' table
             query_seats = """
-                INSERT INTO `Class` (plane_id, seat_row, seat_position, class_type)
+                INSERT INTO `class` (plane_id, seat_row, seat_position, class_type)
                 VALUES (%s, %s, %s, %s)
             """
             cursor.executemany(query_seats, seats_data)
@@ -1045,15 +1044,15 @@ def manager_reports():
     cursor = mydb.cursor(buffered=True)
 
     # Total orders
-    cursor.execute("SELECT COUNT(*) FROM Orders")
+    cursor.execute("SELECT COUNT(*) FROM orders")
     total_orders = cursor.fetchone()[0] or 0
 
     # Total income
-    cursor.execute("SELECT SUM(total_price) FROM Orders WHERE status != 'cancelled by system'")
+    cursor.execute("SELECT SUM(total_price) FROM orders WHERE status != 'cancelled by system'")
     total_revenue = cursor.fetchone()[0] or 0
 
     # Cancellations
-    cursor.execute("SELECT COUNT(*) FROM Orders WHERE status = 'cancelled by user'")
+    cursor.execute("SELECT COUNT(*) FROM orders WHERE status = 'cancelled by user'")
     cancelled_orders = cursor.fetchone()[0] or 0
 
     # Occupancy
@@ -1062,12 +1061,12 @@ def manager_reports():
             ROUND(SUM(occupied_seats) / NULLIF(SUM(total_capacity), 0) * 100, 2) AS avg_total_occupancy
         FROM (
             SELECT f.flight_id,
-                (SELECT COUNT(*) FROM Class c WHERE c.plane_id = f.plane_id) AS total_capacity,
-                (SELECT COUNT(*)
-                 FROM Seats_in_Order sio
-                 JOIN Orders o ON sio.code = o.code
-                 WHERE o.flight_id = f.flight_id AND o.status != 'cancelled by user') AS occupied_seats
-            FROM Flight f
+                (SELECT COUNT(*) FROM class c WHERE c.plane_id = f.plane_id) AS total_capacity,
+                (SELECT COUNT(*) 
+                    FROM seats_in_order sio 
+                    JOIN Orders o ON sio.code = o.code
+                    WHERE o.flight_id = f.flight_id AND o.status != 'cancelled by user') AS occupied_seats
+            FROM flight f
             WHERE f.status = 'completed'
         ) t;
     """)
@@ -1079,12 +1078,12 @@ def manager_reports():
         SELECT AVG(occupied_seats / NULLIF(total_capacity, 0)) * 100 AS avg_occupancy_percentage
         FROM (
             SELECT f.flight_id,
-                (SELECT COUNT(*) FROM Class c WHERE c.plane_id = f.plane_id) AS total_capacity,
+                (SELECT COUNT(*) FROM class c WHERE c.plane_id = f.plane_id) AS total_capacity,
                 (SELECT COUNT(*)
-                 FROM Seats_in_Order sio 
-                 JOIN Orders o ON sio.code = o.code
-                 WHERE o.flight_id = f.flight_id AND o.status != 'cancelled by user') AS occupied_seats
-            FROM Flight f
+                    FROM seats_in_order sio 
+                    JOIN orders o ON sio.code = o.code
+                    WHERE o.flight_id = f.flight_id AND o.status != 'cancelled by user') AS occupied_seats
+            FROM flight f
             WHERE f.status = 'completed'
         ) flight_occupancy;
     """)
@@ -1096,7 +1095,7 @@ def manager_reports():
         SELECT
             DATE_FORMAT(order_date, '%Y-%m') AS order_month,
             (SUM(CASE WHEN status = 'cancelled by user' THEN 1 ELSE 0 END) / COUNT(*)) AS cancellation_rate
-        FROM Orders
+        FROM orders
         GROUP BY DATE_FORMAT(order_date, '%Y-%m')
         ORDER BY order_month DESC
         LIMIT 12;
@@ -1108,8 +1107,8 @@ def manager_reports():
     try:
         cursor.execute("""
             SELECT origin_airport, destination_airport, COUNT(*) AS c
-            FROM Flight f
-            JOIN Orders o ON o.flight_id = f.flight_id
+            FROM flight f
+            JOIN orders o ON o.flight_id = f.flight_id
             GROUP BY origin_airport, destination_airport
             ORDER BY c DESC
             LIMIT 5;
