@@ -41,15 +41,21 @@
   </aside>
 
   <main class="main-wrapper">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="custom-flash-alert">
-            <i class="bi bi-check-circle-fill"></i> {{ message }}
-          </div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
+ {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="custom-flash-alert {{ category }}">
+        {% if category == 'success' %}
+          <i class="bi bi-check-circle-fill"></i>
+        {% else %}
+          <i class="bi bi-exclamation-octagon-fill"></i>
+        {% endif %}
+        {{ message }}
+        <button type="button" class="ms-auto border-0 bg-transparent" onclick="this.parentElement.style.display='none';" style="cursor:pointer;">&times;</button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
 
     <header class="top-header">
       <div class="page-heading">

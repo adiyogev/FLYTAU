@@ -4,16 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FLYTAU - כניסת מנהל</title>
-
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
-
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
-<body class="login-body">
-  <div class="login-section">
-    <div class="login-wrapper">
+<body class="manager-login-page">
+  <div class="panel">
+    <div class="wrapper">
       <div class="title-row">
         <img class="inline-logo" src="{{ url_for('static', filename='img/LOGO.png') }}" alt="FLYTAU" />
         <h1>כניסת מנהל</h1>
@@ -28,32 +26,32 @@
 
       <form method="POST" action="/login_manager">
         <div class="input-group">
-          <label class="label">תעודת זהות</label>
+          <label class="input-label">תעודת זהות</label>
           <div class="input-box">
             <i class="fas fa-id-badge"></i>
             <input type="text" name="manager_id" placeholder="תעודת זהות" required>
           </div>
         </div>
         <div class="input-group">
-          <label class="label">סיסמה</label>
+          <label class="input-label">סיסמה</label>
           <div class="input-box">
             <i class="fas fa-lock"></i>
             <input type="password" name="password" placeholder="••••••••" required>
           </div>
         </div>
 
-        <button type="submit" class="btn-submit-login">
+        <button type="submit" class="btn-manager-login">
           התחברות למערכת <i class="fas fa-arrow-left"></i>
         </button>
       </form>
 
-      <div class="links">
+      <div class="auth-footer-links">
         <a href="/">חזרה לדף הבית</a>
       </div>
     </div>
   </div>
 
-  <div class="image-section">
+  <div class="image-section" style="background-image: url('{{ url_for('static', filename='img/sunset_airplane.jpg') }}');">
     <div class="overlay"></div>
     <div class="promo-content">
       <div class="promo-tag">MANAGER PORTAL</div>

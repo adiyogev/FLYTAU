@@ -1,6 +1,11 @@
-
-__pycache__/
-*.pyc
-pythonProject/__pycache__/
+# Flask session files
+**/flask_session/*
 pythonProject/flask_session/
 
+# Python bytecode
+**/__pycache__/
+*.pyc
+
+# IDE files
+.idea/
+.vscode/

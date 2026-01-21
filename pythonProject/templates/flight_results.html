@@ -64,47 +64,22 @@
     </div>
 
     <div class="results-list">
-        {% if flights %}
-            {% for flight in flights %}
-            <div class="flight-card-modern">
-                <div class="card-header-row">
-                    <div class="flight-id-badge">{{ flight.flight_id }}</div>
-                    <div class="status-badge">פעילה</div>
-                </div>
-                <div class="card-body-grid">
-                    <div class="location-col">
-                        <span class="col-label">המראה</span>
-                        <div class="city-code">{{ flight.origin }}</div>
-                        <div class="flight-time">{{ flight.departure.strftime('%H:%M') }}</div>
-                        <div class="flight-date">{{ flight.departure.strftime('%d/%m/%Y') }}</div>
-                    </div>
-                    <div class="timeline-col">
-                        <div class="duration-text">{{ flight.duration }}</div>
-                        <div class="timeline-graphic">
-                            <div class="plane-icon"><i class="fas fa-plane"></i></div>
-                        </div>
-                        <div class="direct-label">טיסה ישירה</div>
-                    </div>
-                    <div class="location-col">
-                        <span class="col-label">נחיתה</span>
-                        <div class="city-code">{{ flight.destination }}</div>
-                        <div class="flight-time">{{ flight.arrival_time.strftime('%H:%M') if flight.arrival_time else '--:--' }}</div>
-                        <div class="flight-date">{{ flight.arrival_time.strftime('%d/%m/%Y') if flight.arrival_time else flight.departure.strftime('%d/%m/%Y') }}</div>
-                    </div>
-                </div>
-                <div class="card-footer-row">
-                    <div class="price-area">
-                        <span class="price-label">מחיר לנוסע</span>
-                        <div class="price-value">₪{{ flight.economy_seat_price }}</div>
-                    </div>
-                    <a href="/select_seats/{{ flight.flight_id }}" class="btn-select">
-                        בחירת מושבים <i class="fas fa-arrow-left"></i>
-                    </a>
-                </div>
-            </div>
+    {% if flights %}
+        {% for flight in flights %}
             {% endfor %}
-        {% endif %}
-    </div>
+    {% else %}
+        <div class="no-results-card">
+            <div class="no-results-icon">
+                <i class="fas fa-plane-slash"></i>
+            </div>
+            <h2>לא נמצאו טיסות מתאימות</h2>
+            <p>מצטערים, לא מצאנו טיסות בנתיב או בתאריך שבחרת. נסה לחפש בתאריך אחר.</p>
+            <a href="/" class="btn-search-again">
+                חיפוש חדש <i class="fas fa-search"></i>
+            </a>
+        </div>
+    {% endif %}
+</div>
 
     <footer>
         © 2026 FLYTAU - חברת התעופה שלכם. כל הזכויות שמורות.

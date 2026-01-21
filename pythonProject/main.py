@@ -932,6 +932,7 @@ def add_staff():
             current_manager = Manager(session['manager_id'], "", "", "", "", "", "", "", "")
             current_manager.add_staff_member(cursor, staff_data)
             mydb.commit()
+            flash("העובד התווסף בהצלחה!", "success")
             return redirect('/manager')
         except Exception as e:
             mydb.rollback()
@@ -1023,6 +1024,7 @@ def add_plane():
             cursor.executemany(query_seats, seats_data)
             # Commit only if all steps succeeded
             mydb.commit()
+            flash("המטוס התווסף בהצלחה!", "success")
             return redirect('/manager')
 
         except Exception as e:
