@@ -2875,3 +2875,10 @@ body.flight-steps-bg .btn-primary:hover {
 }
 
 .input-box.disabled { background-color: #f1f5f9; cursor: not-allowed; }
+
+/* ===============================
+   Dashboard scaling
+   =============================== */
+
+body.manager-dashboard .main-wrapper { zoom: 0.95; }
+body.manager-reports .main-wrapper { zoom: 0.92; }

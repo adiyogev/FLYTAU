@@ -1066,7 +1066,7 @@ def manager_reports():
                 (SELECT COUNT(*) FROM class c WHERE c.plane_id = f.plane_id) AS total_capacity,
                 (SELECT COUNT(*) 
                     FROM seats_in_order sio 
-                    JOIN Orders o ON sio.code = o.code
+                    JOIN orders o ON sio.code = o.code
                     WHERE o.flight_id = f.flight_id AND o.status != 'cancelled by user') AS occupied_seats
             FROM flight f
             WHERE f.status = 'completed'
