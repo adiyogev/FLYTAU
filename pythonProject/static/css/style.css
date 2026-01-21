@@ -781,7 +781,7 @@ body.results-page {
 .results-page .hero-banner {
     background-size: cover;
     background-position: center;
-    height: 320px;
+    height: 200px; /* צומצם מ-320px */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1054,6 +1054,59 @@ footer {
     background: var(--flytau-navy);
     border-top: none;
     font-weight: 500;
+}
+
+.no-results-card {
+    background: var(--bg-card);
+    border-radius: 20px;
+    padding: 40px 30px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    max-width: 600px;
+    margin: 0 auto 50px;
+    border: 1px solid var(--border);
+}
+
+.no-results-icon {
+    font-size: 50px;
+    color: #e2e8f0;
+    margin-bottom: 15px;
+}
+
+.no-results-card h2 {
+    color: var(--flytau-navy);
+    font-weight: 800;
+    margin-bottom: 16px;
+    font-size: 28px;
+    font-family: 'Heebo', sans-serif;
+}
+
+.no-results-card p {
+    color: var(--text-secondary);
+    font-size: 18px;
+    margin-bottom: 32px;
+    line-height: 1.6;
+    font-family: 'Heebo', sans-serif;
+}
+
+.btn-search-again {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--flytau-teal);
+    color: var(--white);
+    padding: 14px 32px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 700;
+    font-family: 'Heebo', sans-serif;
+    transition: 0.3s;
+}
+
+.btn-search-again:hover {
+    background: var(--flytau-navy);
+    transform: translateY(-2px);
+    color: var(--white);
 }
 
 /* ==========================================================================
@@ -1919,14 +1972,11 @@ body.manager-reports {
     font-family: 'Heebo', sans-serif;
     color: var(--flytau-navy);
     overflow-x: hidden;
-
     background-color: #C7E9F4;
-
     background-image:
         radial-gradient(circle at 20% 8%, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0) 45%),
         radial-gradient(circle at 80% 8%, rgba(255,255,255,0.65) 0%, rgba(255,255,255,0) 45%),
         linear-gradient(180deg, #B2E3F4 0%, #CDECF8 50%, #FFFFFF 100%);
-
     background-attachment: fixed;
     background-size: cover;
 }
@@ -1966,7 +2016,7 @@ body.manager-reports {
 }
 
 .brand-logo {
-    width: 85px; /* שיניתי ל-85px, את יכולה לשנות לכל מספר שתרצי */
+    width: 85px;
     height: auto;
 }
 
@@ -2034,39 +2084,39 @@ body.manager-reports {
     font-size: 14px;
 }
 
-.btn-back-custom {
-    font-family: 'Heebo', sans-serif;
-    font-weight: 700;
-    border-radius: 50px;
-    padding: 10px 24px;
-    border: 2px solid var(--flytau-blue);
-    color: var(--flytau-blue);
-    background: transparent;
-    transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-}
-
-.btn-back-custom:hover {
-    background: var(--flytau-blue);
-    color: #ffffff;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2);
-}
-
 .custom-flash-alert {
-    background: var(--success-bg);
-    color: var(--success-text);
     padding: 16px;
     border-radius: 12px;
     margin-bottom: 24px;
     display: flex;
     align-items: center;
     gap: 10px;
-    border: 1px solid #bbf7d0;
+    border: 1px solid transparent;
+    font-weight: 600;
     animation: fadeIn 0.5s ease-out;
+}
+
+.custom-flash-alert.success {
+    background: #d4edda;
+    color: #155724;
+    border-color: #c3e6cb;
+}
+
+.custom-flash-alert.warning {
+    background: #fff3cd;
+    color: #856404;
+    border-color: #ffeeba;
+}
+
+.custom-flash-alert.danger {
+    background: #f8d7da;
+    color: #721c24;
+    border-color: #f5c6cb;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .table-container {
@@ -2126,41 +2176,21 @@ body.manager-reports {
     font-size: 15px;
 }
 
-#flightsTable tr:last-child td {
-    border-bottom: none;
-}
-
 .status-pill {
-    padding: 6px 12px;
-    border-radius: 99px;
-    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 50px;
+    font-size: 13px;
     font-weight: 700;
     display: inline-block;
-    min-width: 80px;
     text-align: center;
+    min-width: 100px;
+    font-family: 'Heebo', sans-serif;
 }
 
-.st-active {
-    background: var(--success-bg);
-    color: var(--success-text);
-}
-
-.st-completed {
-    background: var(--flytau-navy);
-    color: #ffffff;
-    opacity: 0.8;
-}
-
-.st-cancelled {
-    background: var(--danger-bg);
-    color: #991b1b;
-}
-
-.st-full {
-    background: #fff7ed;
-    color: #9a3412;
-    border: 1px solid #fed7aa;
-}
+.st-active { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+.st-completed { background-color: #334155; color: #ffffff; border: 1px solid #1e293b; }
+.st-cancelled { background-color: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+.st-full { background-color: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; }
 
 .btn-icon {
     width: 36px;
@@ -2174,26 +2204,13 @@ body.manager-reports {
     cursor: pointer;
 }
 
-.btn-icon.danger {
-    color: var(--danger);
-}
-
-.btn-icon.danger:hover {
-    background: var(--danger-bg);
-}
+.btn-icon.danger { color: var(--danger); }
+.btn-icon.danger:hover { background: var(--danger-bg); }
 
 @media (max-width: 992px) {
-    .sidebar {
-        transform: translateX(100%);
-        box-shadow: -4px 0 24px rgba(0,0,0,0.1);
-    }
-    .sidebar.show {
-        transform: translateX(0);
-    }
-    .main-wrapper {
-        margin-right: 0;
-        padding: 20px;
-    }
+    .sidebar { transform: translateX(100%); }
+    .sidebar.show { transform: translateX(0); }
+    .main-wrapper { margin-right: 0; padding: 20px; }
 }
 
 /* ==========================================================================
@@ -2202,7 +2219,7 @@ body.manager-reports {
 
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 24px;
     margin-bottom: 30px;
 }
@@ -2256,7 +2273,7 @@ body.manager-reports {
 
 .charts-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    grid-template-columns: 1fr 1fr;
     gap: 24px;
     margin-bottom: 30px;
 }
@@ -2268,6 +2285,7 @@ body.manager-reports {
     padding: 24px;
     box-shadow: var(--shadow-sm);
     overflow: hidden;
+    height: 100%;
 }
 
 .chart-wrap {
@@ -2315,7 +2333,16 @@ body.manager-reports {
     margin-bottom: 16px;
 }
 
+@media (max-width: 1200px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 @media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
     .charts-grid {
         grid-template-columns: 1fr;
     }
@@ -2324,149 +2351,168 @@ body.manager-reports {
     }
 }
 
-
 /* ==========================================================================
    12. MANAGER LOGIN
    ========================================================================== */
-.login-body {
+body.manager-login-page {
     height: 100vh;
     display: flex;
     overflow: hidden;
-    background: var(--bg-card);
+    background: var(--white);
+    margin: 0;
 }
 
-.login-section {
+.manager-login-page .panel {
     flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     padding: 40px;
-    position: relative;
-    z-index: 2;
+    overflow-y: auto;
+    background: var(--white);
 }
 
-.login-wrapper {
+.manager-login-page .wrapper {
     width: 100%;
     max-width: 420px;
     animation: fadeIn 0.8s ease-out;
 }
 
-.title-row {
+.manager-login-page .title-row {
     display: flex;
+    flex-direction: column;
     align-items: center;
     gap: 15px;
-    margin-bottom: 10px;
+    margin-bottom: 25px;
+    width: 100%;
 }
 
-.inline-logo { height: 45px; width: auto; }
+.manager-login-page .inline-logo {
+    height: 80px;
+    width: auto;
+    display: block;
+    margin: 0 auto;
+    object-fit: contain;
+    flex-shrink: 0;
+}
 
-.login-wrapper h1 {
+.manager-login-page h1 {
     font-size: 32px;
     color: var(--flytau-navy);
     margin: 0;
     font-weight: 800;
-    letter-spacing: -0.5px;
 }
 
-.subtitle {
-    font-size: 16px;
+.manager-login-page .subtitle {
     color: var(--text-secondary);
+    text-align: center;
     margin-bottom: 35px;
-    font-weight: 400;
+    font-size: 16px;
 }
 
-.error-message {
-    background: #ffebee;
-    color: var(--danger);
-    padding: 12px 16px;
-    border-radius: 8px;
-    margin-bottom: 24px;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    border-right: 4px solid var(--danger);
+.manager-login-page .input-group {
+    margin-bottom: 20px;
 }
 
-.input-group { margin-bottom: 20px; }
-
-.label {
+.manager-login-page .input-label {
     display: block;
     margin-bottom: 8px;
-    font-weight: 500;
-    color: var(--flytau-navy);
+    font-weight: 700;
     font-size: 14px;
+    color: var(--flytau-navy);
 }
 
-.input-box {
+.manager-login-page .input-box {
     display: flex;
     align-items: center;
     background: var(--bg-input);
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 0 16px;
-    transition: all 0.3s ease;
+    transition: 0.3s;
+    height: 52px;
 }
 
-.input-box:focus-within {
-    border-color: var(--primary);
-    background: var(--bg-card);
-    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
+.manager-login-page .input-box:focus-within {
+    border-color: var(--flytau-teal);
+    background: var(--white);
+    box-shadow: 0 0 0 4px rgba(0, 129, 138, 0.1);
 }
 
-.input-box i {
+.manager-login-page .input-box i {
+    padding: 0 15px;
     color: var(--text-muted);
     font-size: 18px;
-    margin-left: 12px;
 }
 
-.input-box input {
+.manager-login-page .input-box input {
     border: none;
     background: transparent;
     width: 100%;
-    padding: 16px 0;
+    padding: 10px 0;
     outline: none;
+    font-family: 'Heebo', sans-serif;
     font-size: 16px;
     color: var(--text-main);
 }
 
-.btn-submit-login {
+.manager-login-page .btn-manager-login {
     width: 100%;
     background: var(--flytau-navy);
     color: var(--white);
     border: none;
-    padding: 16px;
+    padding: 18px;
     border-radius: 12px;
     font-size: 16px;
-    font-weight: 700;
+    font-weight: 800;
     cursor: pointer;
+    transition: 0.3s;
     margin-top: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    transition: all 0.3s ease;
+    gap: 12px;
 }
 
-.btn-submit-login:hover {
+.manager-login-page .btn-manager-login:hover {
     background: var(--flytau-teal);
     transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 10px 20px rgba(0, 27, 51, 0.15);
 }
 
-.links { margin-top: 24px; text-align: center; }
-.links a {
-    color: var(--text-secondary);
+.manager-login-page .error-message {
+    background: #fef2f2;
+    color: var(--danger);
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
     font-size: 14px;
-    font-weight: 500;
-    transition: color 0.3s;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid #fee2e2;
 }
-.links a:hover { color: var(--primary); }
 
-.image-section {
+.manager-login-page .auth-footer-links {
+    margin-top: 25px;
+    text-align: center;
+}
+
+.manager-login-page .auth-footer-links a {
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.manager-login-page .auth-footer-links a:hover {
+    color: var(--flytau-teal);
+    text-decoration: underline;
+}
+
+.manager-login-page .image-section {
     flex: 1.3;
-    background-image: url('../img/sunset_airplane.jpg');
     background-size: cover;
     background-position: center;
     position: relative;
@@ -2477,43 +2523,47 @@ body.manager-reports {
     color: var(--white);
 }
 
-.overlay {
+.manager-login-page .overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(to top, rgba(0, 27, 51, 0.95) 0%, rgba(0, 27, 51, 0.2) 100%);
+    background: linear-gradient(to top, rgba(0, 27, 51, 0.9) 0%, rgba(0, 27, 51, 0.2) 100%);
 }
 
-.promo-content { position: relative; z-index: 2; max-width: 600px; }
+.manager-login-page .promo-content {
+    position: relative;
+    z-index: 2;
+    max-width: 500px;
+}
 
-.promo-tag {
-    display: inline-block;
+.manager-login-page .promo-tag {
     background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(10px);
-    padding: 6px 12px;
+    padding: 6px 14px;
     border-radius: 6px;
-    font-size: 12px;
-    font-weight: 700;
-    margin-bottom: 20px;
-    letter-spacing: 1px;
-    border: 1px solid rgba(255,255,255,0.3);
-}
-
-.promo-title {
-    font-size: 48px;
     font-weight: 800;
-    line-height: 1.1;
+    display: inline-block;
     margin-bottom: 20px;
+    font-size: 13px;
+    backdrop-filter: blur(5px);
 }
 
-.promo-desc {
+.manager-login-page .promo-title {
+    font-size: 48px;
+    font-weight: 900;
+    margin-bottom: 15px;
+    line-height: 1.1;
+}
+
+.manager-login-page .promo-desc {
     font-size: 18px;
     opacity: 0.9;
-    font-weight: 300;
     line-height: 1.6;
 }
 
-@media (max-width: 900px) { .image-section { display: none; } }
-
+@media (max-width: 1024px) {
+    .manager-login-page .image-section {
+        display: none;
+    }
+}
 
 /* ==========================================================================
    13. UNIFIED ADD FORMS (Add Plane, Add Staff, Add Flight)
