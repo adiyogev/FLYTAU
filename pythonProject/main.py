@@ -529,8 +529,19 @@ def track_order():
     message = None
 
     if request.method == 'POST':
+        action = request.form.get('action')
         order_code = request.form.get('order_code', '').strip().upper()
         email = request.form.get('email', '').strip().lower()
+
+        # Cancel order
+        if action == 'cancel':
+            user = User(email, "", "", [])
+            success, msg = user.cancel_order(cursor, mydb, order_code)
+            if success:
+                flash(msg, "success")
+            else:
+                flash(msg, "error")
+            return redirect('/track_order')
 
         # Search for order in DB
         query = """

@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+
 <body class="track-order-page">
 
     <header>
@@ -28,16 +29,16 @@
 
     <div class="container" style="max-width: 500px; margin: 20px auto -10px; position: relative; z-index: 999;">
         {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="custom-flash-alert {{ category }}">
-                        {% if category == 'success' %}
-                            <i class="fas fa-check-circle"></i>
-                        {% endif %}
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="custom-flash-alert {{ category }}">
+                  {% if category == 'success' %}
+                      <i class="fas fa-check-circle"></i>
+                  {% endif %}
+                  {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
         {% endwith %}
     </div>
 
@@ -112,13 +113,19 @@
             </div>
 
             {% if order[1] == 'active' %}
-                <form action="/cancel_order/{{ order[0] }}" method="POST" onsubmit="return confirm('האם את בטוחה שברצונך לבטל את ההזמנה?');" style="margin:0;">
-                    <button type="submit" class="btn-cancel">
-                        <i class="fas fa-trash-alt"></i> ביטול הזמנה
-                    </button>
-                </form>
+            <form method="POST" style="margin:0;"
+                onsubmit="return confirm('האם את/ה בטוח/ה שברצונך לבטל את ההזמנה?');">
+                <input type="hidden" name="action" value="cancel">
+                <input type="hidden" name="order_code" value="{{ order[0] }}">
+                <input type="hidden" name="email" value="{{ request.form.email }}">
+                <button type="submit" class="btn-cancel">
+                    <i class="fas fa-trash-alt"></i> ביטול הזמנה
+                </button>
+            </form>
             {% endif %}
+
         </div>
+
     </div>
     {% endif %}
 
