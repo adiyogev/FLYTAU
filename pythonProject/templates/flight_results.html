@@ -37,7 +37,7 @@
         </div>
     </header>
 
-    <div class="hero-banner" style="background-image: linear-gradient(rgba(0, 27, 51, 0.4), rgba(0, 27, 51, 0.4)), url('{{ url_for('static', filename='img/RESULTSPIC.PNG') }}');">
+    <div class="hero-banner" style="background-image: linear-gradient(rgba(0, 27, 51, 0.4), rgba(0, 27, 51, 0.4)), url('{{ url_for('static', filename='img/RESULTSPIC.png') }}');">
         <h1>החופשה שלך מתחילה כאן</h1>
     </div>
 
@@ -63,11 +63,80 @@
         </div>
     </div>
 
-    <div class="results-list">
-    {% if flights %}
-        {% for flight in flights %}
+      <div class="results-list">
+        {% if flights %}
+            {% for flight in flights %}
+            <div class="flight-card-modern">
+
+                <div class="card-header-row">
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <div class="flight-id-badge">
+                            {{ flight.flight_id }}
+                        </div>
+                        <div class="status-badge status-active">
+                            פעילה
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body-grid">
+
+                    <div class="location-col">
+                        <div style="color: #64748b; font-size: 12px; font-weight: 700; margin-bottom: 5px;">המראה</div>
+                        <div class="city-code">{{ flight.origin }}</div>
+                        <div class="flight-date">
+                            <span>{{ flight.departure.strftime('%d-%m-%Y') }}</span>
+                            <i class="far fa-calendar"></i>
+                        </div>
+                        <div class="flight-time-big">
+                            <span>{{ flight.departure.strftime('%H:%M') }}</span>
+                            <i class="far fa-clock"></i>
+                        </div>
+                    </div>
+
+                    <div class="timeline-col">
+                        <div style="color: #64748b; font-size: 12px; font-weight: 700; margin-bottom: 5px;">משך טיסה</div>
+                        <div class="duration-text" dir="ltr">{{ flight.duration }}</div>
+                        <div class="timeline-graphic"></div>
+                        <div class="direct-label">טיסה ישירה</div>
+                    </div>
+
+                    <div class="location-col">
+                        <div style="color: #64748b; font-size: 12px; font-weight: 700; margin-bottom: 5px;">נחיתה</div>
+                        <div class="city-code">{{ flight.destination }}</div>
+                        <div class="flight-date">
+                            <span>{{ flight.arrival_time.strftime('%d-%m-%Y') if flight.arrival_time else flight.departure.strftime('%d-%m-%Y') }}</span>
+                            <i class="far fa-calendar"></i>
+                        </div>
+                        <div class="flight-time-big">
+                            <span>{{ flight.arrival_time.strftime('%H:%M') if flight.arrival_time else '--:--' }}</span>
+                            <i class="far fa-clock"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-footer-row">
+                    <div style="display: flex; align-items: center; gap: 20px; width: 100%; justify-content: flex-end;">
+                        <div class="price-area">
+                            <span class="price-label">מחיר לנוסע:</span>
+                            <span class="price-value">₪{{ flight.economy_seat_price }}</span>
+                        </div>
+
+                        {% if flight.available_seats > 0 %}
+                        <a href="/select_seats/{{ flight.flight_id }}" class="btn-select">
+                             המשך לבחירה <i class="fas fa-arrow-left"></i>
+                        </a>
+                        {% else %}
+                        <button class="btn-select disabled" disabled>אזל המלאי</button>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
             {% endfor %}
-    {% else %}
+
+        {% else %}
+
         <div class="no-results-card">
             <div class="no-results-icon">
                 <i class="fas fa-plane-slash"></i>
