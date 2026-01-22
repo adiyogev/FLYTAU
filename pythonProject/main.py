@@ -549,6 +549,7 @@ def track_order():
                                 plane_id=None, business_seat_price=0, economy_seat_price=0)
             order_list.append(temp_flight.arrival_time)
             order_data = order_list
+            flash("נמצאה הזמנה פעילה והיא מופיעה למטה:", "success")
 
         else:
             message = "לא נמצאה הזמנה פעילה עבור פרטים אלו. וודאו שהקוד והמייל נכונים ושהטיסה שחיפשתם פעילה."
@@ -691,7 +692,7 @@ def manager_flights():
                     cursor.execute("""UPDATE orders SET total_price = 0, status = 'cancelled by system'
                         WHERE flight_id = %s AND status = 'active'""", (flight_id,))
                     mydb.commit()
-                    flash("הטיסה בוטלה בהצלחה.", "success")
+                    flash
                 except Exception as e:
                     mydb.rollback()
                     flash(f"Error: {e}", "danger")

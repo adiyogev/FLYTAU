@@ -26,6 +26,21 @@
         <h1>איתור הזמנה</h1>
     </div>
 
+    <div class="container" style="max-width: 500px; margin: 20px auto -10px; position: relative; z-index: 999;">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="custom-flash-alert {{ category }}">
+                        {% if category == 'success' %}
+                            <i class="fas fa-check-circle"></i>
+                        {% endif %}
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
     <div class="search-card">
         {% if message %}
             <p class="error-msg-box">
