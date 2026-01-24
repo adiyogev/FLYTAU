@@ -107,10 +107,12 @@
                 <tr>
                   <td class="font-monospace text-muted">#{{ flight.flight_id }}</td>
 
-                  <td>
-                    <strong>{{ flight.origin }}</strong>
-                    <i class="bi bi-arrow-left mx-1 text-muted"></i>
-                    <strong>{{ flight.destination }}</strong>
+                  <td class="route-td">
+                    <span class="route-pill" dir="ltr">
+                      <strong>{{ flight.origin }}</strong>
+                      <span class="route-arrow">→</span>
+                      <strong>{{ flight.destination }}</strong>
+                    </span>
                   </td>
 
                   <td>
@@ -119,7 +121,7 @@
                     </span>
                   </td>
 
-                  <td dir="ltr">
+                  <td dir="ltr" style="text-align: right;">
                     {{ flight.departure.strftime('%d/%m/%Y %H:%M') if flight.departure else '-' }}
                   </td>
 
