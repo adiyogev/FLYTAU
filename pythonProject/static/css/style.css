@@ -1735,7 +1735,8 @@ body.my-orders-page {
     padding: 5px 12px; border-radius: 20px; font-size: 13px; font-weight: 800;
 }
 .status-active { background: #dcfce7; color: #166534; }
-.status-cancelled { background: #fee2e2; color: #991b1b; }
+.status-cancelled-by-user { background: #fee2e2; color: #991b1b; }
+.status-cancelled-by-system { background: #fee2e2; color: #991b1b; }
 .status-completed { background: #e2e8f0; color: #475569; }
 
 .card-body-grid {

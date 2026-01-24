@@ -47,12 +47,16 @@
             <a href="{{ url_for('my_orders', status='active') }}"
                class="filter-tab {% if current_filter == 'active' %}active{% endif %}">פעילות</a>
 
-            <a href="{{ url_for('my_orders', status='cancelled') }}"
-               class="filter-tab {% if current_filter == 'cancelled' %}active{% endif %}">מבוטלות</a>
-
             <a href="{{ url_for('my_orders', status='completed') }}"
                class="filter-tab {% if current_filter == 'completed' %}active{% endif %}">הושלמו</a>
+
+            <a href="{{ url_for('my_orders', status='cancelled by user') }}"
+               class="filter-tab {% if current_filter == 'cancelled by user' %}active{% endif %}">ביטול לקוח</a>
+
+            <a href="{{ url_for('my_orders', status='cancelled by system') }}"
+               class="filter-tab {% if current_filter == 'cancelled by system' %}active{% endif %}">ביטול מערכת</a>
         </div>
+
 
         {% if orders %}
             {% for order in orders %}
@@ -69,7 +73,8 @@
                     {% set status_class = 'status-' + order.status.replace(' ', '-').lower() %}
                     <div class="status-badge {{ status_class }}">
                         {% if order.status == 'active' %}פעילה
-                        {% elif 'cancelled' in order.status.lower() %}בוטלה
+                        {% elif order.status == 'cancelled by user' %}בוטלה ע"י לקוח
+                        {% elif order.status == 'cancelled by system' %}בוטלה ע"י מערכת
                         {% elif order.status == 'completed' %}הושלמה
                         {% else %}{{ order.status }}{% endif %}
                     </div>

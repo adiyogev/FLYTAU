@@ -481,10 +481,13 @@ def my_orders():
             """
     params = [email]
 
-    # all orders + status filter option
-    if status_filter == 'cancelled':
-        query += " AND o.status LIKE 'cancelled%'"
-    elif status_filter != 'all':
+    # all orders + status filter option (with separation between user/system cancellations)
+    allowed_statuses = {'all', 'active', 'completed', 'cancelled by user', 'cancelled by system'}
+
+    if status_filter not in allowed_statuses:
+        status_filter = 'all'
+
+    if status_filter != 'all':
         query += " AND o.status = %s"
         params.append(status_filter)
 
