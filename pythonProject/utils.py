@@ -235,6 +235,29 @@ def get_crew_requirements(plane_size):
     else:
         return 2,3
 
+
+def is_flight_possible(origin, is_long, cursor):
+    """check if flight is possible in terms of resources"""
+    planes = get_available_resources('plane', 'plane_id', origin, is_long, cursor)
+    pilots = get_available_resources('pilot', 'pilot_id', origin, is_long, cursor)
+    fas = get_available_resources('flight_attendant', 'fa_id', origin, is_long, cursor)
+
+    if is_long: plane_size = 'large'
+    else: plane_size = 'small'
+    min_pilots, min_fas = get_crew_requirements(plane_size)
+
+    missing = []
+    if not planes:
+        missing.append("מטוסים")
+    if len(pilots) < min_pilots:
+        missing.append(f"טייסים (דרוש לפחות {min_pilots})")
+    if len(fas) < min_fas:
+        missing.append(f"דיילים (דרוש לפחות {min_fas})")
+
+    return missing
+
+
+
 def get_available_resources(table, id_col, origin, is_long, cursor):
     """
     finding available planes and employees:

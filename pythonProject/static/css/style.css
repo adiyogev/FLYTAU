@@ -2876,6 +2876,22 @@ body.flight-steps-bg .btn-primary:hover {
 
 .input-box.disabled { background-color: #f1f5f9; cursor: not-allowed; }
 
+.add-flight-step1 .error-message,
+.flight-steps-bg .error-message {
+    background: #fef2f2;
+    color: var(--danger);
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid #fee2e2;
+    animation: slideDown 0.4s ease-out;
+}
+
 /* ===============================
    Dashboard scaling
    =============================== */

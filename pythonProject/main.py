@@ -812,6 +812,13 @@ def add_flight_step1():
         minutes = (total_seconds % 3600) // 60
         duration_str = f"{hours:02d}:{minutes:02d}"
 
+        # check flight possibility
+        missing_resources = is_flight_possible(origin, route_data[1], cursor)
+        if missing_resources:
+            resources_str = " ו-".join(missing_resources)
+            message = f"שגיאה: אין מספיק משאבים לטיסה זו {origin}. חסרים: {resources_str}."
+            return render_template('add_flight_s1.html', message=message)
+
         session['temp_flight'] = {'flight_id': flight_id, 'origin': origin, 'destination': destination, 'departure': departure, 'duration': duration_str, 'is_long': route_data[1]}
         return redirect('/manager/add_flight/step2')
 
