@@ -26,8 +26,9 @@
             <p class="subtitle">ממלאים פרטים פעם אחת — וממשיכים להזמין מהר יותר.</p>
 
             {% if message %}
-            <div class="notice {% if 'Already' not in message and 'אימייל' not in message %}ok{% endif %}" role="alert">
-                <i class="fas {% if 'Already' not in message and 'אימייל' not in message %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
+            <div class="notice {% if 'כבר קיים' not in message and 'אימייל' not in message %}ok{% endif %}"
+                 role="alert"
+                 style="display: block;"> <i class="fas {% if 'כבר קיים' not in message and 'אימייל' not in message %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
                 {{ message }}
             </div>
             {% else %}
@@ -164,6 +165,7 @@
             const passOk = pass.length >= 8;
 
             const allOk = first && last && passportOk && dob && emailOk && passOk && isPhoneValid;
+            if (allOk) { $("notice").style.display = "none"; }
             const btn = $("submitBtn");
             btn.disabled = !allOk;
             btn.style.opacity = allOk ? "1" : "0.6";

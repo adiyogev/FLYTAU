@@ -649,7 +649,7 @@ def register():
         cursor.execute("SELECT customer_email FROM customer WHERE customer_email = %s",
                        (customer_email,))  # We won't allow the same email to have 2 different accounts
         if cursor.fetchone():
-            return render_template('register.html', message="User Already Exists")
+            return render_template('register.html', message="משתמש עם מייל זה כבר קיים במערכת. אנא התחבר/י או בחר/י מייל אחר.")
         cursor.execute(
             "INSERT INTO customer(customer_email, first_name, last_name, passport, birth_date, password, reg_date) VALUES(%s, %s, %s, %s, %s, %s, %s)",
             (customer_email, first_name, last_name, passport, birth_date, password, reg_date))
