@@ -1083,23 +1083,16 @@ def manager_reports():
     cursor.execute("SELECT COUNT(*) FROM orders WHERE status = 'cancelled by user'")
     cancelled_orders = cursor.fetchone()[0] or 0
 
-    # Occupancy
+    # Active flights (future flights that are not completed/cancelled)
     cursor.execute("""
-        SELECT 
-            ROUND(SUM(occupied_seats) / NULLIF(SUM(total_capacity), 0) * 100, 2) AS avg_total_occupancy
-        FROM (
-            SELECT f.flight_id,
-                (SELECT COUNT(*) FROM class c WHERE c.plane_id = f.plane_id) AS total_capacity,
-                (SELECT COUNT(*) 
-                    FROM seats_in_order sio 
-                    JOIN orders o ON sio.code = o.code
-                    WHERE o.flight_id = f.flight_id AND o.status != 'cancelled by user') AS occupied_seats
-            FROM flight f
-            WHERE f.status = 'completed'
-        ) t;
+        SELECT COUNT(*)
+        FROM flight
+        WHERE departure > NOW()
+            AND status NOT IN ('completed', 'cancelled by user', 'cancelled by system')
+
     """)
-    avg_total_occupancy = cursor.fetchone()[0]
-    avg_total_occupancy = float(avg_total_occupancy) if avg_total_occupancy is not None else 0
+    active_flights = cursor.fetchone()[0] or 0
+
 
     # Average occupancy rate
     cursor.execute("""
@@ -1158,7 +1151,7 @@ def manager_reports():
         total_orders=total_orders,
         total_revenue=total_revenue,
         cancelled_orders=cancelled_orders,
-        avg_total_occupancy=avg_total_occupancy,
+        active_flights=active_flights,
         avg_occupancy=avg_occupancy,
         cancellation_by_month=cancellation_by_month,
         top_routes=top_routes

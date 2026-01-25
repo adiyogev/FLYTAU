@@ -49,29 +49,29 @@
 
     <section class="stats-grid">
       <div class="kpi-box">
-        <div class="kpi-label">סה״כ הזמנות</div>
+        <div class="kpi-label">מספר הזמנות כולל</div>
         <div class="kpi-value">{{ total_orders }}</div>
       </div>
 
       <div class="kpi-box">
-        <div class="kpi-label">הכנסות</div>
+        <div class="kpi-label">הכנסות מצטברות</div>
         <div class="kpi-value">₪{{ total_revenue }}</div>
       </div>
 
       <div class="kpi-box">
-        <div class="kpi-label">ביטולים</div>
+        <div class="kpi-label">כמות ביטולים</div>
         <div class="kpi-value">{{ cancelled_orders }}</div>
       </div>
 
       <div class="kpi-box">
-        <div class="kpi-label">תפוסה ממוצעת בטיסות</div>
-        <div class="kpi-value">{{ "%.1f"|format(avg_total_occupancy) }}%</div>
+        <div class="kpi-label">מספר טיסות פעילות</div>
+        <div class="kpi-value">{{ active_flights }}</div>
       </div>
     </section>
 
     <section class="charts-grid">
       <div class="surface chart-wrap">
-        <div class="chart-title">שיעור ביטולים חודשי</div>
+        <div class="chart-title">אחוז ביטולים חודשי</div>
         <div class="chart-subtitle">(12 חודשים אחרונים)</div>
         <div class="chart-area">
           <img class="chart-img" src="{{ url_for('static', filename='reports/cancellation_rate.png') }}?v={{ total_orders }}" alt="Monthly Cancellation Rate">
@@ -79,7 +79,7 @@
       </div>
 
       <div class="surface chart-wrap">
-        <div class="chart-title">תפוסה ממוצעת</div>
+        <div class="chart-title">תפוסה ממוצעת בטיסות</div>
         <div class="chart-area">
           <img class="chart-img" src="{{ url_for('static', filename='reports/avg_occupancy.png') }}?v={{ total_orders }}" alt="Average Occupancy">
         </div>
@@ -88,7 +88,7 @@
 
     <section class="surface">
       <div class="card-head">
-        <div class="fw-bold text-dark">חמשת הנתיבים הדומיננטיים ביותר</div>
+        <div class="fw-bold text-dark">חמשת קווי הטיסה הפופולריים ביותר</div>
       </div>
       <div class="table-responsive">
         <table class="table mb-0">
