@@ -80,8 +80,8 @@
                     <label class="label">מספר שורות</label>
                     <div class="input-box">
                         <i class="fas fa-list-ol"></i>
-                        <input type="number" name="biz_rows" id="bizRows" min="1" placeholder="למשל: 4"
-                               value="{{ prev_data.biz_rows if prev_data else '' }}">
+                        <input type="number" name="biz_rows" id="bizRows" min="1" max="50" placeholder="למשל: 4"
+                               value="{{ prev_data.biz_rows if prev_data else '' }}" oninput="checkTotalRows()">
                     </div>
                 </div>
 
@@ -108,8 +108,8 @@
                 <label class="label">מספר שורות</label>
                 <div class="input-box">
                     <i class="fas fa-list-ol"></i>
-                    <input type="number" name="eco_rows" required min="1" placeholder="למשל: 30"
-                           value="{{ prev_data.eco_rows if prev_data else '' }}">
+                    <input type="number" name="eco_rows" id="ecoRows" required min="1" max="50" placeholder="למשל: 30"
+                          value="{{ prev_data.eco_rows if prev_data else '' }}" oninput="checkTotalRows()">
                 </div>
             </div>
 
@@ -160,6 +160,26 @@
         const today = new Date().toISOString().split('T')[0];
         dateInput.setAttribute('max', today);
     });
+
+    function checkTotalRows() {
+        const ecoInput = document.getElementById('ecoRows');
+        const bizInput = document.getElementById('bizRows');
+
+        const eco = parseInt(ecoInput.value) || 0;
+        const biz = parseInt(bizInput.value) || 0;
+
+        if ((eco + biz) > 50) {
+            alert("שים לב: סך כל השורות במטוס (עסקים + תיירים) לא יכול לעלות על 50");
+
+            if (document.activeElement === ecoInput) {
+                ecoInput.value = 50 - biz;
+            }
+
+            else if (document.activeElement === bizInput) {
+                bizInput.value = 50 - eco;
+            }
+        }
+    }
 </script>
 
 </body>

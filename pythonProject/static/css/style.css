@@ -1088,56 +1088,68 @@ footer {
 /* ==========================================================================
    5. SELECT SEATS
    ========================================================================== */
-
 body.seats-page {
     font-family: 'Heebo', sans-serif;
     color: var(--text-main);
-    background-color: #ffffff;
-    background-image: linear-gradient(to bottom, #f8fafc 0%, #f8fafc 70%, #ffffff 100%);
-    background-repeat: no-repeat;
-    background-attachment: scroll;
+    background-color: #f8fafc;
+    background-attachment: fixed;
     overflow-x: hidden;
     min-height: 100vh;
-    padding-bottom: 20px;
 }
 
 .seats-page header {
     background: rgba(255,255,255,0.95);
     backdrop-filter: blur(10px);
     height: 70px;
-    display: flex; justify-content: space-between; align-items: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     padding: 0 40px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-    position: sticky; top: 0; z-index: 1000;
+    position: sticky;
+    top: 0;
+    z-index: 2000;
     border-top: 4px solid var(--flytau-teal);
 }
 
 .seats-page .logo img { height: 45px; width: auto; }
 
 .seats-page .flight-route {
-    display: flex; align-items: center; gap: 12px;
-    font-weight: 800; font-size: 18px; color: var(--flytau-navy);
-    background: #f1f5f9; padding: 8px 16px; border-radius: 50px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 800;
+    font-size: 18px;
+    color: var(--flytau-navy);
+    background: #f1f5f9;
+    padding: 8px 16px;
+    border-radius: 50px;
 }
+
 .seats-page .flight-route i { color: var(--flytau-teal); transform: rotate(180deg); }
 .seats-page .flight-tag { background: var(--flytau-navy); padding: 2px 8px; border-radius: 6px; font-size: 12px; color: white; margin-right: 8px; }
 
 .seats-page .plane-container {
     position: relative;
     width: 100%;
-    height: 2150px;
-    margin-top: 20px;
-    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    margin-top: 0;
+    overflow: visible;
+    height: auto;
+    min-height: 2500px;
 }
 
 .seats-page .plane-svg-wrapper {
     position: absolute;
-    top: 0;
+    top: 40px;
     left: 50%;
     width: 4200px;
     height: 100%;
     transform: translateX(-50%);
     z-index: 1;
+    pointer-events: none;
 }
 
 .seats-page .plane-body-svg {
@@ -1148,53 +1160,97 @@ body.seats-page {
 }
 
 .seats-page .cabin-layout {
-    position: absolute;
-    top: 250px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 380px;
+    position: relative;
     z-index: 10;
-    display: flex; flex-direction: column; gap: 40px;
+    width: 310px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+    padding-top: 290px;
+    padding-bottom: 600px;
+    min-height: 2500px;
 }
 
-.seats-page .class-section { padding: 10px; position: relative; }
+.seats-page .class-section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0;
+    position: relative;
+    gap: 15px;
+}
 
 .seats-page .section-header {
-    text-align: center; font-size: 16px; font-weight: 800;
-    text-transform: uppercase; letter-spacing: 1px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     margin-bottom: 25px;
-    background: white; padding: 8px 30px; border-radius: 30px;
+    background: white;
+    padding: 8px 30px;
+    border-radius: 30px;
     display: inline-block;
-    position: relative; left: 50%; transform: translateX(-50%);
     box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    position: relative;
 }
+
 .seats-page .header-biz { color: var(--flytau-navy); border: 2px solid var(--flytau-navy); }
 .seats-page .header-eco { color: var(--flytau-teal); border: 2px solid var(--flytau-teal); }
 
-.seats-page .seat-row {
-    display: flex; justify-content: center; align-items: center;
-    margin-bottom: 16px; width: 100%;
+.seats-page .exit-row {
+    width: 80%;
+    text-align: center;
+    margin: 20px auto;
+    border-bottom: 2px dashed #cbd5e1;
+    height: 1px;
+    font-size: 0;
+    line-height: 0;
 }
 
-.seats-page .seat-group { display: flex; gap: 10px; }
+.seats-page .cabin-layout > .exit-row:first-child {
+    display: none;
+}
+
+.seats-page .seat-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    gap: 10px !important;
+}
+
+.seats-page .seat-group {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
 
 .seats-page .seat {
-    width: 46px; height: 56px;
-    border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
+    width: 36px;
+    height: 40px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: all 0.2s ease;
     position: relative;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.seats-page .seat:hover:not(.occupied) { transform: translateY(-4px); box-shadow: 0 8px 15px rgba(0,0,0,0.15); }
-.seats-page .seat i { font-size: 20px; pointer-events: none; }
+.seats-page .seat i {
+    font-size: 17px;
+    pointer-events: none;
+}
 
 .seats-page .seat.biz {
     background-color: var(--seat-biz-bg);
     color: var(--seat-biz-text);
-    border-bottom: 4px solid var(--seat-biz-border);
+    border-bottom: 3px solid var(--seat-biz-border);
 }
 
 .seats-page .seat.eco {
@@ -1215,101 +1271,144 @@ body.seats-page {
     background-color: #00818a !important;
     color: white !important;
     border-bottom-color: #006b72 !important;
-    transform: scale(1.15);
+    transform: scale(1.1);
     z-index: 5;
-    box-shadow: 0 0 10px rgba(0, 129, 138, 0.6);
 }
 
 .seats-page .row-number {
-    font-size: 16px; font-weight: 700; color: #64748b;
-    width: 40px; text-align: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: #64748b;
+    width: 30px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
-
-.seats-page .exit-row {
-    width: 100%; text-align: center; margin: 40px 0;
-    color: #ef4444; font-size: 12px; font-weight: 800; text-transform: uppercase;
-    letter-spacing: 2px; border-bottom: 1px dashed #fecaca; line-height: 0.1em;
-}
-.seats-page .exit-row span { background: #fdfdfd; padding: 0 15px; }
 
 .seats-page .legend-panel {
-    position: fixed; top: 100px; left: 30px;
-    background: white; padding: 25px; border-radius: 20px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.08); z-index: 100;
+    position: fixed;
+    top: 100px;
+    left: 30px;
+    background: white;
+    padding: 20px;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+    z-index: 1500;
     border: 1px solid #f1f5f9;
 }
+
 .seats-page .legend-title { font-weight: 800; font-size: 15px; margin-bottom: 15px; color: var(--flytau-navy); border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;}
 .seats-page .legend-item { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; font-size: 14px; font-weight: 500; color: var(--text-muted); }
 
 .seats-page .legend-dot {
-    width: 20px; height: 20px;
+    width: 18px;
+    height: 18px;
     border-radius: 4px;
     display: inline-block;
     border: 1px solid rgba(0,0,0,0.1);
 }
 
-.seats-page .dot-biz { background: var(--seat-biz-bg); border-bottom: 4px solid var(--seat-biz-border); }
+.seats-page .dot-biz { background: var(--seat-biz-bg); border-bottom: 3px solid var(--seat-biz-border); }
 .seats-page .dot-eco { background: var(--seat-eco-bg); border-bottom: 3px solid var(--seat-eco-border); }
 .seats-page .dot-occupied { background: #cbd5e1 !important; }
 .seats-page .dot-selected { background: #00818a !important; border-bottom: 3px solid #006b72; }
 
 .seats-page .price-panel {
-    position: fixed; bottom: 30px; right: 30px;
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
     background: #f0f9ff;
     padding: 20px;
     border-radius: 20px;
     box-shadow: 0 10px 30px rgba(0, 27, 51, 0.15);
     border: 1px solid #bae6fd;
-    width: 320px; z-index: 100;
-    max-height: 80vh;
-    display: flex; flex-direction: column;
+    width: 320px;
+    z-index: 1500;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
 }
 
 .seats-page .price-title { font-size: 20px; font-weight: 900; color: var(--flytau-navy); margin-bottom: 5px; }
 .seats-page .passengers-info { font-size: 14px; color: #64748b; margin-bottom: 20px; font-weight: 600; }
 
 .seats-page .seat-summary-list {
-    flex-grow: 1; overflow-y: auto; margin-bottom: 15px;
-    padding-right: 5px; max-height: 250px;
+    flex-grow: 1;
+    overflow-y: auto;
+    margin-bottom: 15px;
+    padding-right: 5px;
+    max-height: 200px;
 }
 
 .seats-page .summary-item {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 12px; margin-bottom: 8px;
-    background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 8px;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
 }
+
 .seats-page .summary-seat-code {
-    font-weight: 900; font-size: 16px; color: var(--flytau-navy);
-    background: #e2e8f0; padding: 4px 10px; border-radius: 8px;
+    font-weight: 900;
+    font-size: 14px;
+    color: var(--flytau-navy);
+    background: #e2e8f0;
+    padding: 4px 8px;
+    border-radius: 6px;
 }
-.seats-page .summary-seat-type { font-size: 14px; color: #64748b; font-weight: 600; }
-.seats-page .summary-seat-price { font-weight: 800; color: var(--flytau-teal); font-size: 16px; }
+
+.seats-page .summary-seat-type { font-size: 13px; color: #64748b; font-weight: 600; }
+.seats-page .summary-seat-price { font-weight: 800; color: var(--flytau-teal); font-size: 14px; }
 
 .seats-page .total-row {
-    display: flex; justify-content: space-between; align-items: center;
-    padding-top: 15px; border-top: 2px solid #f1f5f9; margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 15px;
+    border-top: 2px solid #f1f5f9;
+    margin-top: auto;
 }
-.seats-page .total-amount { font-size: 32px; font-weight: 900; color: var(--flytau-navy); }
+
+.seats-page .total-amount { font-size: 28px; font-weight: 900; color: var(--flytau-navy); }
 
 .seats-page .btn-checkout {
-    background: var(--flytau-navy); color: white; width: 100%; border: none;
-    padding: 15px; border-radius: 14px; font-size: 18px; font-weight: 800;
-    margin-top: 15px; cursor: pointer; transition: 0.2s;
-    display: flex; align-items: center; justify-content: center; gap: 10px;
-    box-shadow: 0 10px 20px rgba(0, 27, 51, 0.1);
+    background: var(--flytau-navy);
+    color: white;
+    width: 100%;
+    border: none;
+    padding: 15px;
+    border-radius: 14px;
+    font-size: 18px;
+    font-weight: 800;
+    margin-top: 15px;
+    cursor: pointer;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
 }
+
 .seats-page .btn-checkout:hover:not(:disabled) { background: var(--flytau-teal); transform: translateY(-2px); }
 .seats-page .btn-checkout:disabled { background: #cbd5e1; cursor: not-allowed; box-shadow: none; }
 
 @media (max-width: 1000px) {
     .seats-page .legend-panel { display: none; }
     .seats-page .price-panel {
-        width: 100%; left: 0; right: 0; bottom: 0;
-        border-radius: 24px 24px 0 0; padding: 20px;
-        border: none; border-top: 4px solid var(--flytau-navy);
-        max-height: 60vh;
+        width: 100%;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-radius: 24px 24px 0 0;
+        padding: 20px;
+        border: none;
+        border-top: 4px solid var(--flytau-navy);
+        max-height: 50vh;
     }
-    .seats-page .seat-summary-list { max-height: 150px; }
     body.seats-page { padding-bottom: 160px; }
 }
 

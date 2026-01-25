@@ -1009,6 +1009,10 @@ def add_plane():
                 return render_template('add_plane.html',
                                        error="מספר שורות עסקים חייב להיות מספר תקין",
                                        prev_data=request.form)
+        if (eco_rows + biz_rows) > 50:
+            return render_template('add_plane.html',
+                                   error="שגיאה: סך השורות במטוס (עסקים + תיירים) לא יכול לעלות על 50",
+                                   prev_data=request.form)
 
         try:
             cursor = mydb.cursor()
